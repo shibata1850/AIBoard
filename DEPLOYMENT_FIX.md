@@ -16,31 +16,27 @@
    ```
 
 2. **Vercel設定の更新**
-   - 問題: vercel.jsonの設定が不十分でした。
-   - 修正: より詳細な公開アクセス設定を追加しました。
+   - 問題: vercel.jsonの設定に複数の問題がありました。
+   - 修正1: `headers`と`routes`の競合を解決するため、headersをroutesの中に移動しました。
    ```json
-   {
-     "version": 2,
-     "public": true,
-     "buildCommand": "npm run build",
-     "outputDirectory": "dist",
-     "installCommand": "npm install --legacy-peer-deps",
-     "framework": null,
-     "rewrites": [
-       { "source": "/(.*)", "destination": "/index.html" }
-     ],
-     "github": {
-       "silent": true,
-       "autoAlias": true
-     },
-     "headers": [...],
-     "functions": {...},
-     "routes": [...],
-     "env": {
-       "VERCEL_PROJECT_PROTECTION": "false"
+   "routes": [
+     { "handle": "filesystem" },
+     { "src": "/api/(.*)", "dest": "/server/api/$1" },
+     { 
+       "src": "/(.*)", 
+       "dest": "/index.html",
+       "headers": {
+         "Access-Control-Allow-Origin": "*",
+         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+         "Access-Control-Allow-Headers": "X-Requested-With, Content-Type, Accept"
+       }
      }
-   }
+   ]
    ```
+   
+   - 修正2: 存在しないサーバーレス関数を参照していた`functions`セクションを削除しました。
+   
+   - 修正3: APIルートを実際のディレクトリ構造（`server/api`）に合わせて更新しました。
 
 ## デプロイ方法
 
@@ -68,7 +64,7 @@
 
 3. Vercelにデプロイします：
    ```bash
-   npx vercel --prod
+   npx vercel --token "$VERCEL_TOKEN" --prod
    ```
 
 ## 注意事項
@@ -85,4 +81,12 @@
 
 修正したビルドスクリプトにより、Expoプロジェクトが正しくWebアプリケーションとしてビルドされるようになりました。以前のスクリプトでは、Webビルド用の正しいコマンドが使用されていなかったため、デプロイ時に500エラー（FUNCTION_INVOCATION_FAILED）が発生していました。
 
-また、vercel.jsonファイルの設定を更新し、より詳細な公開アクセス設定を追加しました。これにより、アプリケーションが正しくデプロイされ、公開アクセスが可能になります。
+また、vercel.jsonファイルの設定を更新し、以下の問題を修正しました：
+
+1. `headers`と`routes`の競合：Vercelの設定では、これらのプロパティが競合する可能性があります。この問題を解決するために、headersをroutesの中に移動しました。
+
+2. 存在しないサーバーレス関数：`functions`セクションが`api/**/*.js`パターンを参照していましたが、このパターンに一致するファイルが存在しませんでした。このセクションを削除しました。
+
+3. APIルートの不一致：APIルートが`/api/(.*)`から`/api/$1`にマッピングされていましたが、実際のAPIファイルは`server/api`ディレクトリにありました。ルートを更新して正しいディレクトリを指すようにしました。
+
+これらの修正により、アプリケーションが正しくデプロイされ、公開アクセスが可能になります。
