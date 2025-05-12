@@ -3,13 +3,13 @@
 ## 修正された問題
 
 1. **ビルドスクリプトの修正**
-   - 問題: package.jsonのビルドスクリプトが`expo export`を使用していましたが、Webアプリケーションのビルドには`expo export:web`が必要です。
-   - 修正: package.jsonのビルドスクリプトを`expo export:web`に変更しました。
+   - 問題: package.jsonのビルドスクリプトが`expo export`を使用していましたが、Webアプリケーションのビルドには`expo export --platform web`が必要です。
+   - 修正: package.jsonのビルドスクリプトを`expo export --platform web`に変更しました。
    ```json
    "scripts": {
      "dev": "expo start",
-     "build": "expo export:web",
-     "build:web": "expo export:web",
+     "build": "expo export --platform web",
+     "build:web": "expo export --platform web",
      "serve": "npm run build:web && node server.js",
      ...
    }
