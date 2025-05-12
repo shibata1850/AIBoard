@@ -198,21 +198,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
       
       console.log('SignOut: Step 4 completed - Supabase signOut successful');
-      
-      if (typeof window !== 'undefined') {
-        console.log('SignOut: Step 5 - Redirecting to login page');
-        try {
-          window.location.href = '/login';
-          console.log('SignOut: Redirect initiated');
-        } catch (redirectError) {
-          console.error('SignOut: Redirect error:', redirectError);
-          window.location.replace('/login');
-        }
-      } else {
-        console.log('SignOut: Window is undefined, cannot redirect');
-      }
-      
       console.log('SignOut: All steps completed successfully');
+      
       return;
     } catch (error) {
       console.error('SignOut: Error during logout process:', error);
@@ -222,11 +209,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isLoading: false, 
         error: error instanceof Error ? error.message : 'ログアウト中に予期せぬエラーが発生しました'
       });
-      
-      if (typeof window !== 'undefined') {
-        console.log('SignOut: Attempting to redirect after error');
-        window.location.href = '/login';
-      }
     }
   }
 
