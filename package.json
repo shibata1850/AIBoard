@@ -5,8 +5,8 @@
   "private": true,
   "scripts": {
     "dev": "expo start",
-    "build": "expo export:web",
-    "build:web": "expo export:web",
+    "build": "expo export --platform web",
+    "build:web": "expo export --platform web",
     "serve": "npm run build:web && node server.js",
     "start": "expo start",
     "android": "expo start --android",
