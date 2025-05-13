@@ -12,7 +12,7 @@ import {
 import { FileUp } from 'lucide-react-native';
 import { useTheme } from './ThemeProvider';
 import { analyzeDocument } from '../utils/gemini';
-import { readFileAsBase64, getMimeTypeFromFileName } from './FileUploadUtils';
+import { readFileAsBase64, getMimeTypeFromFileName } from '../utils/fileUpload';
 import * as DocumentPicker from 'expo-document-picker';
 import { v4 as uuidv4 } from 'uuid';
 
