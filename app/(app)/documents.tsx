@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../../components/ThemeProvider';
@@ -16,7 +17,7 @@ import { BusinessDocument } from '../../types/documents';
 import { FileText, Plus, FileUp, Trash2 } from 'lucide-react-native';
 import { DocumentAnalysisModal } from '../../components/DocumentAnalysisModal';
 import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system';
+import { readFileAsBase64, getMimeTypeFromFileName } from '../../components/FileUploadUtils';
 import { v4 as uuidv4 } from 'uuid';
 
 export default function DocumentsPage() {
@@ -73,15 +74,18 @@ export default function DocumentsPage() {
       if (result.canceled) return;
       
       const file = result.assets[0];
-      const fileContent = await FileSystem.readAsStringAsync(file.uri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
+      
+      Alert.alert('処理中', 'ファイルを処理しています...');
+      
+      const fileContent = await readFileAsBase64(file.uri);
+      
+      const fileType = file.mimeType || getMimeTypeFromFileName(file.name);
       
       const newDocument: BusinessDocument = {
         id: uuidv4(),
         title: file.name,
         content: fileContent,
-        fileType: file.mimeType || 'application/octet-stream',
+        fileType: fileType,
         createdAt: Date.now(),
         userId: user?.id || '',
       };
@@ -99,7 +103,16 @@ export default function DocumentsPage() {
       if (error) throw error;
       
       setDocuments(prev => [newDocument, ...prev]);
-      Alert.alert('成功', '書類がアップロードされました');
+      
+      Alert.alert('成功', '書類がアップロードされました。分析を開始します。', [
+        {
+          text: 'OK',
+          onPress: () => {
+            setSelectedDocument(newDocument);
+            setAnalysisModalVisible(true);
+          }
+        }
+      ]);
     } catch (error) {
       console.error('Error picking document:', error);
       Alert.alert('エラー', '書類のアップロード中にエラーが発生しました');
