@@ -6,6 +6,17 @@ export async function analyzeDocument(content: string) {
       throw new Error('Invalid request: content string is required');
     }
     
+    let decodedContent = content;
+    try {
+      if (/^[A-Za-z0-9+/=]+$/.test(content)) {
+        const buffer = Buffer.from(content, 'base64');
+        decodedContent = buffer.toString('utf-8');
+        console.log('Successfully decoded Base64 content');
+      }
+    } catch (decodeError) {
+      console.warn('Failed to decode content as Base64, using original content:', decodeError);
+    }
+    
     const genAI = new GoogleGenerativeAI(process.env.EXPO_PUBLIC_GEMINI_API_KEY || '');
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     
@@ -19,7 +30,7 @@ export async function analyzeDocument(content: string) {
     5. 改善のための具体的なアドバイス
 
     文書：
-    ${content}
+    ${decodedContent}
     `;
     
     const result = await model.generateContent(prompt);
