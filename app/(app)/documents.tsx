@@ -14,6 +14,7 @@ import { supabase } from '../../utils/supabase';
 import { useAuth } from '../../components/AuthProvider';
 import { BusinessDocument } from '../../types/documents';
 import { FileText, Plus, FileUp, Trash2 } from 'lucide-react-native';
+import { DocumentAnalysisModal } from '../../components/DocumentAnalysisModal';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
 import { v4 as uuidv4 } from 'uuid';
@@ -23,6 +24,8 @@ export default function DocumentsPage() {
   const { user } = useAuth();
   const [documents, setDocuments] = useState<BusinessDocument[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedDocument, setSelectedDocument] = useState<BusinessDocument | null>(null);
+  const [analysisModalVisible, setAnalysisModalVisible] = useState(false);
 
   useEffect(() => {
     loadDocuments();
@@ -129,6 +132,8 @@ export default function DocumentsPage() {
                   { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }
                 ]}
                 onPress={() => {
+                  setSelectedDocument(item);
+                  setAnalysisModalVisible(true);
                 }}
               >
                 <View style={styles.documentIcon}>
@@ -208,6 +213,12 @@ export default function DocumentsPage() {
           </TouchableOpacity>
         </View>
       </SafeAreaView>
+      
+      <DocumentAnalysisModal
+        document={selectedDocument}
+        visible={analysisModalVisible}
+        onClose={() => setAnalysisModalVisible(false)}
+      />
     </AuthWrapper>
   );
 }
