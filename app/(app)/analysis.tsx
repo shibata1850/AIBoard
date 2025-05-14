@@ -46,33 +46,47 @@ export default function AnalysisPage() {
       setError(null);
       setFileName(fileData.name);
       
+      const fileSizeKB = Math.round((fileData.content.length * 3) / 4 / 1024);
+      console.log(`Processing file: ${fileData.name}, size: ${fileSizeKB}KB, type: ${fileData.type}`);
+      
+      if (fileSizeKB > 5000) {
+        console.warn(`Large file detected: ${fileSizeKB}KB`);
+        setError(`ファイルサイズが大きすぎます (${fileSizeKB}KB)。5MB以下のファイルを使用してください。処理を続行しますが、時間がかかる場合があります。`);
+        await sleep(2000); // ユーザーがエラーメッセージを読む時間を確保
+      }
+      
       const result = await analyzeDocument(fileData.content);
       setAnalysisResult(result);
+      setError(null); // 成功したらエラーをクリア
       
       if (user) {
         const analysisId = uuidv4();
         const documentId = uuidv4();
         
-        await supabase
-          .from('business_documents')
-          .insert({
-            id: documentId,
-            title: fileData.name,
-            content: fileData.content,
-            file_type: documentType,
-            user_id: user.id,
-          });
-        
-        await supabase
-          .from('document_analyses')
-          .insert({
-            id: analysisId,
-            document_id: documentId,
-            analysis_type: 'financial',
-            content: result,
-            summary: result.substring(0, 200) + '...',
-            user_id: user.id,
-          });
+        try {
+          await supabase
+            .from('business_documents')
+            .insert({
+              id: documentId,
+              title: fileData.name,
+              content: fileData.content,
+              file_type: documentType,
+              user_id: user.id,
+            });
+          
+          await supabase
+            .from('document_analyses')
+            .insert({
+              id: analysisId,
+              document_id: documentId,
+              analysis_type: 'financial',
+              content: result,
+              summary: result.substring(0, 200) + '...',
+              user_id: user.id,
+            });
+        } catch (dbError) {
+          console.error('Database error:', dbError);
+        }
       }
     } catch (error) {
       console.error('File analysis error:', error);
@@ -81,6 +95,8 @@ export default function AnalysisPage() {
       setIsAnalyzing(false);
     }
   }
+  
+  const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
   function resetAnalysis() {
     setAnalysisResult(null);
