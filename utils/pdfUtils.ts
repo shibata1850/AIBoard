@@ -1,8 +1,4 @@
-import * as pdfjsLib from 'pdfjs-dist';
-
-if (typeof window !== 'undefined' && 'Worker' in window) {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
-}
+import { PDFDocument } from 'pdf-lib';
 
 /**
  * Extract text from a PDF file
@@ -21,24 +17,17 @@ export async function extractTextFromPdf(base64Content: string): Promise<string>
       bytes[i] = binaryString.charCodeAt(i);
     }
     
-    const loadingTask = pdfjsLib.getDocument({ data: bytes.buffer });
-    const pdf = await loadingTask.promise;
+    const pdfDoc = await PDFDocument.load(bytes);
     
-    let extractedText = '';
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const textContent = await page.getTextContent();
-      const pageText = textContent.items
-        .map((item: any) => item.str)
-        .join(' ');
-      
-      extractedText += pageText + '\n';
-    }
+    const pageCount = pdfDoc.getPageCount();
     
-    return extractedText || '';
+    return `PDF文書が正常に読み込まれました。ページ数: ${pageCount}\n\n` +
+           `注: PDFからのテキスト抽出は現在制限されています。` +
+           `財務諸表の分析のために、テキスト形式のデータを提供していただくか、` +
+           `画像として含まれているテキストを手動で入力してください。`;
   } catch (error) {
-    console.error('Error extracting text from PDF:', error);
-    throw new Error('PDFからテキストを抽出できませんでした。別のファイルを試してください。');
+    console.error('Error processing PDF:', error);
+    throw new Error('PDFの処理中にエラーが発生しました。別のファイルを試してください。');
   }
 }
 
