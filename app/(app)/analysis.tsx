@@ -24,12 +24,11 @@ type DocumentType = '財務諸表' | '貸借対照表' | '損益計算書' | '�
 export default function AnalysisPage() {
   const { isDark } = useTheme();
   const { user } = useAuth();
-  const [title, setTitle] = useState('');
   const [documentType, setDocumentType] = useState<DocumentType>('財務諸表');
-  const [content, setContent] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [fileName, setFileName] = useState<string | null>(null);
 
   const documentTypes: DocumentType[] = [
     '財務諸表',
@@ -40,57 +39,12 @@ export default function AnalysisPage() {
     'その他'
   ];
 
-  async function handleAnalyzeContent() {
-    if (!content.trim()) {
-      setError('分析するコンテンツを入力してください');
-      return;
-    }
-
-    try {
-      setIsAnalyzing(true);
-      setError(null);
-      
-      const result = await analyzeDocument(content);
-      setAnalysisResult(result);
-      
-      if (user) {
-        const analysisId = uuidv4();
-        const documentId = uuidv4();
-        
-        await supabase
-          .from('business_documents')
-          .insert({
-            id: documentId,
-            title: title || '無題の文書',
-            content: content,
-            file_type: documentType,
-            user_id: user.id,
-          });
-        
-        await supabase
-          .from('document_analyses')
-          .insert({
-            id: analysisId,
-            document_id: documentId,
-            analysis_type: 'financial',
-            content: result,
-            summary: result.substring(0, 200) + '...',
-            user_id: user.id,
-          });
-      }
-    } catch (error) {
-      console.error('Analysis error:', error);
-      setError(error instanceof Error ? error.message : '分析中にエラーが発生しました');
-    } finally {
-      setIsAnalyzing(false);
-    }
-  }
 
   async function handleFileUpload(fileData: { name: string; content: string; type: string }) {
     try {
       setIsAnalyzing(true);
       setError(null);
-      setTitle(fileData.name);
+      setFileName(fileData.name);
       
       const result = await analyzeDocument(fileData.content);
       setAnalysisResult(result);
@@ -130,8 +84,7 @@ export default function AnalysisPage() {
 
   function resetAnalysis() {
     setAnalysisResult(null);
-    setContent('');
-    setTitle('');
+    setFileName(null);
   }
 
   return (
@@ -158,27 +111,7 @@ export default function AnalysisPage() {
 
           {!analysisResult ? (
             <View style={styles.inputContainer}>
-              <View style={styles.formGroup}>
-                <Text style={[
-                  styles.label,
-                  { color: isDark ? '#FFFFFF' : '#000000' }
-                ]}>
-                  資料のタイトル
-                </Text>
-                <TextInput
-                  style={[
-                    styles.input,
-                    { 
-                      backgroundColor: isDark ? '#1C1C1E' : '#F2F2F7',
-                      color: isDark ? '#FFFFFF' : '#000000',
-                    }
-                  ]}
-                  placeholder="タイトルを入力"
-                  placeholderTextColor={isDark ? '#8E8E93' : '#8E8E93'}
-                  value={title}
-                  onChangeText={setTitle}
-                />
-              </View>
+              {/* Title input field has been removed as requested */}
 
               <View style={styles.formGroup}>
                 <Text style={[
@@ -222,30 +155,7 @@ export default function AnalysisPage() {
                 </ScrollView>
               </View>
 
-              <View style={styles.formGroup}>
-                <Text style={[
-                  styles.label,
-                  { color: isDark ? '#FFFFFF' : '#000000' }
-                ]}>
-                  資料の内容
-                </Text>
-                <TextInput
-                  style={[
-                    styles.textArea,
-                    { 
-                      backgroundColor: isDark ? '#1C1C1E' : '#F2F2F7',
-                      color: isDark ? '#FFFFFF' : '#000000',
-                    }
-                  ]}
-                  placeholder="内容をペーストまたは入力"
-                  placeholderTextColor={isDark ? '#8E8E93' : '#8E8E93'}
-                  multiline
-                  numberOfLines={10}
-                  textAlignVertical="top"
-                  value={content}
-                  onChangeText={setContent}
-                />
-              </View>
+              {/* Text input area has been removed as requested */}
 
               {error ? (
                 <View style={styles.errorContainer}>
@@ -254,25 +164,12 @@ export default function AnalysisPage() {
               ) : null}
 
               <View style={styles.actionContainer}>
-                <TouchableOpacity
-                  style={[
-                    styles.analyzeButton,
-                    { backgroundColor: isDark ? '#0A84FF' : '#007AFF' }
-                  ]}
-                  onPress={handleAnalyzeContent}
-                  disabled={isAnalyzing || !content.trim()}
-                >
-                  <Text style={styles.analyzeButtonText}>
-                    {isAnalyzing ? '分析中...' : '分析する'}
-                  </Text>
-                </TouchableOpacity>
-
                 <View style={styles.uploadContainer}>
                   <Text style={[
                     styles.uploadLabel,
                     { color: isDark ? '#FFFFFF' : '#000000' }
                   ]}>
-                    または
+                    ファイルをアップロードして分析
                   </Text>
                   <FileUploadButton
                     onFileSelected={handleFileUpload}
@@ -288,7 +185,7 @@ export default function AnalysisPage() {
                   styles.resultTitle,
                   { color: isDark ? '#FFFFFF' : '#000000' }
                 ]}>
-                  {title || '無題の文書'} の分析結果
+                  {fileName || '無題の文書'} の分析結果
                 </Text>
                 <TouchableOpacity
                   style={[

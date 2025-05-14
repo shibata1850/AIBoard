@@ -42,7 +42,7 @@ export default function AppLayout() {
         <Tabs.Screen
           name="analysis"
           options={{
-            title: '経営資料分析',
+            title: '分析機能',
             tabBarIcon: ({ size, color }) => <BarChart size={size} color={color} />,
           }}
         />
@@ -56,7 +56,7 @@ export default function AppLayout() {
         <Tabs.Screen
           name="index"
           options={{
-            title: 'メインチャット',
+            title: 'フリーチャット',
             tabBarIcon: ({ size, color }) => <MessageSquare size={size} color={color} />,
           }}
         />
