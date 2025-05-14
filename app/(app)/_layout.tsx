@@ -8,6 +8,7 @@ import {
   BookMarked,
   CircleHelp,
   Settings,
+  BarChart,
 } from 'lucide-react-native';
 import { useTheme } from '../../components/ThemeProvider';
 
@@ -50,6 +51,13 @@ export default function AppLayout() {
           options={{
             title: '分析履歴',
             tabBarIcon: ({ size, color }) => <History size={size} color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="analysis"
+          options={{
+            title: '経営資料分析',
+            tabBarIcon: ({ size, color }) => <BarChart size={size} color={color} />,
           }}
         />
         <Tabs.Screen
