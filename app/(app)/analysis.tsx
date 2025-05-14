@@ -18,6 +18,7 @@ import { FileUploadButton } from '../../components/FileUploadButton';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '../../utils/supabase';
 import { useAuth } from '../../components/AuthProvider';
+import { extractTextFromPdf, isPdfFile } from '../../utils/pdfUtils';
 
 type DocumentType = '財務諸表' | '貸借対照表' | '損益計算書' | 'キャッシュフロー計算書' | '事業計画書' | 'その他';
 
@@ -55,7 +56,26 @@ export default function AnalysisPage() {
         await sleep(2000); // ユーザーがエラーメッセージを読む時間を確保
       }
       
-      const result = await analyzeDocument(fileData.content);
+      let contentToAnalyze = fileData.content;
+      
+      if (isPdfFile(fileData.type)) {
+        try {
+          console.log('PDF file detected, extracting text...');
+          contentToAnalyze = await extractTextFromPdf(fileData.content);
+          console.log(`Extracted ${contentToAnalyze.length} characters of text from PDF`);
+          
+          if (!contentToAnalyze || contentToAnalyze.trim().length === 0) {
+            throw new Error('PDFからテキストを抽出できませんでした。別のファイルを試してください。');
+          }
+        } catch (pdfError) {
+          console.error('PDF text extraction error:', pdfError);
+          setError(pdfError instanceof Error ? pdfError.message : 'PDFからテキストを抽出できませんでした');
+          setIsAnalyzing(false);
+          return;
+        }
+      }
+      
+      const result = await analyzeDocument(contentToAnalyze);
       setAnalysisResult(result);
       setError(null); // 成功したらエラーをクリア
       
@@ -64,12 +84,19 @@ export default function AnalysisPage() {
         const documentId = uuidv4();
         
         try {
+          const documentContent = isPdfFile(fileData.type) 
+            ? JSON.stringify({ 
+                originalBase64: fileData.content.substring(0, 100) + '...', // 一部だけ保存
+                extractedText: contentToAnalyze 
+              })
+            : fileData.content;
+            
           await supabase
             .from('business_documents')
             .insert({
               id: documentId,
               title: fileData.name,
-              content: fileData.content,
+              content: documentContent,
               file_type: documentType,
               user_id: user.id,
             });
