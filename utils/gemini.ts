@@ -55,17 +55,22 @@ export async function generateFreeChatResponse(messages: Message[]): Promise<str
   }
 }
 
-export async function analyzeDocument(content: string): Promise<string> {
+export async function analyzeDocument(content: string, fileType?: string): Promise<string> {
   let lastError: any = null;
   
-  if (content.length > 100000) {
-    console.warn(`Content too large (${content.length} chars), truncating to 100000 chars`);
-    content = content.substring(0, 100000);
+  const isPdf = fileType === 'application/pdf' || 
+                (content.startsWith('data:') && content.includes('application/pdf'));
+  
+  const maxSize = isPdf ? 500000 : 100000;
+  
+  if (content.length > maxSize) {
+    console.warn(`Content too large (${content.length} chars), truncating to ${maxSize} chars`);
+    content = content.substring(0, maxSize);
   }
   
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     try {
-      console.log(`Attempt ${attempt + 1} to analyze document (content length: ${content.length})`);
+      console.log(`Attempt ${attempt + 1} to analyze document (content length: ${content.length}, type: ${isPdf ? 'PDF' : 'text'})`);
       
       const result = await analyzeDocumentAPI(content);
       

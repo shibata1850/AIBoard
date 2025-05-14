@@ -1,15 +1,18 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { preparePdfForAnalysis } from '../../utils/pdfUtils';
 
 const MODELS = {
-  PRIMARY: 'gemini-1.5-flash',
-  FALLBACK_1: 'gemini-pro',
-  FALLBACK_2: 'gemini-1.0-pro',
+  PRIMARY: 'gemini-2.5-pro', // Gemini 2.5 Pro for PDF processing
+  FALLBACK_1: 'gemini-1.5-flash',
+  FALLBACK_2: 'gemini-pro',
+  FALLBACK_3: 'gemini-1.0-pro',
   LAST_RESORT: 'gemini-pro-vision', // 最終手段として使用
 };
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 2000;
 const MAX_CONTENT_LENGTH = 10000; // 長すぎる文書を制限
+const PDF_CONTENT_PREFIX = 'data:application/pdf;base64,';
 
 /**
  * 指定された時間だけ待機する
@@ -51,20 +54,36 @@ export async function analyzeDocument(content: string) {
       throw new Error('Invalid request: content string is required');
     }
     
+    const isPdf = content.startsWith(PDF_CONTENT_PREFIX) || 
+                 (content.startsWith('data:') && content.includes('application/pdf'));
+    
     let decodedContent = content;
-    try {
-      if (/^[A-Za-z0-9+/=]+$/.test(content)) {
-        const buffer = Buffer.from(content, 'base64');
-        decodedContent = buffer.toString('utf-8');
-        console.log('Successfully decoded Base64 content');
+    let pdfData = null;
+    
+    if (isPdf) {
+      try {
+        console.log('PDF content detected, preparing for Gemini 2.5 Pro analysis');
+        pdfData = await preparePdfForAnalysis(content);
+        console.log(`PDF prepared successfully. Page count: ${pdfData.pageCount}`);
+      } catch (pdfError) {
+        console.error('Error preparing PDF:', pdfError);
+        throw new Error('PDFの処理中にエラーが発生しました。別のファイルを試してください。');
       }
-      
-      if (decodedContent.length > MAX_CONTENT_LENGTH) {
-        console.warn(`Content too long (${decodedContent.length} chars), truncating to ${MAX_CONTENT_LENGTH} chars`);
-        decodedContent = decodedContent.substring(0, MAX_CONTENT_LENGTH);
+    } else {
+      try {
+        if (/^[A-Za-z0-9+/=]+$/.test(content)) {
+          const buffer = Buffer.from(content, 'base64');
+          decodedContent = buffer.toString('utf-8');
+          console.log('Successfully decoded Base64 content');
+        }
+        
+        if (decodedContent.length > MAX_CONTENT_LENGTH) {
+          console.warn(`Content too long (${decodedContent.length} chars), truncating to ${MAX_CONTENT_LENGTH} chars`);
+          decodedContent = decodedContent.substring(0, MAX_CONTENT_LENGTH);
+        }
+      } catch (decodeError) {
+        console.warn('Failed to decode content as Base64, using original content:', decodeError);
       }
-    } catch (decodeError) {
-      console.warn('Failed to decode content as Base64, using original content:', decodeError);
     }
     
     const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
@@ -74,7 +93,15 @@ export async function analyzeDocument(content: string) {
     
     const genAI = new GoogleGenerativeAI(apiKey);
     
-    const prompt = `
+    const prompt = isPdf ? `
+    あなたは財務分析の専門家です。添付されたPDFファイルを分析し、財務状況、経営状態、改善点などについて詳細に解説してください。
+    特に以下の点に注目してください：
+    1. 財務健全性
+    2. 収益性
+    3. 成長性
+    4. リスク要因
+    5. 改善のための具体的なアドバイス
+    ` : `
     あなたは財務分析の専門家です。以下の文書を分析し、財務状況、経営状態、改善点などについて詳細に解説してください。
     特に以下の点に注目してください：
     1. 財務健全性
@@ -87,7 +114,9 @@ export async function analyzeDocument(content: string) {
     ${decodedContent}
     `;
     
-    const shortPrompt = `
+    const shortPrompt = isPdf ? `
+    添付されたPDFファイルの財務データを簡潔に分析してください。
+    ` : `
     以下の財務文書を簡潔に分析してください：
     ${decodedContent}
     `;
@@ -104,7 +133,24 @@ export async function analyzeDocument(content: string) {
         }
       });
       
-      const result = await primaryModel.generateContent(prompt);
+      let result;
+      if (isPdf && pdfData) {
+        console.log('Using Gemini 2.5 Pro for direct PDF analysis');
+        result = await primaryModel.generateContent({
+          contents: [
+            {
+              role: 'user',
+              parts: [
+                { text: prompt },
+                { inlineData: { mimeType: 'application/pdf', data: pdfData.base64Data } }
+              ]
+            }
+          ]
+        });
+      } else {
+        result = await primaryModel.generateContent(prompt);
+      }
+      
       const response = await result.response;
       const text = response.text();
       console.log('Primary model analysis successful');
@@ -125,7 +171,24 @@ export async function analyzeDocument(content: string) {
             }
           });
           
-          const result = await fallbackModel1.generateContent(prompt);
+          let result;
+          if (isPdf && pdfData) {
+            console.log('Using fallback model 1 for PDF analysis');
+            result = await fallbackModel1.generateContent({
+              contents: [
+                {
+                  role: 'user',
+                  parts: [
+                    { text: prompt },
+                    { inlineData: { mimeType: 'application/pdf', data: pdfData.base64Data } }
+                  ]
+                }
+              ]
+            });
+          } else {
+            result = await fallbackModel1.generateContent(prompt);
+          }
+          
           const response = await result.response;
           const text = response.text();
           console.log('First fallback model analysis successful');
@@ -145,7 +208,24 @@ export async function analyzeDocument(content: string) {
                 }
               });
               
-              const result = await fallbackModel2.generateContent(shortPrompt);
+              let result;
+              if (isPdf && pdfData) {
+                console.log('Using fallback model 2 for PDF analysis');
+                result = await fallbackModel2.generateContent({
+                  contents: [
+                    {
+                      role: 'user',
+                      parts: [
+                        { text: shortPrompt },
+                        { inlineData: { mimeType: 'application/pdf', data: pdfData.base64Data } }
+                      ]
+                    }
+                  ]
+                });
+              } else {
+                result = await fallbackModel2.generateContent(shortPrompt);
+              }
+              
               const response = await result.response;
               const text = response.text();
               console.log('Second fallback model analysis successful');
@@ -164,8 +244,26 @@ export async function analyzeDocument(content: string) {
                     }
                   });
                   
-                  const minimalPrompt = `財務分析: ${decodedContent.substring(0, 2000)}`;
-                  const result = await lastResortModel.generateContent(minimalPrompt);
+                  let result;
+                  if (isPdf && pdfData) {
+                    console.log('Using last resort model for PDF analysis');
+                    const minimalPdfPrompt = '財務分析を簡潔に行ってください。';
+                    result = await lastResortModel.generateContent({
+                      contents: [
+                        {
+                          role: 'user',
+                          parts: [
+                            { text: minimalPdfPrompt },
+                            { inlineData: { mimeType: 'application/pdf', data: pdfData.base64Data } }
+                          ]
+                        }
+                      ]
+                    });
+                  } else {
+                    const minimalPrompt = `財務分析: ${decodedContent.substring(0, 2000)}`;
+                    result = await lastResortModel.generateContent(minimalPrompt);
+                  }
+                  
                   const response = await result.response;
                   const text = response.text();
                   console.log('Last resort model analysis successful');
@@ -195,7 +293,24 @@ export async function analyzeDocument(content: string) {
               }
             });
             
-            const result = await primaryModel.generateContent(prompt);
+            let result;
+            if (isPdf && pdfData) {
+              console.log(`Using Gemini 2.5 Pro for PDF analysis (retry ${attempt + 1})`);
+              result = await primaryModel.generateContent({
+                contents: [
+                  {
+                    role: 'user',
+                    parts: [
+                      { text: prompt },
+                      { inlineData: { mimeType: 'application/pdf', data: pdfData.base64Data } }
+                    ]
+                  }
+                ]
+              });
+            } else {
+              result = await primaryModel.generateContent(prompt);
+            }
+            
             const response = await result.response;
             const text = response.text();
             console.log(`Retry ${attempt + 1} successful`);
@@ -214,7 +329,24 @@ export async function analyzeDocument(content: string) {
                   }
                 });
                 
-                const result = await fallbackModel.generateContent(shortPrompt);
+                let result;
+                if (isPdf && pdfData) {
+                  console.log('Using fallback model after retries for PDF analysis');
+                  result = await fallbackModel.generateContent({
+                    contents: [
+                      {
+                        role: 'user',
+                        parts: [
+                          { text: shortPrompt },
+                          { inlineData: { mimeType: 'application/pdf', data: pdfData.base64Data } }
+                        ]
+                      }
+                    ]
+                  });
+                } else {
+                  result = await fallbackModel.generateContent(shortPrompt);
+                }
+                
                 const response = await result.response;
                 const text = response.text();
                 console.log('Fallback after retries successful');

@@ -1,11 +1,15 @@
 import { PDFDocument } from 'pdf-lib';
 
 /**
- * Extract text from a PDF file
+ * Prepare PDF content for Gemini 2.5 Pro analysis
  * @param base64Content Base64 encoded PDF content
- * @returns Promise with extracted text
+ * @returns Object with PDF data and metadata
  */
-export async function extractTextFromPdf(base64Content: string): Promise<string> {
+export async function preparePdfForAnalysis(base64Content: string): Promise<{
+  base64Data: string;
+  pageCount: number;
+  isPrepared: boolean;
+}> {
   try {
     const pdfData = base64Content.startsWith('data:application/pdf;base64,')
       ? base64Content.substring('data:application/pdf;base64,'.length)
@@ -18,13 +22,34 @@ export async function extractTextFromPdf(base64Content: string): Promise<string>
     }
     
     const pdfDoc = await PDFDocument.load(bytes);
-    
     const pageCount = pdfDoc.getPageCount();
     
+    const formattedBase64 = pdfData.startsWith('data:application/pdf;base64,')
+      ? pdfData
+      : `data:application/pdf;base64,${pdfData}`;
+    
+    return {
+      base64Data: formattedBase64,
+      pageCount,
+      isPrepared: true
+    };
+  } catch (error) {
+    console.error('Error preparing PDF for analysis:', error);
+    throw new Error('PDFの準備中にエラーが発生しました。別のファイルを試してください。');
+  }
+}
+
+/**
+ * Legacy function for backward compatibility
+ * @param base64Content Base64 encoded PDF content
+ * @returns Promise with extracted text
+ */
+export async function extractTextFromPdf(base64Content: string): Promise<string> {
+  try {
+    const { pageCount } = await preparePdfForAnalysis(base64Content);
+    
     return `PDF文書が正常に読み込まれました。ページ数: ${pageCount}\n\n` +
-           `注: PDFからのテキスト抽出は現在制限されています。` +
-           `財務諸表の分析のために、テキスト形式のデータを提供していただくか、` +
-           `画像として含まれているテキストを手動で入力してください。`;
+           `PDFの内容を分析しています。Gemini 2.5 Proモデルを使用して財務データを抽出します。`;
   } catch (error) {
     console.error('Error processing PDF:', error);
     throw new Error('PDFの処理中にエラーが発生しました。別のファイルを試してください。');

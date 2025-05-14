@@ -59,23 +59,10 @@ export default function AnalysisPage() {
       let contentToAnalyze = fileData.content;
       
       if (isPdfFile(fileData.type)) {
-        try {
-          console.log('PDF file detected, extracting text...');
-          contentToAnalyze = await extractTextFromPdf(fileData.content);
-          console.log(`Extracted ${contentToAnalyze.length} characters of text from PDF`);
-          
-          if (!contentToAnalyze || contentToAnalyze.trim().length === 0) {
-            throw new Error('PDFからテキストを抽出できませんでした。別のファイルを試してください。');
-          }
-        } catch (pdfError) {
-          console.error('PDF text extraction error:', pdfError);
-          setError(pdfError instanceof Error ? pdfError.message : 'PDFからテキストを抽出できませんでした');
-          setIsAnalyzing(false);
-          return;
-        }
+        console.log('PDF file detected, using Gemini 2.5 Pro for direct analysis...');
       }
       
-      const result = await analyzeDocument(contentToAnalyze);
+      const result = await analyzeDocument(contentToAnalyze, fileData.type);
       setAnalysisResult(result);
       setError(null); // 成功したらエラーをクリア
       
