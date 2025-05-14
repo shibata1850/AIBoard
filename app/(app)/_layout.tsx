@@ -40,10 +40,10 @@ export default function AppLayout() {
         }}
       >
         <Tabs.Screen
-          name="index"
+          name="analysis"
           options={{
-            title: 'メインチャット',
-            tabBarIcon: ({ size, color }) => <MessageSquare size={size} color={color} />,
+            title: '経営資料分析',
+            tabBarIcon: ({ size, color }) => <BarChart size={size} color={color} />,
           }}
         />
         <Tabs.Screen
@@ -54,17 +54,10 @@ export default function AppLayout() {
           }}
         />
         <Tabs.Screen
-          name="analysis"
+          name="index"
           options={{
-            title: '経営資料分析',
-            tabBarIcon: ({ size, color }) => <BarChart size={size} color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="documents"
-          options={{
-            title: '書類',
-            tabBarIcon: ({ size, color }) => <FileText size={size} color={color} />,
+            title: 'メインチャット',
+            tabBarIcon: ({ size, color }) => <MessageSquare size={size} color={color} />,
           }}
         />
         <Tabs.Screen
@@ -72,6 +65,13 @@ export default function AppLayout() {
           options={{
             title: 'マイプロンプト',
             tabBarIcon: ({ size, color }) => <BookMarked size={size} color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="documents"
+          options={{
+            title: '書類',
+            tabBarIcon: ({ size, color }) => <FileText size={size} color={color} />,
           }}
         />
         <Tabs.Screen
