@@ -55,6 +55,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
+    "@babel/plugin-transform-class-static-block": "^7.27.1",
     "@types/mime": "^3.0.4",
     "@types/pdfjs-dist": "^2.10.377",
     "@types/react": "~18.3.12",
