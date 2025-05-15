@@ -26,15 +26,18 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
+  const [loginError, setLoginError] = useState<string | null>(null);
+  
   async function handleLogin() {
     if (!email || !password) {
-      Alert.alert('エラー', 'メールアドレスとパスワードを入力してください');
+      setLoginError('メールアドレスとパスワードを入力してください');
       return;
     }
     
     console.log('Login attempt with:', { email });
     
     try {
+      setLoginError(null);
       setIsSubmitting(true);
       console.log('Calling signIn function...');
       await signIn(email, password);
@@ -42,10 +45,7 @@ export default function LoginScreen() {
       router.replace('/');
     } catch (error) {
       console.error('Login error:', error);
-      Alert.alert(
-        'ログインエラー',
-        error instanceof Error ? error.message : '認証に失敗しました。もう一度お試しください。'
-      );
+      setLoginError(error instanceof Error ? error.message : '認証に失敗しました。もう一度お試しください。');
       console.error('Authentication error details:', error);
     } finally {
       setIsSubmitting(false);
