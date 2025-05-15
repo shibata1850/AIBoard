@@ -114,6 +114,14 @@ export default function LoginScreen() {
               />
             </View>
             
+            {loginError && (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>
+                  {loginError}
+                </Text>
+              </View>
+            )}
+            
             {error && (
               <View style={styles.errorContainer}>
                 <Text style={styles.errorText}>
