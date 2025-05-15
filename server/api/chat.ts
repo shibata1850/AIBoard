@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import OpenAI from 'openai';
 
 export async function generateChatResponse(messages: any[]) {
   try {
@@ -8,8 +8,9 @@ export async function generateChatResponse(messages: any[]) {
     
     console.log('Generating chat response with messages:', JSON.stringify(messages));
     
-    const genAI = new GoogleGenerativeAI(process.env.EXPO_PUBLIC_GEMINI_API_KEY || '');
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const openai = new OpenAI({
+      apiKey: process.env.EXPO_PUBLIC_OPENAI_API_KEY || '',
+    });
     
     if (messages.length > 0 && !messages[0].isUser) {
       messages = [
@@ -19,33 +20,23 @@ export async function generateChatResponse(messages: any[]) {
     }
     
     const formattedMessages = messages.map(msg => ({
-      role: msg.isUser ? 'user' : 'model',
-      parts: [{ text: msg.text }],
+      role: msg.isUser ? 'user' : 'assistant',
+      content: msg.text,
     }));
     
     console.log('Formatted messages:', JSON.stringify(formattedMessages));
     
-    if (formattedMessages.length === 1) {
-      console.log('Using generateContent for single message');
-      const result = await model.generateContent(formattedMessages[0].parts[0].text);
-      const response = await result.response;
-      const text = response.text();
-      console.log('Generated response:', text);
-      return { text };
-    }
+    const model = process.env.EXPO_PUBLIC_OPENAI_MODEL || 'gpt-4.1';
+    console.log(`Using OpenAI model: ${model}`);
     
-    console.log('Using chat for multiple messages');
-    const chat = model.startChat({
-      history: formattedMessages.slice(0, -1),
+    const completion = await openai.chat.completions.create({
+      model: model,
+      messages: formattedMessages as any,
+      temperature: 0.2,
+      max_tokens: 2048,
     });
     
-    const lastMessage = formattedMessages[formattedMessages.length - 1];
-    console.log('Sending last message:', lastMessage.parts[0].text);
-    
-    const result = await chat.sendMessage(lastMessage.parts[0].text);
-    const response = await result.response;
-    const text = response.text();
-    
+    const text = completion.choices[0]?.message?.content || '';
     console.log('Generated response:', text);
     return { text };
   } catch (error) {

@@ -13,12 +13,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../../components/ThemeProvider';
 import { AuthWrapper } from '../../components/AuthWrapper';
 import { FileUp } from 'lucide-react-native';
-import { analyzeDocument } from '../../utils/gemini';
+import { analyzeDocument } from '../../utils/gemini'; // Using the same import path for backward compatibility
 import { FileUploadButton } from '../../components/FileUploadButton';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '../../utils/supabase';
 import { useAuth } from '../../components/AuthProvider';
-import { extractTextFromPdf, isPdfFile } from '../../utils/pdfUtils';
+import { isPdfFile } from '../../utils/pdfUtils';
 
 type DocumentType = '財務諸表' | '貸借対照表' | '損益計算書' | 'キャッシュフロー計算書' | '事業計画書' | 'その他';
 
@@ -59,7 +59,7 @@ export default function AnalysisPage() {
       let contentToAnalyze = fileData.content;
       
       if (isPdfFile(fileData.type)) {
-        console.log('PDF file detected, using Gemini 2.5 Pro for direct analysis...');
+        console.log('PDF file detected, using OpenAI GPT-4.1 for direct analysis...');
       }
       
       const result = await analyzeDocument(contentToAnalyze, fileData.type);

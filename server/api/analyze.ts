@@ -1,13 +1,5 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import OpenAI from 'openai';
 import { preparePdfForAnalysis } from '../../utils/pdfUtils';
-
-const MODELS = {
-  PRIMARY: 'gemini-2.5-pro', // Gemini 2.5 Pro for PDF processing
-  FALLBACK_1: 'gemini-1.5-flash',
-  FALLBACK_2: 'gemini-pro',
-  FALLBACK_3: 'gemini-1.0-pro',
-  LAST_RESORT: 'gemini-pro-vision', // 最終手段として使用
-};
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 2000;
@@ -62,7 +54,7 @@ export async function analyzeDocument(content: string) {
     
     if (isPdf) {
       try {
-        console.log('PDF content detected, preparing for Gemini 2.5 Pro analysis');
+        console.log('PDF content detected, preparing for OpenAI analysis');
         pdfData = await preparePdfForAnalysis(content);
         console.log(`PDF prepared successfully. Page count: ${pdfData.pageCount}`);
       } catch (pdfError) {
@@ -86,12 +78,17 @@ export async function analyzeDocument(content: string) {
       }
     }
     
-    const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
+    const apiKey = process.env.EXPO_PUBLIC_OPENAI_API_KEY || '';
     if (!apiKey) {
-      throw new Error('Gemini API key is not configured');
+      throw new Error('OpenAI API key is not configured');
     }
     
-    const genAI = new GoogleGenerativeAI(apiKey);
+    const openai = new OpenAI({
+      apiKey: apiKey,
+    });
+    
+    const model = process.env.EXPO_PUBLIC_OPENAI_MODEL || 'gpt-4.1';
+    console.log(`Using OpenAI model: ${model}`);
     
     const prompt = isPdf ? `
     あなたは財務分析の専門家です。添付されたPDFファイルを分析し、財務状況、経営状態、改善点などについて詳細に解説してください。
@@ -122,239 +119,121 @@ export async function analyzeDocument(content: string) {
     `;
     
     try {
-      console.log(`Attempting analysis with primary model: ${MODELS.PRIMARY}`);
-      const primaryModel = genAI.getGenerativeModel({ 
-        model: MODELS.PRIMARY,
-        generationConfig: {
-          temperature: 0.2,
-          topP: 0.8,
-          topK: 40,
-          maxOutputTokens: 2048,
-        }
-      });
+      console.log('Attempting analysis with OpenAI');
       
-      let result;
+      let messages = [];
+      
       if (isPdf && pdfData) {
-        console.log('Using Gemini 2.5 Pro for direct PDF analysis');
-        result = await primaryModel.generateContent({
-          contents: [
-            {
-              role: 'user',
-              parts: [
-                { text: prompt },
-                { inlineData: { mimeType: 'application/pdf', data: pdfData.base64Data } }
-              ]
-            }
-          ]
-        });
+        console.log('Using OpenAI for PDF analysis');
+        
+        messages = [
+          {
+            role: 'system',
+            content: 'あなたは財務分析の専門家です。提供されたPDFの内容を分析してください。'
+          },
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: prompt
+              },
+              {
+                type: 'text',
+                text: `PDF内容: ${pdfData.base64Data.substring(0, 100)}...（PDFデータ省略）`
+              }
+            ]
+          }
+        ];
       } else {
-        result = await primaryModel.generateContent(prompt);
+        messages = [
+          {
+            role: 'system',
+            content: 'あなたは財務分析の専門家です。提供された文書を分析してください。'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ];
       }
       
-      const response = await result.response;
-      const text = response.text();
-      console.log('Primary model analysis successful');
+      const completion = await openai.chat.completions.create({
+        model: model,
+        messages: messages as any,
+        temperature: 0.2,
+        max_tokens: 2048,
+      });
+      
+      const text = completion.choices[0]?.message?.content || '';
+      console.log('OpenAI analysis successful');
       return { text };
     } catch (primaryError: any) {
-      console.warn(`Primary model (${MODELS.PRIMARY}) error:`, primaryError);
+      console.warn('OpenAI error:', primaryError);
       
       if (isQuotaOrRateLimitError(primaryError)) {
-        console.log('Quota/rate limit detected for primary model, trying first fallback model...');
+        console.log('Quota/rate limit detected, retrying with shorter prompt...');
         
         try {
-          const fallbackModel1 = genAI.getGenerativeModel({ 
-            model: MODELS.FALLBACK_1,
-            generationConfig: {
-              temperature: 0.2,
-              topP: 0.8,
-              maxOutputTokens: 2048,
+          const messages = [
+            {
+              role: 'system',
+              content: 'あなたは財務分析の専門家です。提供された文書を簡潔に分析してください。'
+            },
+            {
+              role: 'user',
+              content: shortPrompt
             }
+          ];
+          
+          const completion = await openai.chat.completions.create({
+            model: model,
+            messages: messages as any,
+            temperature: 0.3,
+            max_tokens: 1024,
           });
           
-          let result;
-          if (isPdf && pdfData) {
-            console.log('Using fallback model 1 for PDF analysis');
-            result = await fallbackModel1.generateContent({
-              contents: [
-                {
-                  role: 'user',
-                  parts: [
-                    { text: prompt },
-                    { inlineData: { mimeType: 'application/pdf', data: pdfData.base64Data } }
-                  ]
-                }
-              ]
-            });
-          } else {
-            result = await fallbackModel1.generateContent(prompt);
-          }
-          
-          const response = await result.response;
-          const text = response.text();
-          console.log('First fallback model analysis successful');
+          const text = completion.choices[0]?.message?.content || '';
+          console.log('OpenAI retry with shorter prompt successful');
           return { text };
-        } catch (fallback1Error: any) {
-          console.warn(`First fallback model (${MODELS.FALLBACK_1}) error:`, fallback1Error);
-          
-          if (isQuotaOrRateLimitError(fallback1Error)) {
-            console.log('Quota/rate limit detected for first fallback model, trying second fallback model...');
-            
-            try {
-              const fallbackModel2 = genAI.getGenerativeModel({ 
-                model: MODELS.FALLBACK_2,
-                generationConfig: {
-                  temperature: 0.3,
-                  maxOutputTokens: 1024,
-                }
-              });
-              
-              let result;
-              if (isPdf && pdfData) {
-                console.log('Using fallback model 2 for PDF analysis');
-                result = await fallbackModel2.generateContent({
-                  contents: [
-                    {
-                      role: 'user',
-                      parts: [
-                        { text: shortPrompt },
-                        { inlineData: { mimeType: 'application/pdf', data: pdfData.base64Data } }
-                      ]
-                    }
-                  ]
-                });
-              } else {
-                result = await fallbackModel2.generateContent(shortPrompt);
-              }
-              
-              const response = await result.response;
-              const text = response.text();
-              console.log('Second fallback model analysis successful');
-              return { text };
-            } catch (fallback2Error: any) {
-              console.error('Second fallback model error:', fallback2Error);
-              
-              if (isQuotaOrRateLimitError(fallback2Error)) {
-                console.log('Trying last resort model with minimal prompt...');
-                try {
-                  const lastResortModel = genAI.getGenerativeModel({ 
-                    model: MODELS.LAST_RESORT,
-                    generationConfig: {
-                      temperature: 0.4,
-                      maxOutputTokens: 512,
-                    }
-                  });
-                  
-                  let result;
-                  if (isPdf && pdfData) {
-                    console.log('Using last resort model for PDF analysis');
-                    const minimalPdfPrompt = '財務分析を簡潔に行ってください。';
-                    result = await lastResortModel.generateContent({
-                      contents: [
-                        {
-                          role: 'user',
-                          parts: [
-                            { text: minimalPdfPrompt },
-                            { inlineData: { mimeType: 'application/pdf', data: pdfData.base64Data } }
-                          ]
-                        }
-                      ]
-                    });
-                  } else {
-                    const minimalPrompt = `財務分析: ${decodedContent.substring(0, 2000)}`;
-                    result = await lastResortModel.generateContent(minimalPrompt);
-                  }
-                  
-                  const response = await result.response;
-                  const text = response.text();
-                  console.log('Last resort model analysis successful');
-                  return { text };
-                } catch (lastResortError) {
-                  console.error('All models failed with quota/rate limit errors');
-                  throw new Error('すべてのAPIモデルが制限に達しました。しばらく時間をおいてから再度お試しください。(30分程度後に再試行することをお勧めします)');
-                }
-              }
-              throw fallback2Error;
-            }
-          }
-          throw fallback1Error;
+        } catch (retryError: any) {
+          console.error('OpenAI retry failed:', retryError);
+          throw new Error('APIの制限に達しました。しばらく時間をおいてから再度お試しください。');
         }
       } else {
         for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
           try {
             const backoffTime = RETRY_DELAY_MS * Math.pow(2, attempt);
-            console.log(`Retrying with primary model (attempt ${attempt + 1}) after ${backoffTime}ms delay...`);
+            console.log(`Retrying with OpenAI (attempt ${attempt + 1}) after ${backoffTime}ms delay...`);
             await sleep(backoffTime); // 指数バックオフ
             
-            const primaryModel = genAI.getGenerativeModel({ 
-              model: MODELS.PRIMARY,
-              generationConfig: {
-                temperature: 0.2 + (attempt * 0.1), // 徐々に温度を上げる
-                maxOutputTokens: 2048,
+            const messages = [
+              {
+                role: 'system',
+                content: 'あなたは財務分析の専門家です。提供された文書を分析してください。'
+              },
+              {
+                role: 'user',
+                content: attempt === 0 ? prompt : shortPrompt
               }
+            ];
+            
+            const completion = await openai.chat.completions.create({
+              model: model,
+              messages: messages as any,
+              temperature: 0.2 + (attempt * 0.1), // 徐々に温度を上げる
+              max_tokens: 2048 - (attempt * 512), // 徐々にトークン数を減らす
             });
             
-            let result;
-            if (isPdf && pdfData) {
-              console.log(`Using Gemini 2.5 Pro for PDF analysis (retry ${attempt + 1})`);
-              result = await primaryModel.generateContent({
-                contents: [
-                  {
-                    role: 'user',
-                    parts: [
-                      { text: prompt },
-                      { inlineData: { mimeType: 'application/pdf', data: pdfData.base64Data } }
-                    ]
-                  }
-                ]
-              });
-            } else {
-              result = await primaryModel.generateContent(prompt);
-            }
-            
-            const response = await result.response;
-            const text = response.text();
+            const text = completion.choices[0]?.message?.content || '';
             console.log(`Retry ${attempt + 1} successful`);
             return { text };
           } catch (retryError) {
             console.warn(`Retry ${attempt + 1} failed:`, retryError);
             
             if (attempt === MAX_RETRIES - 1) {
-              console.log('All retries failed, trying fallback model as last resort...');
-              try {
-                const fallbackModel = genAI.getGenerativeModel({ 
-                  model: MODELS.FALLBACK_1,
-                  generationConfig: {
-                    temperature: 0.3,
-                    maxOutputTokens: 1024,
-                  }
-                });
-                
-                let result;
-                if (isPdf && pdfData) {
-                  console.log('Using fallback model after retries for PDF analysis');
-                  result = await fallbackModel.generateContent({
-                    contents: [
-                      {
-                        role: 'user',
-                        parts: [
-                          { text: shortPrompt },
-                          { inlineData: { mimeType: 'application/pdf', data: pdfData.base64Data } }
-                        ]
-                      }
-                    ]
-                  });
-                } else {
-                  result = await fallbackModel.generateContent(shortPrompt);
-                }
-                
-                const response = await result.response;
-                const text = response.text();
-                console.log('Fallback after retries successful');
-                return { text };
-              } catch (finalError) {
-                console.error('Final fallback attempt failed:', finalError);
-                throw finalError;
-              }
+              console.error('All retries failed');
+              throw new Error('文書の分析中にエラーが発生しました。しばらく時間をおいてから再度お試しください。');
             }
           }
         }
