@@ -173,6 +173,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isLoading: false, 
         error: error instanceof Error ? error.message : 'Unknown error'
       });
+      
+      throw error;
     }
   }
 
