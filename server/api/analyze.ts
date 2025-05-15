@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { preparePdfForAnalysis } from '../../utils/pdfUtils';
+import { preparePdfForAnalysis, extractTextFromPdf, analyzePdfFinancialData } from '../../utils/pdfUtils';
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 2000;
@@ -54,11 +54,16 @@ export async function analyzeDocument(content: string) {
     
     if (isPdf) {
       try {
-        console.log('PDF content detected, preparing for OpenAI analysis');
+        console.log('PDF content detected, extracting text for analysis');
+        const extractedText = await extractTextFromPdf(content);
+        console.log('PDF text extraction successful');
+        
+        decodedContent = extractedText;
+        
         pdfData = await preparePdfForAnalysis(content);
         console.log(`PDF prepared successfully. Page count: ${pdfData.pageCount}`);
       } catch (pdfError) {
-        console.error('Error preparing PDF:', pdfError);
+        console.error('Error processing PDF:', pdfError);
         throw new Error('PDFの処理中にエラーが発生しました。別のファイルを試してください。');
       }
     } else {
@@ -91,15 +96,7 @@ export async function analyzeDocument(content: string) {
     const model = process.env.EXPO_PUBLIC_OPENAI_MODEL || 'gpt-4.1';
     console.log(`Using OpenAI model: ${model}`);
     
-    const prompt = isPdf ? `
-    あなたは財務分析の専門家です。添付されたPDFファイルを分析し、財務状況、経営状態、改善点などについて詳細に解説してください。
-    特に以下の点に注目してください：
-    1. 財務健全性
-    2. 収益性
-    3. 成長性
-    4. リスク要因
-    5. 改善のための具体的なアドバイス
-    ` : `
+    const prompt = `
     あなたは財務分析の専門家です。以下の文書を分析し、財務状況、経営状態、改善点などについて詳細に解説してください。
     特に以下の点に注目してください：
     1. 財務健全性
@@ -112,9 +109,7 @@ export async function analyzeDocument(content: string) {
     ${decodedContent}
     `;
     
-    const shortPrompt = isPdf ? `
-    添付されたPDFファイルの財務データを簡潔に分析してください。
-    ` : `
+    const shortPrompt = `
     以下の財務文書を簡潔に分析してください：
     ${decodedContent}
     `;
@@ -122,42 +117,16 @@ export async function analyzeDocument(content: string) {
     try {
       console.log('Attempting analysis with OpenAI');
       
-      let messages = [];
-      
-      if (isPdf && pdfData) {
-        console.log('Using OpenAI for PDF analysis');
-        
-        messages = [
-          {
-            role: 'system',
-            content: 'あなたは財務分析の専門家です。提供されたPDFの内容を分析してください。'
-          },
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: prompt
-              },
-              {
-                type: 'text',
-                text: `PDF内容: ${pdfData.base64Data.substring(0, 100)}...（PDFデータ省略）`
-              }
-            ]
-          }
-        ];
-      } else {
-        messages = [
-          {
-            role: 'system',
-            content: 'あなたは財務分析の専門家です。提供された文書を分析してください。'
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ];
-      }
+      const messages = [
+        {
+          role: 'system',
+          content: 'あなたは財務分析の専門家です。提供された文書を分析してください。'
+        },
+        {
+          role: 'user',
+          content: prompt
+        }
+      ];
       
       const completion = await openai.chat.completions.create({
         model: model,

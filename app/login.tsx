@@ -115,9 +115,19 @@ export default function LoginScreen() {
             </View>
             
             {error && (
-              <Text style={styles.errorText}>
-                {error}
-              </Text>
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>
+                  {error}
+                </Text>
+              </View>
+            )}
+            
+            {isSubmitting && error === null && (
+              <View style={styles.infoContainer}>
+                <Text style={styles.infoText}>
+                  ログイン中...
+                </Text>
+              </View>
             )}
             
             <TouchableOpacity
@@ -201,9 +211,26 @@ const styles = StyleSheet.create({
   input: {
     fontSize: 16,
   },
+  errorContainer: {
+    backgroundColor: 'rgba(255, 59, 48, 0.1)',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+  },
   errorText: {
     color: '#FF453A',
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  infoContainer: {
+    backgroundColor: 'rgba(10, 132, 255, 0.1)',
+    borderRadius: 8,
+    padding: 12,
     marginBottom: 16,
+  },
+  infoText: {
+    color: '#0A84FF',
+    fontSize: 14,
     textAlign: 'center',
   },
   loginButton: {
