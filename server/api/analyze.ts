@@ -85,6 +85,7 @@ export async function analyzeDocument(content: string) {
     
     const openai = new OpenAI({
       apiKey: apiKey,
+      dangerouslyAllowBrowser: true,
     });
     
     const model = process.env.EXPO_PUBLIC_OPENAI_MODEL || 'gpt-4.1';

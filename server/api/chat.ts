@@ -10,6 +10,7 @@ export async function generateChatResponse(messages: any[]) {
     
     const openai = new OpenAI({
       apiKey: process.env.EXPO_PUBLIC_OPENAI_API_KEY || '',
+      dangerouslyAllowBrowser: true,
     });
     
     if (messages.length > 0 && !messages[0].isUser) {
