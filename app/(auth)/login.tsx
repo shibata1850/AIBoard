@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Platform, Alert } from 'react-native';
 import { Link, router } from 'expo-router';
 import { useAuth } from '../../components/AuthProvider';
 import { Logo } from '../../components/Logo';
@@ -8,7 +8,13 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const { signIn, isLoading } = useAuth();
+  const { signIn, isLoading, error: authError } = useAuth();
+
+  useEffect(() => {
+    if (authError) {
+      setError(authError);
+    }
+  }, [authError]);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -20,7 +26,21 @@ export default function LoginScreen() {
       setError(null);
       await signIn(email, password);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'ログインに失敗しました');
+      console.error('Login error:', err);
+      
+      if (err instanceof Error) {
+        if (err.message.includes('Invalid login credentials')) {
+          setError('メールアドレスまたはパスワードが正しくありません');
+        } else if (err.message.includes('Email not confirmed')) {
+          setError('メールアドレスの確認が必要です。メールをご確認ください');
+        } else if (err.message.includes('rate limit')) {
+          setError('ログイン試行回数が多すぎます。しばらく時間をおいてから再度お試しください');
+        } else {
+          setError(err.message);
+        }
+      } else {
+        setError('ログインに失敗しました。もう一度お試しください');
+      }
     }
   };
 
@@ -33,7 +53,11 @@ export default function LoginScreen() {
       </View>
 
       <View style={styles.formContainer}>
-        {error && <Text style={styles.errorText}>{error}</Text>}
+        {error && (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        )}
 
         <Text style={styles.label}>メールアドレス</Text>
         <TextInput
@@ -43,6 +67,7 @@ export default function LoginScreen() {
           placeholder="メールアドレスを入力"
           autoCapitalize="none"
           keyboardType="email-address"
+          accessibilityLabel="メールアドレス入力欄"
         />
 
         <Text style={styles.label}>パスワード</Text>
@@ -52,12 +77,14 @@ export default function LoginScreen() {
           onChangeText={setPassword}
           placeholder="パスワードを入力"
           secureTextEntry
+          accessibilityLabel="パスワード入力欄"
         />
 
         <TouchableOpacity
           style={[styles.button, isLoading && styles.buttonDisabled]}
           onPress={handleLogin}
           disabled={isLoading}
+          accessibilityLabel="ログインボタン"
         >
           {isLoading ? (
             <ActivityIndicator color="#fff" size="small" />
@@ -69,7 +96,7 @@ export default function LoginScreen() {
         <View style={styles.signupContainer}>
           <Text style={styles.signupText}>アカウントをお持ちでない方は</Text>
           <Link href="/signup" asChild>
-            <TouchableOpacity>
+            <TouchableOpacity accessibilityLabel="新規登録リンク">
               <Text style={styles.signupLink}>新規登録</Text>
             </TouchableOpacity>
           </Link>
@@ -136,10 +163,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  errorText: {
-    color: 'red',
+  errorContainer: {
+    backgroundColor: '#ffebee',
+    borderRadius: 8,
+    padding: 10,
     marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#ffcdd2',
+  },
+  errorText: {
+    color: '#d32f2f',
     textAlign: 'center',
+    fontSize: 14,
   },
   signupContainer: {
     flexDirection: 'row',
