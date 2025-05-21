@@ -1,72 +1,43 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const MODELS = {
-  PRIMARY: 'gemini-1.5-flash',
-  FALLBACK_1: 'gemini-pro',
-  FALLBACK_2: 'gemini-1.0-pro',
-  LAST_RESORT: 'gemini-pro-vision', // 最終手段として使用
-};
-
-const MAX_RETRIES = 3;
-const RETRY_DELAY_MS = 2000;
-const MAX_CONTENT_LENGTH = 10000; // 長すぎる文書を制限
-
-/**
- * 指定された時間だけ待機する
- */
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-/**
- * クォータエラーかどうかを判定する
- */
+// Simple inline implementation of isQuotaOrRateLimitError to avoid dependency
 function isQuotaOrRateLimitError(error: any): boolean {
-  if (!error || !error.message) return false;
+  if (!error) return false;
   
-  const errorMsg = error.message.toLowerCase();
-  const quotaPatterns = [
-    'quota',
-    'rate limit',
-    '429',
-    'too many requests',
-    'exceeded',
-    'limit',
-    'throttle',
-    'capacity',
-    'overloaded',
-    'busy',
-    'try again later',
-    'temporary',
-    'unavailable'
-  ];
+  const errorMessage = error.message || '';
+  const errorString = JSON.stringify(error).toLowerCase();
   
-  return quotaPatterns.some(pattern => errorMsg.includes(pattern));
+  return (
+    errorMessage.includes('quota') ||
+    errorMessage.includes('rate limit') ||
+    errorMessage.includes('too many requests') ||
+    errorMessage.includes('exceeded') ||
+    errorMessage.includes('limit') ||
+    errorString.includes('quota') ||
+    errorString.includes('rate limit') ||
+    errorString.includes('too many requests') ||
+    errorString.includes('exceeded') ||
+    errorString.includes('limit')
+  );
 }
 
-/**
- * 文書を分析する
- */
 export async function analyzeDocument(content: string) {
   try {
-    if (!content || typeof content !== 'string') {
-      throw new Error('Invalid request: content string is required');
-    }
+    console.log(`Analyzing document with content length: ${content.length}`);
     
+    // Try to decode if it's a base64 string
     let decodedContent = content;
     try {
-      if (/^[A-Za-z0-9+/=]+$/.test(content)) {
-        const buffer = Buffer.from(content, 'base64');
-        decodedContent = buffer.toString('utf-8');
-        console.log('Successfully decoded Base64 content');
-      }
-      
-      if (decodedContent.length > MAX_CONTENT_LENGTH) {
-        console.warn(`Content too long (${decodedContent.length} chars), truncating to ${MAX_CONTENT_LENGTH} chars`);
-        decodedContent = decodedContent.substring(0, MAX_CONTENT_LENGTH);
+      if (content.match(/^[A-Za-z0-9+/=]+$/)) {
+        const buff = Buffer.from(content, 'base64');
+        decodedContent = buff.toString('utf-8');
+        console.log(`Successfully decoded Base64 content (length: ${decodedContent.length})`);
       }
     } catch (decodeError) {
       console.warn('Failed to decode content as Base64, using original content:', decodeError);
     }
     
+    // Hardcoded API key to ensure it's used
     const apiKey = 'AIzaSyDaHD5V0kDzRjSaq0gHM8Fk_GyAJteUdX4';
     
     const genAI = new GoogleGenerativeAI(apiKey);
@@ -74,157 +45,132 @@ export async function analyzeDocument(content: string) {
     const prompt = `
     あなたは財務分析の専門家です。以下の文書を分析し、財務状況、経営状態、改善点などについて詳細に解説してください。
     特に以下の点に注目してください：
-    1. 財務健全性
-    2. 収益性
-    3. 成長性
-    4. リスク要因
-    5. 改善のための具体的なアドバイス
-
-    文書：
+    1. 売上高と利益率の推移
+    2. 財務健全性（負債比率、流動比率など）
+    3. 資金繰り状況
+    4. 経営効率（ROA、ROEなど）
+    5. 改善すべき点と具体的な提案
+    
+    分析結果は以下の形式で出力してください：
+    
+    
+    [全体的な財務状況の要約]
+    
+    [分析内容]
+    
+    [分析内容]
+    
+    [分析内容]
+    
+    [分析内容]
+    
+    [具体的な改善点と提案]
+    
+    [まとめと今後の見通し]
+    
+    以下が分析対象の文書です：
     ${decodedContent}
     `;
     
-    const shortPrompt = `
-    以下の財務文書を簡潔に分析してください：
-    ${decodedContent}
-    `;
-    
+    // Try with gemini-1.5-flash first
     try {
-      console.log(`Attempting analysis with primary model: ${MODELS.PRIMARY}`);
-      const primaryModel = genAI.getGenerativeModel({ 
-        model: MODELS.PRIMARY,
+      const model = genAI.getGenerativeModel({ 
+        model: 'gemini-1.5-flash',
         generationConfig: {
-          temperature: 0.2,
+          temperature: 0.4,
           topP: 0.8,
           topK: 40,
-          maxOutputTokens: 2048,
-        }
+          maxOutputTokens: 8192,
+        },
       });
       
-      const result = await primaryModel.generateContent(prompt);
+      console.log('Sending request to gemini-1.5-flash model...');
+      const result = await model.generateContent(prompt);
       const response = await result.response;
       const text = response.text();
-      console.log('Primary model analysis successful');
-      return { text };
-    } catch (primaryError: any) {
-      console.warn(`Primary model (${MODELS.PRIMARY}) error:`, primaryError);
       
-      if (isQuotaOrRateLimitError(primaryError)) {
-        console.log('Quota/rate limit detected for primary model, trying first fallback model...');
-        
+      console.log('Successfully generated analysis with gemini-1.5-flash');
+      return { text };
+    } catch (flashError) {
+      console.error('Error with gemini-1.5-flash model:', flashError);
+      
+      // If it's a quota/rate limit error, try with gemini-1.5-pro
+      if (isQuotaOrRateLimitError(flashError)) {
         try {
-          const fallbackModel1 = genAI.getGenerativeModel({ 
-            model: MODELS.FALLBACK_1,
+          console.log('Quota/rate limit detected, trying with gemini-1.5-pro model...');
+          
+          const fallbackModel = genAI.getGenerativeModel({ 
+            model: 'gemini-1.5-pro',
             generationConfig: {
-              temperature: 0.2,
+              temperature: 0.5,  // Slightly higher temperature for the fallback
               topP: 0.8,
-              maxOutputTokens: 2048,
-            }
+              topK: 40,
+              maxOutputTokens: 8192,
+            },
           });
           
-          const result = await fallbackModel1.generateContent(prompt);
-          const response = await result.response;
-          const text = response.text();
-          console.log('First fallback model analysis successful');
-          return { text };
-        } catch (fallback1Error: any) {
-          console.warn(`First fallback model (${MODELS.FALLBACK_1}) error:`, fallback1Error);
+          const fallbackResult = await fallbackModel.generateContent(prompt);
+          const fallbackResponse = await fallbackResult.response;
+          const fallbackText = fallbackResponse.text();
           
-          if (isQuotaOrRateLimitError(fallback1Error)) {
-            console.log('Quota/rate limit detected for first fallback model, trying second fallback model...');
-            
+          console.log('Successfully generated analysis with gemini-1.5-pro');
+          return { text: fallbackText };
+        } catch (fallbackError) {
+          console.error('Error with gemini-1.5-pro model:', fallbackError);
+          
+          // If it's still a quota/rate limit error, try with gemini-pro as last resort
+          if (isQuotaOrRateLimitError(fallbackError)) {
             try {
-              const fallbackModel2 = genAI.getGenerativeModel({ 
-                model: MODELS.FALLBACK_2,
+              console.log('Quota/rate limit detected, trying with gemini-pro model as last resort...');
+              
+              const lastResortModel = genAI.getGenerativeModel({ 
+                model: 'gemini-pro',
                 generationConfig: {
-                  temperature: 0.3,
-                  maxOutputTokens: 1024,
-                }
+                  temperature: 0.6,  // Even higher temperature for the last resort
+                  topP: 0.9,
+                  topK: 40,
+                  maxOutputTokens: 4096,  // gemini-pro has lower token limit
+                },
               });
               
-              const result = await fallbackModel2.generateContent(shortPrompt);
-              const response = await result.response;
-              const text = response.text();
-              console.log('Second fallback model analysis successful');
-              return { text };
-            } catch (fallback2Error: any) {
-              console.error('Second fallback model error:', fallback2Error);
+              const lastResortResult = await lastResortModel.generateContent(prompt);
+              const lastResortResponse = await lastResortResult.response;
+              const lastResortText = lastResortResponse.text();
               
-              if (isQuotaOrRateLimitError(fallback2Error)) {
-                console.log('Trying last resort model with minimal prompt...');
-                try {
-                  const lastResortModel = genAI.getGenerativeModel({ 
-                    model: MODELS.LAST_RESORT,
-                    generationConfig: {
-                      temperature: 0.4,
-                      maxOutputTokens: 512,
-                    }
-                  });
-                  
-                  const minimalPrompt = `財務分析: ${decodedContent.substring(0, 2000)}`;
-                  const result = await lastResortModel.generateContent(minimalPrompt);
-                  const response = await result.response;
-                  const text = response.text();
-                  console.log('Last resort model analysis successful');
-                  return { text };
-                } catch (lastResortError) {
-                  console.error('All models failed with quota/rate limit errors');
-                  throw new Error('すべてのAPIモデルが制限に達しました。しばらく時間をおいてから再度お試しください。(30分程度後に再試行することをお勧めします)');
-                }
-              }
-              throw fallback2Error;
+              console.log('Successfully generated analysis with gemini-pro');
+              return { text: lastResortText };
+            } catch (lastResortError) {
+              console.error('All models failed with quota/rate limit errors');
+              throw new Error('すべてのAPIモデルが制限に達しました。しばらく時間をおいてから再度お試しください。(30分程度後に再試行することをお勧めします)');
             }
           }
-          throw fallback1Error;
+          throw fallbackError;
         }
-      } else {
-        for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-          try {
-            const backoffTime = RETRY_DELAY_MS * Math.pow(2, attempt);
-            console.log(`Retrying with primary model (attempt ${attempt + 1}) after ${backoffTime}ms delay...`);
-            await sleep(backoffTime); // 指数バックオフ
-            
-            const primaryModel = genAI.getGenerativeModel({ 
-              model: MODELS.PRIMARY,
-              generationConfig: {
-                temperature: 0.2 + (attempt * 0.1), // 徐々に温度を上げる
-                maxOutputTokens: 2048,
-              }
-            });
-            
-            const result = await primaryModel.generateContent(prompt);
-            const response = await result.response;
-            const text = response.text();
-            console.log(`Retry ${attempt + 1} successful`);
-            return { text };
-          } catch (retryError) {
-            console.warn(`Retry ${attempt + 1} failed:`, retryError);
-            
-            if (attempt === MAX_RETRIES - 1) {
-              console.log('All retries failed, trying fallback model as last resort...');
-              try {
-                const fallbackModel = genAI.getGenerativeModel({ 
-                  model: MODELS.FALLBACK_1,
-                  generationConfig: {
-                    temperature: 0.3,
-                    maxOutputTokens: 1024,
-                  }
-                });
-                
-                const result = await fallbackModel.generateContent(shortPrompt);
-                const response = await result.response;
-                const text = response.text();
-                console.log('Fallback after retries successful');
-                return { text };
-              } catch (finalError) {
-                console.error('Final fallback attempt failed:', finalError);
-                throw finalError;
-              }
-            }
-          }
-        }
+      }
+      
+      // If it's not a quota/rate limit error, try with a higher temperature
+      try {
+        console.log('Trying again with gemini-1.5-flash and higher temperature...');
         
-        throw primaryError;
+        const retryModel = genAI.getGenerativeModel({ 
+          model: 'gemini-1.5-flash',
+          generationConfig: {
+            temperature: 0.7,  // Higher temperature for retry
+            topP: 0.9,
+            topK: 40,
+            maxOutputTokens: 8192,
+          },
+        });
+        
+        const retryResult = await retryModel.generateContent(prompt);
+        const retryResponse = await retryResult.response;
+        const retryText = retryResponse.text();
+        
+        console.log('Successfully generated analysis with gemini-1.5-flash (higher temperature)');
+        return { text: retryText };
+      } catch (retryError) {
+        console.error('Error with gemini-1.5-flash retry:', retryError);
+        throw retryError;
       }
     }
   } catch (error: any) {
