@@ -78,9 +78,58 @@ export async function generateChatResponse(messages: Message[]) {
 }
 EOL
 
+echo "Creating utils/errorUtils.ts file..."
+mkdir -p utils
+cat > utils/errorUtils.ts << 'EOL'
+/**
+ * Checks if an error is related to quota or rate limits
+ * @param error The error to check
+ * @returns True if the error is related to quota or rate limits
+ */
+export function isQuotaOrRateLimitError(error: any): boolean {
+  if (!error) return false;
+  
+  const errorMessage = error.message || '';
+  const errorString = JSON.stringify(error).toLowerCase();
+  
+  return (
+    errorMessage.includes('quota') ||
+    errorMessage.includes('rate limit') ||
+    errorMessage.includes('too many requests') ||
+    errorMessage.includes('exceeded') ||
+    errorMessage.includes('limit') ||
+    errorString.includes('quota') ||
+    errorString.includes('rate limit') ||
+    errorString.includes('too many requests') ||
+    errorString.includes('exceeded') ||
+    errorString.includes('limit')
+  );
+}
+EOL
+
 cat > server/api/analyze.ts << 'EOL'
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { isQuotaOrRateLimitError } from '../../utils/errorUtils';
+
+// Simple inline implementation of isQuotaOrRateLimitError to avoid dependency
+function isQuotaOrRateLimitError(error: any): boolean {
+  if (!error) return false;
+  
+  const errorMessage = error.message || '';
+  const errorString = JSON.stringify(error).toLowerCase();
+  
+  return (
+    errorMessage.includes('quota') ||
+    errorMessage.includes('rate limit') ||
+    errorMessage.includes('too many requests') ||
+    errorMessage.includes('exceeded') ||
+    errorMessage.includes('limit') ||
+    errorString.includes('quota') ||
+    errorString.includes('rate limit') ||
+    errorString.includes('too many requests') ||
+    errorString.includes('exceeded') ||
+    errorString.includes('limit')
+  );
+}
 
 export async function analyzeDocument(content: string) {
   try {
