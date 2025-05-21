@@ -8,7 +8,7 @@ export async function generateChatResponse(messages: any[]) {
     
     console.log('Generating chat response with messages:', JSON.stringify(messages));
     
-    const genAI = new GoogleGenerativeAI(process.env.EXPO_PUBLIC_GEMINI_API_KEY || '');
+    const genAI = new GoogleGenerativeAI('AIzaSyDaHD5V0kDzRjSaq0gHM8Fk_GyAJteUdX4');
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     
     if (messages.length > 0 && !messages[0].isUser) {

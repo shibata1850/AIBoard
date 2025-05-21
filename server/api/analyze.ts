@@ -67,10 +67,7 @@ export async function analyzeDocument(content: string) {
       console.warn('Failed to decode content as Base64, using original content:', decodeError);
     }
     
-    const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
-    if (!apiKey) {
-      throw new Error('Gemini API key is not configured');
-    }
+    const apiKey = 'AIzaSyDaHD5V0kDzRjSaq0gHM8Fk_GyAJteUdX4';
     
     const genAI = new GoogleGenerativeAI(apiKey);
     
