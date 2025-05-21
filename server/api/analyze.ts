@@ -29,9 +29,38 @@ export async function analyzeDocument(content: string) {
     let decodedContent = content;
     try {
       if (content.match(/^[A-Za-z0-9+/=]+$/)) {
-        const buff = Buffer.from(content, 'base64');
-        decodedContent = buff.toString('utf-8');
-        console.log(`Successfully decoded Base64 content (length: ${decodedContent.length})`);
+        if (content.startsWith('JVBERi0')) {
+          console.log('Detected PDF file in base64 format, processing with Gemini 2.0 Flash...');
+          
+          try {
+            const { processPdfWithGemini } = require('../../utils/pdfUtils');
+            
+            const analysisResult = await processPdfWithGemini(content);
+            
+            if (analysisResult && analysisResult.length > 0) {
+              console.log(`Successfully processed PDF with Gemini 2.0 Flash (result length: ${analysisResult.length})`);
+              return { text: analysisResult };
+            } else {
+              console.warn('Failed to process PDF with Gemini 2.0 Flash or result is empty');
+              
+              const { extractTextFromPdf, hasFinancialContent } = require('../../utils/pdfUtils');
+              const extractedText = await extractTextFromPdf(content);
+              
+              if (extractedText && extractedText.length > 0) {
+                console.log(`Successfully extracted text from PDF (length: ${extractedText.length})`);
+                decodedContent = extractedText;
+              } else {
+                console.warn('Failed to extract text from PDF or extracted text is empty');
+              }
+            }
+          } catch (pdfError) {
+            console.error('Error processing PDF:', pdfError);
+          }
+        } else {
+          const buff = Buffer.from(content, 'base64');
+          decodedContent = buff.toString('utf-8');
+          console.log(`Successfully decoded Base64 content (length: ${decodedContent.length})`);
+        }
       }
     } catch (decodeError) {
       console.warn('Failed to decode content as Base64, using original content:', decodeError);
