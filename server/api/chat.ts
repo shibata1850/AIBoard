@@ -14,12 +14,12 @@ export async function generateChatResponse(messages: Message[]) {
         id: 'system-prompt',
         text: 'あなたは経営コンサルタントAIです。ユーザーの質問に対して、経営や財務の専門知識を活かして回答してください。',
         isUser: false,
-        timestamp: new Date().toISOString(),
+        timestamp: Date.now(),
       });
     }
     
-    const history = messages.map(msg => ({
-      role: msg.isUser ? 'user' : 'model',
+    const history = messages.map((msg, index) => ({
+      role: (index === 0) ? 'user' : (msg.isUser ? 'user' : 'model'), // Force first message to be user
       parts: [{ text: msg.text }],
     }));
     
