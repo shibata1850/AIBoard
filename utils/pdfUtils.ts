@@ -349,7 +349,7 @@ export async function processPdfWithGemini(
 [分析と考察の説明]
 `;
       
-      const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY || 'AIzaSyDaHD5V0kDzRjSaq0gHM8Fk_GyAJteUdX4';
+      const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
       const genAI = new GoogleGenerativeAI(apiKey);
       
       try {
@@ -383,7 +383,7 @@ export async function processPdfWithGemini(
     const useFileApi = estimatedSizeBytes > FILE_API_THRESHOLD_BYTES;
     
     // Get the optimal model for PDF processing
-    const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY || 'AIzaSyDaHD5V0kDzRjSaq0gHM8Fk_GyAJteUdX4';
+    const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
     const genAI = new GoogleGenerativeAI(apiKey);
     
     // Initialize with a default model in case getBestAvailableModel fails
@@ -510,5 +510,20 @@ export async function processPdfWithGemini(
   } catch (error: any) {
     console.error('Error in processPdfWithGemini:', error);
     return { text: `PDF処理エラー: ${error.message}` };
+  }
+}
+
+// Helper function to check if a model is available
+async function isModelAvailable(apiKey: string, modelName: string): Promise<boolean> {
+  try {
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: modelName });
+    await model.generateContent('test');
+    return true;
+  } catch (error: any) {
+    if (error.message.includes('model not found')) {
+      return false;
+    }
+    throw error;
   }
 }

@@ -28,7 +28,14 @@ async function testErrorHandling() {
   try {
     console.log('\nテストケース1: モデルが見つからないエラー');
     
-    const apiKey = 'AIzaSyDaHD5V0kDzRjSaq0gHM8Fk_GyAJteUdX4';
+    const apiKey = process.env.GEMINI_API_KEY || 
+              process.env.EXPO_PUBLIC_GEMINI_API_KEY || 
+              process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
+    
+    if (!apiKey) {
+      console.error('GEMINI_API_KEY is not set in environment variables');
+      throw new Error('API key not configured');
+    }
     const genAI = new GoogleGenerativeAI(apiKey);
     
     // 存在しないモデル名を指定

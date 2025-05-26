@@ -5,8 +5,16 @@ export async function generateChatResponse(messages: Message[]) {
   try {
     console.log('Generating chat response with messages:', JSON.stringify(messages));
     
-    // Hardcoded API key to ensure it's used
-    const genAI = new GoogleGenerativeAI('AIzaSyDaHD5V0kDzRjSaq0gHM8Fk_GyAJteUdX4');
+    const apiKey = process.env.GEMINI_API_KEY || 
+                  process.env.EXPO_PUBLIC_GEMINI_API_KEY || 
+                  process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
+    
+    if (!apiKey) {
+      console.error('GEMINI_API_KEY is not set in environment variables');
+      throw new Error('APIキーが設定されていません。システム管理者にお問い合わせください。');
+    }
+    
+    const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     
     if (messages.length > 0 && !messages[0].isUser) {

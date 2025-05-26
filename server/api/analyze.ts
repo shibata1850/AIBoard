@@ -66,8 +66,14 @@ export async function analyzeDocument(content: string) {
       console.warn('Failed to decode content as Base64, using original content:', decodeError);
     }
     
-    // Hardcoded API key to ensure it's used
-    const apiKey = 'AIzaSyDaHD5V0kDzRjSaq0gHM8Fk_GyAJteUdX4';
+    const apiKey = process.env.GEMINI_API_KEY || 
+                  process.env.EXPO_PUBLIC_GEMINI_API_KEY || 
+                  process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
+    
+    if (!apiKey) {
+      console.error('GEMINI_API_KEY is not set in environment variables');
+      throw new Error('APIキーが設定されていません。システム管理者にお問い合わせください。');
+    }
     
     const genAI = new GoogleGenerativeAI(apiKey);
     

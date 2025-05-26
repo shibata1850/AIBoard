@@ -120,7 +120,15 @@ async function processPdfWithGemini(base64Content, isFinancial = true) {
     isFinancial = isFinancial || containsFinancialContent;
     
     // Get the optimal model for PDF processing
-    const apiKey = process.env.GEMINI_API_KEY || 'AIzaSyDaHD5V0kDzRjSaq0gHM8Fk_GyAJteUdX4';
+    const apiKey = process.env.GEMINI_API_KEY || 
+                  process.env.EXPO_PUBLIC_GEMINI_API_KEY || 
+                  process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
+    
+    if (!apiKey) {
+      console.error('GEMINI_API_KEY is not set in environment variables');
+      return { text: 'APIキーが設定されていません。システム管理者にお問い合わせください。' };
+    }
+    
     const genAI = new GoogleGenerativeAI(apiKey);
     
     const modelName = await getBestAvailableModel(apiKey, true);

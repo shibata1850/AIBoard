@@ -1,7 +1,14 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const https = require('https');
 
-const apiKey = 'AIzaSyDaHD5V0kDzRjSaq0gHM8Fk_GyAJteUdX4';
+const apiKey = process.env.GEMINI_API_KEY || 
+              process.env.EXPO_PUBLIC_GEMINI_API_KEY || 
+              process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
+
+if (!apiKey) {
+  console.error('GEMINI_API_KEY is not set in environment variables');
+  process.exit(1);
+}
 
 async function checkDomainRestrictions() {
   return new Promise((resolve) => {

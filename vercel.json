@@ -43,9 +43,9 @@
     }
   ],
   "env": {
-    "VERCEL_PROJECT_PROTECTION": "false",
-    "EXPO_PUBLIC_GEMINI_API_KEY": "AIzaSyDaHD5V0kDzRjSaq0gHM8Fk_GyAJteUdX4",
-    "NEXT_PUBLIC_GEMINI_API_KEY": "AIzaSyDaHD5V0kDzRjSaq0gHM8Fk_GyAJteUdX4"
+    "VERCEL_PROJECT_PROTECTION": "false"
+    // API keys should be set in the Vercel dashboard environment variables
+    // and not committed to the repository
   },
   "ignoreCommand": "echo 'Skipping checks'"
 }
