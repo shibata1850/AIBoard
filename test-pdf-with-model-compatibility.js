@@ -6,17 +6,18 @@ async function testPdfWithModelCompatibility() {
   try {
     console.log('=== モデル互換性を使用したPDF処理のテスト ===');
     
-    const sampleTextPath = path.join(__dirname, 'test-files', 'financial-sample.txt');
+    const samplePdfPath = path.join(__dirname, 'test-files', 'financial-sample.pdf');
     
-    if (!fs.existsSync(sampleTextPath)) {
-      console.error(`テストファイルが見つかりません: ${sampleTextPath}`);
+    if (!fs.existsSync(samplePdfPath)) {
+      console.error(`テストファイルが見つかりません: ${samplePdfPath}`);
       return;
     }
     
-    console.log(`テストファイル: ${path.basename(sampleTextPath)}`);
+    console.log(`テストファイル: ${path.basename(samplePdfPath)}`);
     
-    const sampleText = fs.readFileSync(sampleTextPath, 'utf8');
-    const base64Content = Buffer.from(sampleText).toString('base64');
+    // Read the PDF file as base64
+    const pdfBuffer = fs.readFileSync(samplePdfPath);
+    const base64Content = pdfBuffer.toString('base64');
     
     console.log('PDFをGeminiで処理中...');
     const startTime = Date.now();

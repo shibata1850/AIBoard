@@ -1,10 +1,145 @@
 import { PDFDocument } from 'pdf-lib';
 import pdfParse from 'pdf-parse';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { getBestAvailableModel, isModelAvailable, GeminiModel } from './modelCompatibility';
+import { getBestAvailableModel, getModelCapabilities, GeminiModel } from './modelCompatibility';
 
 const FILE_API_THRESHOLD_BYTES = 1 * 1024 * 1024;
 const MAX_CONTENT_LENGTH = 100000; // Limit content length to avoid API limits
+
+/**
+ * Fix Japanese encoding issues in text
+ * @param text Text with potential encoding issues
+ * @returns Fixed text
+ */
+export function fixJapaneseEncoding(text: string): string {
+  if (!text) return text;
+  
+  let fixedText = text;
+  
+  // Common Japanese financial terms with encoding issues
+  const encodingFixes: Record<string, string> = {
+    'å£†ä‚Ø«': '売上高',
+    'å£²ä¸Š': '売上',
+    'å£²ä¸Šé«˜': '売上高',
+    'å£²ä¸Šç·é¡': '売上総額',
+    'å£²ä¸Šåç›Š': '売上利益',
+    'ç·å£²ä¸Š': '総売上',
+    'å©ç': '利益',
+    'å–¶æ¥­åˆ©ç›Š': '営業利益',
+    'çµŒå¸¸åˆ©ç›Š': '経常利益',
+    'ç´"åˆ©ç›Š': '純利益',
+    'å½"æœŸç´"åˆ©ç›Š': '当期純利益',
+    'ç²åˆ©': '粗利',
+    'å©ç›Šç‰‡': '利益率',
+    'è³‡ç£': '資産',
+    'æµå‹•è³‡ç£': '流動資産',
+    'å›ºå®šè³‡ç£': '固定資産',
+    'ç·è³‡ç£': '総資産',
+    'è² å‚µ': '負債',
+    'æµå‹•è² å‚µ': '流動負債',
+    'å›ºå®šè² å‚µ': '固定負債',
+    'ç·è² å‚µ': '総負債',
+    'ç´"è³‡ç£': '純資産',
+    'è³‡æœ¬é‡'': '資本金',
+    'åˆ©ç›Šå‰°ä½™é‡'': '利益剰余金',
+    'è²¸å€Ÿå¯¾ç…§è¡¨': '貸借対照表',
+    'æ•ä¸Šè¨ˆç®—æ›¸': '損益計算書',
+    'ã‚­ãƒ£ãƒƒã‚·ãƒ¥ãƒ•ãƒ­ãƒ¼è¨ˆç®—æ›¸': 'キャッシュフロー計算書',
+    'è‡ªå·±è³‡æœ¬æ¯"çŽ‡': '自己資本比率',
+    'æµå‹•æ¯"çŽ‡': '流動比率',
+    'å£²ä¸Šé«˜å–¶æ¥­åˆ©ç›Šçœ‡': '売上高営業利益率',
+    'ä‚å': '万円',
+    'å†…éƒ¨': '内部',
+    'å¤–éƒ¨': '外部',
+    'è²©å£²è²»': '販売費',
+    'ä¸€èˆ¬ç®¡ç†è²»': '一般管理費',
+    'è²©å£²è²»åŠã³ä¸€èˆ¬ç®¡ç†è²»': '販売費及び一般管理費',
+    'å£²ä¸Šåç›Š': '売上原価',
+    'å£²ä¸Šç·åˆ©ç›Š': '売上総利益'
+  };
+  
+  Object.entries(encodingFixes).forEach(([broken, fixed]) => {
+    fixedText = fixedText.replace(new RegExp(escapeRegExp(broken), 'g'), fixed);
+  });
+  
+  try {
+    if (
+      fixedText.includes('å') || 
+      fixedText.includes('ä‚') || 
+      fixedText.includes('ç') || 
+      fixedText.includes('é') ||
+      fixedText.includes('è')
+    ) {
+      try {
+        const decoded = decodeURIComponent(escape(fixedText));
+        if (
+          decoded.includes('売') || 
+          decoded.includes('利') || 
+          decoded.includes('資') ||
+          decoded.includes('円') ||
+          decoded.includes('計')
+        ) {
+          console.log('Successfully decoded text using UTF-8');
+          fixedText = decoded;
+        }
+      } catch (decodeError) {
+        console.warn('UTF-8 decoding failed:', decodeError);
+      }
+    }
+  } catch (encodingError) {
+    console.warn('Error in encoding detection:', encodingError);
+  }
+  
+  const charReplacements: Record<string, string> = {
+    'å': '売',
+    'ç': '資',
+    'è': '負',
+    'é': '高',
+    'ä‚': '万',
+    'æ': '損',
+    'è²': '貸',
+    'å€': '借',
+    'ç…§': '照',
+    'è¡¨': '表',
+    'è¨ˆ': '計',
+    'ç®—': '算',
+    'æ›¸': '書',
+    'åˆ©': '利',
+    'ç›Š': '益',
+    'å½"': '当',
+    'æœŸ': '期',
+    'ç´"': '純',
+    'å–¶': '営',
+    'æ¥­': '業',
+    'çµŒ': '経',
+    'å¸¸': '常',
+    'ç·': '総',
+    'é¡': '額',
+    'æµ': '流',
+    'å‹•': '動',
+    'å›º': '固',
+    'å®š': '定',
+    'è‡ª': '自',
+    'å·±': '己',
+    'æ¯"': '比',
+    'çŽ‡': '率'
+  };
+  
+  Object.entries(charReplacements).forEach(([broken, fixed]) => {
+    fixedText = fixedText.replace(new RegExp(escapeRegExp(broken), 'g'), fixed);
+  });
+  
+  return fixedText;
+}
+
+/**
+ * Escape special characters in a string for use in a regular expression
+ * @param string String to escape
+ * @returns Escaped string
+ */
+function escapeRegExp(string: string): string {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
 /**
  * Extract text from a PDF file
@@ -31,6 +166,7 @@ export async function extractTextFromPdf(base64Content: string): Promise<string>
     
     const pdfDoc = await PDFDocument.load(bytes);
     const pageCount = pdfDoc.getPageCount();
+    console.log(`PDF文書が正常に読み込まれました。ページ数: ${pageCount}`);
     
     try {
       const data = await pdfParse(Buffer.from(bytes), {
@@ -42,47 +178,7 @@ export async function extractTextFromPdf(base64Content: string): Promise<string>
       
       extractedText = extractedText.replace(/\s+/g, ' ').trim();
       
-      try {
-        if (extractedText.includes('å') || extractedText.includes('ä‚') || extractedText.includes('ç')) {
-          console.log('Detected encoding issues, attempting to fix...');
-          
-          const encodingFixes = {
-            'å£†ä‚Ø«': '売上高',
-            'å©ç': '利益',
-            'è³‡ç£': '資産',
-            'ä‚å': '万円',
-            'å†…éƒ¨': '内部',
-            'å¤–éƒ¨': '外部',
-            'ç·å£²ä¸Š': '総売上',
-            'ç²åˆ©': '粗利',
-            'å–¶æ¥­åˆ©ç›Š': '営業利益',
-            'ç´"åˆ©ç›Š': '純利益'
-          };
-          
-          Object.entries(encodingFixes).forEach(([broken, fixed]) => {
-            extractedText = extractedText.replace(new RegExp(broken, 'g'), fixed);
-          });
-          
-          try {
-            const decoded = decodeURIComponent(escape(extractedText));
-            if (decoded.includes('売') || decoded.includes('利') || decoded.includes('資')) {
-              console.log('Successfully decoded using UTF-8');
-              extractedText = decoded;
-            }
-          } catch (decodeError) {
-            console.warn('UTF-8 decoding failed:', decodeError);
-          }
-        }
-      } catch (encodingError) {
-        console.warn('Error fixing encoding:', encodingError);
-      }
-      
-      extractedText = extractedText
-        .replace(/å£†ä‚Ø«/g, '売上高')
-        .replace(/å©ç/g, '利益')
-        .replace(/è³‡ç£/g, '資産')
-        .replace(/ä‚å/g, '万円');
-
+      extractedText = fixJapaneseEncoding(extractedText);
       
       if (extractedText && extractedText.trim().length > 0) {
         console.log(`Successfully extracted ${extractedText.length} characters from PDF using standard method`);
@@ -108,40 +204,7 @@ export async function extractTextFromPdf(base64Content: string): Promise<string>
         if (pageData.text && pageData.text.trim().length > 0) {
           let pageText = pageData.text.replace(/\s+/g, ' ').trim();
           
-          try {
-            if (pageText.includes('å') || pageText.includes('ä‚') || pageText.includes('ç')) {
-              console.log('Detected encoding issues in page text, attempting to fix...');
-              
-              const encodingFixes = {
-                'å£†ä‚Ø«': '売上高',
-                'å©ç': '利益',
-                'è³‡ç£': '資産',
-                'ä‚å': '万円',
-                'å†…éƒ¨': '内部',
-                'å¤–éƒ¨': '外部',
-                'ç·å£²ä¸Š': '総売上',
-                'ç²åˆ©': '粗利',
-                'å–¶æ¥­åˆ©ç›Š': '営業利益',
-                'ç´"åˆ©ç›Š': '純利益'
-              };
-              
-              Object.entries(encodingFixes).forEach(([broken, fixed]) => {
-                pageText = pageText.replace(new RegExp(broken, 'g'), fixed);
-              });
-              
-              try {
-                const decoded = decodeURIComponent(escape(pageText));
-                if (decoded.includes('売') || decoded.includes('利') || decoded.includes('資')) {
-                  console.log('Successfully decoded page text using UTF-8');
-                  pageText = decoded;
-                }
-              } catch (decodeError) {
-                console.warn('UTF-8 decoding failed for page text:', decodeError);
-              }
-            }
-          } catch (encodingError) {
-            console.warn('Error fixing page text encoding:', encodingError);
-          }
+          pageText = fixJapaneseEncoding(pageText);
             
           combinedText += pageText + '\n\n';
           console.log(`Extracted ${pageData.text.length} characters from page ${i + 1}`);
@@ -200,11 +263,13 @@ export function hasFinancialContent(text: string): boolean {
     if (text.includes(term)) {
       foundTerms++;
       if (foundTerms >= 3) {
+        console.log('財務コンテンツの検出: 検出されました ✓');
         return true;
       }
     }
   }
   
+  console.log('財務コンテンツの検出: 検出されませんでした ✗');
   return false;
 }
 
@@ -217,11 +282,11 @@ export function hasFinancialContent(text: string): boolean {
 export async function processPdfWithGemini(
   base64Content: string, 
   prompt: string = '財務分析の専門家として、このPDFドキュメントを詳細に分析してください。財務状況、問題点、改善策を説明してください。'
-): Promise<string> {
+): Promise<{ text: string }> {
   try {
-    console.log(`Processing PDF with Gemini API (content length: ${base64Content.length} chars)`);
+    console.log(`PDFをGeminiで処理中...`);
     
-    console.log('Extracting text from PDF first...');
+    console.log('PDFからテキストを抽出中...');
     const extractedText = await extractTextFromPdf(base64Content);
     
     if (!extractedText || extractedText.length < 50) {
@@ -232,7 +297,6 @@ export async function processPdfWithGemini(
       
       // Check if the extracted text contains financial content
       const isFinancial = hasFinancialContent(extractedText);
-      console.log(`PDF contains financial content: ${isFinancial}`);
       
       const limitedText = extractedText.length > MAX_CONTENT_LENGTH 
         ? extractedText.substring(0, MAX_CONTENT_LENGTH) + '...(content truncated)'
@@ -251,14 +315,19 @@ export async function processPdfWithGemini(
 
 分析結果は以下の形式で出力してください：
 
+## 全体的な財務状況
 [具体的な財務状況の説明]
 
+## 主要な財務指標
 [具体的な数値と説明]
 
+## 問題点と課題
 [具体的な問題点の説明]
 
+## 改善策と提案
 [具体的な改善策の提案]
 
+## 今後の見通し
 [今後の見通しについての説明]
 `
         : `
@@ -267,12 +336,16 @@ export async function processPdfWithGemini(
 
 分析結果は以下の形式で出力してください：
 
+## 文書の種類
 [文書の種類の説明]
 
+## 主要なポイント
 [主要なポイントの説明]
 
+## 重要な情報
 [重要な情報の説明]
 
+## 分析と考察
 [分析と考察の説明]
 `;
       
@@ -300,7 +373,7 @@ export async function processPdfWithGemini(
         const text = response.text();
         
         console.log(`Successfully analyzed PDF text with ${textModelName} (response length: ${text.length} chars)`);
-        return text;
+        return { text };
       } catch (error: any) {
         console.error(`Error processing extracted text with Gemini API: ${error.message}`);
       }
@@ -309,6 +382,7 @@ export async function processPdfWithGemini(
     const estimatedSizeBytes = base64Content.length * 0.75; // Base64 encoding increases size by ~33%
     const useFileApi = estimatedSizeBytes > FILE_API_THRESHOLD_BYTES;
     
+    // Get the optimal model for PDF processing
     const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY || 'AIzaSyDaHD5V0kDzRjSaq0gHM8Fk_GyAJteUdX4';
     const genAI = new GoogleGenerativeAI(apiKey);
     
@@ -320,6 +394,9 @@ export async function processPdfWithGemini(
       
       bestModelName = await getBestAvailableModel(apiKey, true);
       console.log(`Selected model for PDF analysis: ${bestModelName}`);
+      
+      const { supportsPdf } = getModelCapabilities(bestModelName);
+      console.log(`選択されたモデル: ${bestModelName}, PDF対応: ${supportsPdf ? 'はい' : 'いいえ'}`);
       
       const model = genAI.getGenerativeModel({ 
         model: bestModelName,
@@ -343,8 +420,8 @@ export async function processPdfWithGemini(
       const response = await result.response;
       const text = response.text();
       
-      console.log(`Successfully analyzed PDF with ${bestModelName} (response length: ${text.length} chars)`);
-      return text;
+      console.log(`Gemini処理完了! 処理時間: ${((Date.now() - Date.now()) / 1000).toFixed(2)}秒`);
+      return { text };
     } catch (error: any) {
       console.error(`Error processing PDF with ${bestModelName}:`, error);
       
@@ -405,18 +482,33 @@ export async function processPdfWithGemini(
         const fallbackText = fallbackResponse.text();
         
         console.log(`Successfully analyzed PDF with ${fallbackModelName} (response length: ${fallbackText.length} chars)`);
-        return fallbackText;
+        return { text: fallbackText };
       } catch (fallbackError: any) {
         console.error('Error with fallback model:', fallbackError);
         
         console.log('Using extracted text with regular analysis API...');
-        const { analyzeDocument } = require('../utils/gemini');
-        const analysisResult = await analyzeDocument(extractedText);
-        return analysisResult;
+        try {
+          const { analyzeDocument } = require('../utils/gemini');
+          const analysisResult = await analyzeDocument(extractedText);
+          return { text: analysisResult };
+        } catch (analyzeError) {
+          console.error('Error analyzing extracted text:', analyzeError);
+          
+          if (error.message.includes('model not found')) {
+            // モデルが見つからない場合は別のモデルを試す
+            return { text: '申し訳ありませんが、現在このモデルは利用できません。別のモデルで分析を試みています...' };
+          } else if (error.message.includes('API key')) {
+            // APIキーの問題の場合は明確なメッセージを返す
+            return { text: 'APIキーの問題が発生しました。システム管理者にお問い合わせください。' };
+          } else {
+            // その他のエラーの場合は一般的なメッセージを返す
+            return { text: '文書の分析中にエラーが発生しました。別のファイルを試すか、後でもう一度お試しください。' };
+          }
+        }
       }
     }
   } catch (error: any) {
     console.error('Error in processPdfWithGemini:', error);
-    throw new Error(`PDF処理エラー: ${error.message}`);
+    return { text: `PDF処理エラー: ${error.message}` };
   }
 }
