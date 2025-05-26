@@ -1,7 +1,7 @@
-import { PDFDocument } from 'pdf-lib';
-import pdfParse from 'pdf-parse';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import { getBestAvailableModel, isModelAvailable, GeminiModel } from './modelCompatibility';
+const { PDFDocument } = require('pdf-lib');
+const pdfParse = require('pdf-parse');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { getBestAvailableModel, isModelAvailable, GeminiModel } = require('./modelCompatibility');
 
 const FILE_API_THRESHOLD_BYTES = 1 * 1024 * 1024;
 const MAX_CONTENT_LENGTH = 100000; // Limit content length to avoid API limits
@@ -11,7 +11,7 @@ const MAX_CONTENT_LENGTH = 100000; // Limit content length to avoid API limits
  * @param base64Content Base64 encoded PDF content
  * @returns Promise with extracted text
  */
-export async function extractTextFromPdf(base64Content: string): Promise<string> {
+async function extractTextFromPdf(base64Content) {
   try {
     const pdfData = base64Content.startsWith('data:application/pdf;base64,')
       ? base64Content.substring('data:application/pdf;base64,'.length)
@@ -171,7 +171,7 @@ export async function extractTextFromPdf(base64Content: string): Promise<string>
  * @param mimeType File MIME type
  * @returns Boolean indicating if the file is a PDF
  */
-export function isPdfFile(mimeType: string): boolean {
+function isPdfFile(mimeType) {
   return mimeType === 'application/pdf';
 }
 
@@ -180,7 +180,7 @@ export function isPdfFile(mimeType: string): boolean {
  * @param text Extracted text from PDF
  * @returns Boolean indicating if the text contains financial content
  */
-export function hasFinancialContent(text: string): boolean {
+function hasFinancialContent(text) {
   if (!text || text.trim().length < 50) {
     return false;
   }
@@ -214,12 +214,12 @@ export function hasFinancialContent(text: string): boolean {
  * @param prompt Optional custom prompt to use with the PDF
  * @returns Promise with analysis text
  */
-export async function processPdfWithGemini(
-  base64Content: string, 
-  prompt: string = '財務分析の専門家として、このPDFドキュメントを詳細に分析してください。財務状況、問題点、改善策を説明してください。'
-): Promise<string> {
+async function processPdfWithGemini(
+  base64Content, 
+  prompt = '財務分析の専門家として、このPDFドキュメントを詳細に分析してください。財務状況、問題点、改善策を説明してください。'
+) {
   try {
-    console.log(`Processing PDF with Gemini API (content length: ${base64Content.length} chars)`);
+    console.log(`Processing PDF with Gemini (content length: ${base64Content.length} chars)`);
     
     console.log('Extracting text from PDF first...');
     const extractedText = await extractTextFromPdf(base64Content);
@@ -230,7 +230,6 @@ export async function processPdfWithGemini(
     } else {
       console.log(`Successfully extracted text from PDF (${extractedText.length} chars)`);
       
-      // Check if the extracted text contains financial content
       const isFinancial = hasFinancialContent(extractedText);
       console.log(`PDF contains financial content: ${isFinancial}`);
       
@@ -251,14 +250,19 @@ export async function processPdfWithGemini(
 
 分析結果は以下の形式で出力してください：
 
+## 全体的な財務状況
 [具体的な財務状況の説明]
 
+## 主要な財務指標
 [具体的な数値と説明]
 
+## 問題点と課題
 [具体的な問題点の説明]
 
+## 改善策と提案
 [具体的な改善策の提案]
 
+## 今後の見通し
 [今後の見通しについての説明]
 `
         : `
@@ -267,12 +271,16 @@ export async function processPdfWithGemini(
 
 分析結果は以下の形式で出力してください：
 
+## 文書の種類
 [文書の種類の説明]
 
+## 主要なポイント
 [主要なポイントの説明]
 
+## 重要な情報
 [重要な情報の説明]
 
+## 分析と考察
 [分析と考察の説明]
 `;
       
@@ -282,11 +290,11 @@ export async function processPdfWithGemini(
       try {
         console.log('Using text-based analysis with best available Gemini model');
         
-        const textModelName = await getBestAvailableModel(apiKey, false);
-        console.log(`Selected model for text analysis: ${textModelName}`);
+        const bestModelName = await getBestAvailableModel(apiKey, false);
+        console.log(`Selected model for text analysis: ${bestModelName}`);
         
         const model = genAI.getGenerativeModel({ 
-          model: textModelName,
+          model: bestModelName,
           generationConfig: {
             temperature: 0.4,
             topP: 0.8,
@@ -299,10 +307,10 @@ export async function processPdfWithGemini(
         const response = await result.response;
         const text = response.text();
         
-        console.log(`Successfully analyzed PDF text with ${textModelName} (response length: ${text.length} chars)`);
+        console.log(`Successfully analyzed PDF text with ${bestModelName} (response length: ${text.length} chars)`);
         return text;
-      } catch (error: any) {
-        console.error(`Error processing extracted text with Gemini API: ${error.message}`);
+      } catch (error) {
+        console.error('Error processing extracted text with Gemini model:', error);
       }
     }
     
@@ -312,13 +320,10 @@ export async function processPdfWithGemini(
     const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY || 'AIzaSyDaHD5V0kDzRjSaq0gHM8Fk_GyAJteUdX4';
     const genAI = new GoogleGenerativeAI(apiKey);
     
-    // Initialize with a default model in case getBestAvailableModel fails
-    let bestModelName: string = GeminiModel.GEMINI_1_5_FLASH;
-    
     try {
       console.log(`Using ${useFileApi ? 'File API' : 'direct processing'} for PDF analysis`);
       
-      bestModelName = await getBestAvailableModel(apiKey, true);
+      const bestModelName = await getBestAvailableModel(apiKey, true);
       console.log(`Selected model for PDF analysis: ${bestModelName}`);
       
       const model = genAI.getGenerativeModel({ 
@@ -345,17 +350,18 @@ export async function processPdfWithGemini(
       
       console.log(`Successfully analyzed PDF with ${bestModelName} (response length: ${text.length} chars)`);
       return text;
-    } catch (error: any) {
-      console.error(`Error processing PDF with ${bestModelName}:`, error);
+    } catch (error) {
+      console.error('Error processing PDF with Gemini model:', error);
       
       try {
         console.log('Primary model failed, trying alternative models...');
         
+        const currentModelName = model.model;
         const alternativeModels = [
           GeminiModel.GEMINI_1_5_FLASH,
           GeminiModel.GEMINI_1_5_PRO,
           GeminiModel.GEMINI_2_FLASH
-        ].filter(m => m !== bestModelName);
+        ].filter(m => m !== currentModelName);
         
         console.log(`Trying alternative models: ${alternativeModels.join(', ')}`);
         
@@ -365,9 +371,9 @@ export async function processPdfWithGemini(
         for (const altModel of alternativeModels) {
           try {
             console.log(`Trying alternative model: ${altModel}`);
-            const isAvailable = await isModelAvailable(apiKey, altModel);
+            const available = await isModelAvailable(apiKey, altModel);
             
-            if (isAvailable) {
+            if (available) {
               fallbackModelName = altModel;
               fallbackModel = genAI.getGenerativeModel({ 
                 model: fallbackModelName,
@@ -406,17 +412,28 @@ export async function processPdfWithGemini(
         
         console.log(`Successfully analyzed PDF with ${fallbackModelName} (response length: ${fallbackText.length} chars)`);
         return fallbackText;
-      } catch (fallbackError: any) {
+      } catch (fallbackError) {
         console.error('Error with fallback model:', fallbackError);
         
-        console.log('Using extracted text with regular analysis API...');
-        const { analyzeDocument } = require('../utils/gemini');
-        const analysisResult = await analyzeDocument(extractedText);
-        return analysisResult;
+        if (extractedText && extractedText.length >= 50) {
+          console.log('Using extracted text with regular analysis API...');
+          const { analyzeDocument } = require('../utils/gemini');
+          const analysisResult = await analyzeDocument(extractedText);
+          return analysisResult;
+        }
+        
+        throw new Error('すべての処理方法が失敗しました。別のPDFファイルを試してください。');
       }
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error in processPdfWithGemini:', error);
     throw new Error(`PDF処理エラー: ${error.message}`);
   }
 }
+
+module.exports = {
+  extractTextFromPdf,
+  isPdfFile,
+  hasFinancialContent,
+  processPdfWithGemini
+};

@@ -1,3 +1,6 @@
+#!/bin/bash
+
+cat > utils/pdfUtils.ts << 'EOL'
 import { PDFDocument } from 'pdf-lib';
 import pdfParse from 'pdf-parse';
 import { GoogleGenerativeAI } from '@google/generative-ai';
@@ -420,3 +423,6 @@ export async function processPdfWithGemini(
     throw new Error(`PDF処理エラー: ${error.message}`);
   }
 }
+EOL
+
+echo "Fixed model integration in pdfUtils.ts"
