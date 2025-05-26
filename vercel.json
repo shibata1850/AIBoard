@@ -44,8 +44,6 @@
   ],
   "env": {
     "VERCEL_PROJECT_PROTECTION": "false"
-    // API keys should be set in the Vercel dashboard environment variables
-    // and not committed to the repository
   },
   "ignoreCommand": "echo 'Skipping checks'"
 }
