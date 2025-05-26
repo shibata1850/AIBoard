@@ -205,14 +205,48 @@ export async function analyzeDocument(content: string) {
   } catch (error: any) {
     console.error('Document analysis API error:', error);
     
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      code: error.code,
+    });
+    
     const errorMessage = error.message || '文書の分析中にエラーが発生しました';
     let userFriendlyMessage = '文書の分析中にエラーが発生しました。しばらく時間をおいてから再度お試しください。';
     
-    if (errorMessage.includes('API') || errorMessage.includes('制限') || isQuotaOrRateLimitError(error)) {
+    if (errorMessage.includes('model not found') || errorMessage.includes('model') && errorMessage.includes('not found')) {
+      userFriendlyMessage = 'AIモデルが見つかりませんでした。システム管理者にお問い合わせください。';
+      console.error('Model not found error detected');
+    } else if (errorMessage.includes('API key') || errorMessage.includes('apiKey') || errorMessage.includes('key')) {
+      userFriendlyMessage = 'APIキーの問題が発生しました。システム管理者にお問い合わせください。';
+      console.error('API key error detected');
+    } else if (errorMessage.includes('API') || errorMessage.includes('制限') || isQuotaOrRateLimitError(error)) {
       userFriendlyMessage = 'APIの制限に達しました。30分程度時間をおいてから再度お試しください。より小さなファイルを使用すると成功する可能性が高くなります。';
-    } else if (errorMessage.includes('content')) {
+      console.error('API quota/rate limit error detected');
+    } else if (errorMessage.includes('content') || errorMessage.includes('invalid') || errorMessage.includes('format')) {
       userFriendlyMessage = '文書の内容を処理できませんでした。別の形式や小さなサイズのファイルをお試しください。';
+      console.error('Content format error detected');
+    } else if (errorMessage.includes('timeout') || errorMessage.includes('timed out')) {
+      userFriendlyMessage = '処理がタイムアウトしました。より小さなファイルを使用するか、ファイルを分割して分析してください。';
+      console.error('Timeout error detected');
+    } else if (errorMessage.includes('network') || errorMessage.includes('connection')) {
+      userFriendlyMessage = 'ネットワークエラーが発生しました。インターネット接続を確認して、再度お試しください。';
+      console.error('Network error detected');
+    } else if (errorMessage.includes('PDF') || errorMessage.includes('pdf')) {
+      userFriendlyMessage = 'PDFファイルの処理中にエラーが発生しました。別のPDFファイルを試すか、テキスト形式に変換してから分析してください。';
+      console.error('PDF processing error detected');
     }
+    
+    const errorDetails = {
+      timestamp: new Date().toISOString(),
+      errorType: error.name || 'UnknownError',
+      errorMessage: error.message,
+      userFriendlyMessage,
+      stack: error.stack,
+    };
+    
+    console.error('Detailed error information:', JSON.stringify(errorDetails, null, 2));
     
     throw new Error(userFriendlyMessage);
   }
