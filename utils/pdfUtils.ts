@@ -16,26 +16,149 @@ export async function extractTextFromPdf(base64Content: string): Promise<string>
       ? base64Content.substring('data:application/pdf;base64,'.length)
       : base64Content;
     
-    const binaryString = atob(pdfData);
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
+    let bytes;
+    try {
+      const binaryString = atob(pdfData);
+      bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+    } catch (error) {
+      console.warn('Error in base64 decoding, trying Buffer method:', error);
+      bytes = Buffer.from(pdfData, 'base64');
     }
     
     const pdfDoc = await PDFDocument.load(bytes);
     const pageCount = pdfDoc.getPageCount();
     
-    const data = await pdfParse(Buffer.from(bytes));
-    const extractedText = data.text;
-    
-    if (!extractedText || extractedText.trim().length === 0) {
-      return `PDF文書が正常に読み込まれました。ページ数: ${pageCount}\n\n` +
-             `注: このPDFからテキストを抽出できませんでした。` +
-             `このPDFは画像ベースのスキャン文書である可能性があります。` +
-             `財務諸表の分析のために、テキスト形式のデータを提供してください。`;
+    try {
+      const data = await pdfParse(Buffer.from(bytes), {
+        max: 0, // 制限なし
+        pagerender: undefined, // デフォルトのレンダラーを使用
+      });
+      
+      let extractedText = data.text;
+      
+      extractedText = extractedText.replace(/\s+/g, ' ').trim();
+      
+      try {
+        if (extractedText.includes('å') || extractedText.includes('ä‚') || extractedText.includes('ç')) {
+          console.log('Detected encoding issues, attempting to fix...');
+          
+          const encodingFixes = {
+            'å£†ä‚Ø«': '売上高',
+            'å©ç': '利益',
+            'è³‡ç£': '資産',
+            'ä‚å': '万円',
+            'å†…éƒ¨': '内部',
+            'å¤–éƒ¨': '外部',
+            'ç·å£²ä¸Š': '総売上',
+            'ç²åˆ©': '粗利',
+            'å–¶æ¥­åˆ©ç›Š': '営業利益',
+            'ç´"åˆ©ç›Š': '純利益'
+          };
+          
+          Object.entries(encodingFixes).forEach(([broken, fixed]) => {
+            extractedText = extractedText.replace(new RegExp(broken, 'g'), fixed);
+          });
+          
+          try {
+            const decoded = decodeURIComponent(escape(extractedText));
+            if (decoded.includes('売') || decoded.includes('利') || decoded.includes('資')) {
+              console.log('Successfully decoded using UTF-8');
+              extractedText = decoded;
+            }
+          } catch (decodeError) {
+            console.warn('UTF-8 decoding failed:', decodeError);
+          }
+        }
+      } catch (encodingError) {
+        console.warn('Error fixing encoding:', encodingError);
+      }
+      
+      extractedText = extractedText
+        .replace(/å£†ä‚Ø«/g, '売上高')
+        .replace(/å©ç/g, '利益')
+        .replace(/è³‡ç£/g, '資産')
+        .replace(/ä‚å/g, '万円');
+
+      
+      if (extractedText && extractedText.trim().length > 0) {
+        console.log(`Successfully extracted ${extractedText.length} characters from PDF using standard method`);
+        return extractedText;
+      }
+      
+      console.warn('Standard PDF text extraction returned empty or very short text');
+    } catch (parseError) {
+      console.warn('Standard PDF parsing failed:', parseError);
     }
     
-    return extractedText;
+    console.log(`Attempting page-by-page extraction for ${pageCount} pages...`);
+    let combinedText = '';
+    
+    for (let i = 0; i < pageCount; i++) {
+      try {
+        const pageBytes = await pdfDoc.save(); // 現在のページを含むPDFを保存
+        const pageData = await pdfParse(Buffer.from(pageBytes), {
+          max: 1,
+          pagerender: undefined,
+        });
+        
+        if (pageData.text && pageData.text.trim().length > 0) {
+          let pageText = pageData.text.replace(/\s+/g, ' ').trim();
+          
+          try {
+            if (pageText.includes('å') || pageText.includes('ä‚') || pageText.includes('ç')) {
+              console.log('Detected encoding issues in page text, attempting to fix...');
+              
+              const encodingFixes = {
+                'å£†ä‚Ø«': '売上高',
+                'å©ç': '利益',
+                'è³‡ç£': '資産',
+                'ä‚å': '万円',
+                'å†…éƒ¨': '内部',
+                'å¤–éƒ¨': '外部',
+                'ç·å£²ä¸Š': '総売上',
+                'ç²åˆ©': '粗利',
+                'å–¶æ¥­åˆ©ç›Š': '営業利益',
+                'ç´"åˆ©ç›Š': '純利益'
+              };
+              
+              Object.entries(encodingFixes).forEach(([broken, fixed]) => {
+                pageText = pageText.replace(new RegExp(broken, 'g'), fixed);
+              });
+              
+              try {
+                const decoded = decodeURIComponent(escape(pageText));
+                if (decoded.includes('売') || decoded.includes('利') || decoded.includes('資')) {
+                  console.log('Successfully decoded page text using UTF-8');
+                  pageText = decoded;
+                }
+              } catch (decodeError) {
+                console.warn('UTF-8 decoding failed for page text:', decodeError);
+              }
+            }
+          } catch (encodingError) {
+            console.warn('Error fixing page text encoding:', encodingError);
+          }
+            
+          combinedText += pageText + '\n\n';
+          console.log(`Extracted ${pageData.text.length} characters from page ${i + 1}`);
+        }
+      } catch (pageError) {
+        console.warn(`Error extracting text from page ${i + 1}:`, pageError);
+      }
+    }
+    
+    if (combinedText.trim().length > 0) {
+      console.log(`Successfully extracted ${combinedText.length} characters using page-by-page method`);
+      return combinedText;
+    }
+    
+    return `PDF文書が正常に読み込まれました。ページ数: ${pageCount}\n\n` +
+           `注: このPDFからテキストを抽出できませんでした。` +
+           `このPDFは画像ベースのスキャン文書である可能性があります。` +
+           `財務諸表の分析のために、テキスト形式のデータを提供してください。`;
   } catch (error) {
     console.error('Error processing PDF:', error);
     throw new Error('PDFの処理中にエラーが発生しました。別のファイルを試してください。');
