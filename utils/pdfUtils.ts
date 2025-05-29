@@ -1,6 +1,6 @@
 import { PDFDocument } from 'pdf-lib';
 import pdfParse from 'pdf-parse';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
 import { getBestAvailableModel, getModelCapabilities, GeminiModel } from './modelCompatibility';
 import { encodingFixes } from './encodingFixes';
 
@@ -231,7 +231,10 @@ ${limitedText}
     // Try to get the best available model for PDF processing
     try {
       console.log('Getting best available model for PDF processing...');
-      const bestModelName = await getBestAvailableModel(true);
+      const apiKey = process.env.GEMINI_API_KEY || 
+                    process.env.EXPO_PUBLIC_GEMINI_API_KEY || 
+                    process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
+      const bestModelName = await getBestAvailableModel(apiKey, true);
       console.log(`Using model: ${bestModelName}`);
       
       const model = genAI.getGenerativeModel({ 
@@ -244,20 +247,20 @@ ${limitedText}
         },
         safetySettings: [
           {
-            category: 'HARM_CATEGORY_HARASSMENT',
-            threshold: 'BLOCK_MEDIUM_AND_ABOVE'
+            category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+            threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
           },
           {
-            category: 'HARM_CATEGORY_HATE_SPEECH',
-            threshold: 'BLOCK_MEDIUM_AND_ABOVE'
+            category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+            threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
           },
           {
-            category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-            threshold: 'BLOCK_MEDIUM_AND_ABOVE'
+            category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+            threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
           },
           {
-            category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
-            threshold: 'BLOCK_MEDIUM_AND_ABOVE'
+            category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+            threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
           }
         ]
       });
