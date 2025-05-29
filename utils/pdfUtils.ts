@@ -40,8 +40,8 @@ export function fixJapaneseEncoding(text: string): string {
     'å›ºå®šè² å‚µ': '固定負債',
     'ç·è² å‚µ': '総負債',
     'ç´"è³‡ç£': '純資産',
-    'è³‡æœ¬é‡'': '資本金',
-    'åˆ©ç›Šå‰°ä½™é‡'': '利益剰余金',
+    'è³‡æœ¬é‡': '資本金',
+    'åˆ©ç›Šå‰°ä½™é‡': '利益剰余金',
     'è²¸å€Ÿå¯¾ç…§è¡¨': '貸借対照表',
     'æ•ä¸Šè¨ˆç®—æ›¸': '損益計算書',
     'ã‚­ãƒ£ãƒƒã‚·ãƒ¥ãƒ•ãƒ­ãƒ¼è¨ˆç®—æ›¸': 'キャッシュフロー計算書',
@@ -54,7 +54,7 @@ export function fixJapaneseEncoding(text: string): string {
     'è²©å£²è²»': '販売費',
     'ä¸€èˆ¬ç®¡ç†è²»': '一般管理費',
     'è²©å£²è²»åŠã³ä¸€èˆ¬ç®¡ç†è²»': '販売費及び一般管理費',
-    'å£²ä¸Šåç›Š': '売上原価',
+    'å£²ä¸Šåƒ¹': '売上原価',
     'å£²ä¸Šç·åˆ©ç›Š': '売上総利益'
   };
   
@@ -387,7 +387,7 @@ export async function processPdfWithGemini(
     const genAI = new GoogleGenerativeAI(apiKey);
     
     // Initialize with a default model in case getBestAvailableModel fails
-    let bestModelName: string = GeminiModel.GEMINI_1_5_FLASH;
+    let bestModelName: GeminiModel = GeminiModel.GEMINI_1_5_FLASH;
     
     try {
       console.log(`Using ${useFileApi ? 'File API' : 'direct processing'} for PDF analysis`);
@@ -514,7 +514,7 @@ export async function processPdfWithGemini(
 }
 
 // Helper function to check if a model is available
-async function isModelAvailable(apiKey: string, modelName: string): Promise<boolean> {
+async function isModelAvailable(apiKey: string, modelName: GeminiModel): Promise<boolean> {
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: modelName });
