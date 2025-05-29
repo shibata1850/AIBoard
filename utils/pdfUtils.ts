@@ -2,6 +2,7 @@ import { PDFDocument } from 'pdf-lib';
 import pdfParse from 'pdf-parse';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getBestAvailableModel, getModelCapabilities, GeminiModel } from './modelCompatibility';
+import { encodingFixes } from './encodingFixes';
 
 const FILE_API_THRESHOLD_BYTES = 1 * 1024 * 1024;
 const MAX_CONTENT_LENGTH = 100000; // Limit content length to avoid API limits
@@ -16,514 +17,346 @@ export function fixJapaneseEncoding(text: string): string {
   
   let fixedText = text;
   
-  // Common Japanese financial terms with encoding issues
-  const encodingFixes: Record<string, string> = {
-    'å£†ä‚Ø«': '売上高',
-    'å£²ä¸Š': '売上',
-    'å£²ä¸Šé«˜': '売上高',
-    'å£²ä¸Šç·é¡': '売上総額',
-    'å£²ä¸Šåç›Š': '売上利益',
-    'ç·å£²ä¸Š': '総売上',
-    'å©ç': '利益',
-    'å–¶æ¥­åˆ©ç›Š': '営業利益',
-    'çµŒå¸¸åˆ©ç›Š': '経常利益',
-    'ç´"åˆ©ç›Š': '純利益',
-    'å½"æœŸç´"åˆ©ç›Š': '当期純利益',
-    'ç²åˆ©': '粗利',
-    'å©ç›Šç‰‡': '利益率',
-    'è³‡ç£': '資産',
-    'æµå‹•è³‡ç£': '流動資産',
-    'å›ºå®šè³‡ç£': '固定資産',
-    'ç·è³‡ç£': '総資産',
-    'è² å‚µ': '負債',
-    'æµå‹•è² å‚µ': '流動負債',
-    'å›ºå®šè² å‚µ': '固定負債',
-    'ç·è² å‚µ': '総負債',
-    'ç´"è³‡ç£': '純資産',
-    'è³‡æœ¬é‡': '資本金',
-    'åˆ©ç›Šå‰°ä½™é‡': '利益剰余金',
-    'è²¸å€Ÿå¯¾ç…§è¡¨': '貸借対照表',
-    'æ•ä¸Šè¨ˆç®—æ›¸': '損益計算書',
-    'ã‚­ãƒ£ãƒƒã‚·ãƒ¥ãƒ•ãƒ­ãƒ¼è¨ˆç®—æ›¸': 'キャッシュフロー計算書',
-    'è‡ªå·±è³‡æœ¬æ¯"çŽ‡': '自己資本比率',
-    'æµå‹•æ¯"çŽ‡': '流動比率',
-    'å£²ä¸Šé«˜å–¶æ¥­åˆ©ç›Šçœ‡': '売上高営業利益率',
-    'ä‚å': '万円',
-    'å†…éƒ¨': '内部',
-    'å¤–éƒ¨': '外部',
-    'è²©å£²è²»': '販売費',
-    'ä¸€èˆ¬ç®¡ç†è²»': '一般管理費',
-    'è²©å£²è²»åŠã³ä¸€èˆ¬ç®¡ç†è²»': '販売費及び一般管理費',
-    'å£²ä¸Šåƒ¹': '売上原価',
-    'å£²ä¸Šç·åˆ©ç›Š': '売上総利益'
-  };
-  
-  Object.entries(encodingFixes).forEach(([broken, fixed]) => {
-    fixedText = fixedText.replace(new RegExp(escapeRegExp(broken), 'g'), fixed);
-  });
-  
-  try {
-    if (
-      fixedText.includes('å') || 
-      fixedText.includes('ä‚') || 
-      fixedText.includes('ç') || 
-      fixedText.includes('é') ||
-      fixedText.includes('è')
-    ) {
-      try {
-        const decoded = decodeURIComponent(escape(fixedText));
-        if (
-          decoded.includes('売') || 
-          decoded.includes('利') || 
-          decoded.includes('資') ||
-          decoded.includes('円') ||
-          decoded.includes('計')
-        ) {
-          console.log('Successfully decoded text using UTF-8');
-          fixedText = decoded;
-        }
-      } catch (decodeError) {
-        console.warn('UTF-8 decoding failed:', decodeError);
-      }
-    }
-  } catch (encodingError) {
-    console.warn('Error in encoding detection:', encodingError);
+  // Use imported encodingFixes object
+  for (const [garbled, correct] of Object.entries(encodingFixes)) {
+    const regex = new RegExp(escapeRegExp(garbled), 'g');
+    fixedText = fixedText.replace(regex, correct);
   }
   
+  // Additional character-level replacements for common encoding issues
   const charReplacements: Record<string, string> = {
-    'å': '売',
-    'ç': '資',
-    'è': '負',
-    'é': '高',
-    'ä‚': '万',
-    'æ': '損',
-    'è²': '貸',
-    'å€': '借',
-    'ç…§': '照',
-    'è¡¨': '表',
-    'è¨ˆ': '計',
-    'ç®—': '算',
-    'æ›¸': '書',
-    'åˆ©': '利',
-    'ç›Š': '益',
-    'å½"': '当',
-    'æœŸ': '期',
-    'ç´"': '純',
-    'å–¶': '営',
-    'æ¥­': '業',
-    'çµŒ': '経',
-    'å¸¸': '常',
-    'ç·': '総',
-    'é¡': '額',
-    'æµ': '流',
-    'å‹•': '動',
-    'å›º': '固',
-    'å®š': '定',
-    'è‡ª': '自',
-    'å·±': '己',
-    'æ¯"': '比',
-    'çŽ‡': '率'
+    'ï¼š': '：',
+    'ï¼‰': '）',
+    'ï¼ˆ': '（',
+    'ï¼Ž': '.',
+    'ï¼›': ';',
+    'ï¼»': '[',
+    'ï¼½': ']',
+    'ï¼＂': '"',
+    'ï¼‚': '、',
+    'ï¼＇': "'",
+    'ï¼Œ': '，',
+    'ï¼ƒ': '#',
+    'ï¼＆': '&',
+    'ï¼Ÿ': '?',
+    'ï¼�': '@',
+    'ï¼¥': '%',
+    'ï¼¢': '+',
+    'ï¼＝': '=',
+    'ï¼＜': '<',
+    'ï¼＞': '>',
+    'ï¼¿': '_',
+    'ï½€': '`',
+    'ï½Š': '|',
+    'ï½ž': '~',
+    'ã€€': ' ', // Full-width space to normal space
   };
   
-  Object.entries(charReplacements).forEach(([broken, fixed]) => {
-    fixedText = fixedText.replace(new RegExp(escapeRegExp(broken), 'g'), fixed);
-  });
+  for (const [garbled, correct] of Object.entries(charReplacements)) {
+    const regex = new RegExp(escapeRegExp(garbled), 'g');
+    fixedText = fixedText.replace(regex, correct);
+  }
   
   return fixedText;
 }
 
-/**
- * Escape special characters in a string for use in a regular expression
- * @param string String to escape
- * @returns Escaped string
- */
+// Helper function to escape special characters in regex
 function escapeRegExp(string: string): string {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 /**
- * Extract text from a PDF file
+ * Extract text from PDF content
  * @param base64Content Base64 encoded PDF content
- * @returns Promise with extracted text
+ * @returns Extracted text
  */
 export async function extractTextFromPdf(base64Content: string): Promise<string> {
   try {
-    const pdfData = base64Content.startsWith('data:application/pdf;base64,')
-      ? base64Content.substring('data:application/pdf;base64,'.length)
-      : base64Content;
+    // Convert base64 to buffer
+    const pdfData = Buffer.from(base64Content, 'base64');
     
-    let bytes;
+    // Check if the PDF is valid
     try {
-      const binaryString = atob(pdfData);
-      bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
+      const pdfDoc = await PDFDocument.load(pdfData);
+      const pageCount = pdfDoc.getPageCount();
+      console.log(`PDF has ${pageCount} pages`);
     } catch (error) {
-      console.warn('Error in base64 decoding, trying Buffer method:', error);
-      bytes = Buffer.from(pdfData, 'base64');
+      console.error('Error loading PDF document:', error);
+      throw new Error('無効なPDFファイルです。別のファイルを試してください。');
     }
     
-    const pdfDoc = await PDFDocument.load(bytes);
-    const pageCount = pdfDoc.getPageCount();
-    console.log(`PDF文書が正常に読み込まれました。ページ数: ${pageCount}`);
-    
+    // Extract text using pdf-parse
     try {
-      const data = await pdfParse(Buffer.from(bytes), {
-        max: 0, // 制限なし
-        pagerender: undefined, // デフォルトのレンダラーを使用
-      });
+      const data = await pdfParse(pdfData);
       
-      let extractedText = data.text;
+      // Fix Japanese encoding issues
+      let extractedText = fixJapaneseEncoding(data.text);
       
-      extractedText = extractedText.replace(/\s+/g, ' ').trim();
-      
-      extractedText = fixJapaneseEncoding(extractedText);
-      
-      if (extractedText && extractedText.trim().length > 0) {
-        console.log(`Successfully extracted ${extractedText.length} characters from PDF using standard method`);
-        return extractedText;
+      // Limit text length to avoid API limits
+      if (extractedText.length > MAX_CONTENT_LENGTH) {
+        console.log(`Truncating extracted text from ${extractedText.length} to ${MAX_CONTENT_LENGTH} characters`);
+        extractedText = extractedText.substring(0, MAX_CONTENT_LENGTH);
       }
       
-      console.warn('Standard PDF text extraction returned empty or very short text');
-    } catch (parseError) {
-      console.warn('Standard PDF parsing failed:', parseError);
-    }
-    
-    console.log(`Attempting page-by-page extraction for ${pageCount} pages...`);
-    let combinedText = '';
-    
-    for (let i = 0; i < pageCount; i++) {
+      return extractedText;
+    } catch (error) {
+      console.error('Error parsing PDF content:', error);
+      
+      // Try extracting text page by page as a fallback
       try {
-        const pageBytes = await pdfDoc.save(); // 現在のページを含むPDFを保存
-        const pageData = await pdfParse(Buffer.from(pageBytes), {
-          max: 1,
-          pagerender: undefined,
-        });
+        console.log('Attempting page-by-page extraction as fallback...');
+        const pdfDoc = await PDFDocument.load(pdfData);
+        const pageCount = pdfDoc.getPageCount();
         
-        if (pageData.text && pageData.text.trim().length > 0) {
-          let pageText = pageData.text.replace(/\s+/g, ' ').trim();
-          
-          pageText = fixJapaneseEncoding(pageText);
-            
-          combinedText += pageText + '\n\n';
-          console.log(`Extracted ${pageData.text.length} characters from page ${i + 1}`);
+        let allText = '';
+        for (let i = 0; i < Math.min(pageCount, 10); i++) { // Limit to first 10 pages
+          try {
+            const pageData = await pdfParse(pdfData, { max: 1, pagerender: i });
+            allText += pageData.text + '\n\n';
+          } catch (pageError) {
+            console.error(`Error extracting text from page ${i}:`, pageError);
+          }
         }
-      } catch (pageError) {
-        console.warn(`Error extracting text from page ${i + 1}:`, pageError);
+        
+        if (allText.trim().length === 0) {
+          throw new Error('PDFからテキストを抽出できませんでした。');
+        }
+        
+        // Fix Japanese encoding issues
+        let extractedText = fixJapaneseEncoding(allText);
+        
+        // Limit text length to avoid API limits
+        if (extractedText.length > MAX_CONTENT_LENGTH) {
+          extractedText = extractedText.substring(0, MAX_CONTENT_LENGTH);
+        }
+        
+        return extractedText;
+      } catch (fallbackError) {
+        console.error('Fallback extraction failed:', fallbackError);
+        throw new Error('PDFからテキストを抽出できませんでした。別のファイルを試してください。');
       }
     }
-    
-    if (combinedText.trim().length > 0) {
-      console.log(`Successfully extracted ${combinedText.length} characters using page-by-page method`);
-      return combinedText;
-    }
-    
-    return `PDF文書が正常に読み込まれました。ページ数: ${pageCount}\n\n` +
-           `注: このPDFからテキストを抽出できませんでした。` +
-           `このPDFは画像ベースのスキャン文書である可能性があります。` +
-           `財務諸表の分析のために、テキスト形式のデータを提供してください。`;
   } catch (error) {
-    console.error('Error processing PDF:', error);
-    throw new Error('PDFの処理中にエラーが発生しました。別のファイルを試してください。');
+    console.error('Error in extractTextFromPdf:', error);
+    throw error;
   }
 }
 
 /**
  * Check if a file is a PDF based on its MIME type
- * @param mimeType File MIME type
- * @returns Boolean indicating if the file is a PDF
  */
 export function isPdfFile(mimeType: string): boolean {
   return mimeType === 'application/pdf';
 }
 
 /**
- * Check if the extracted text contains valid financial content
- * @param text Extracted text from PDF
- * @returns Boolean indicating if the text contains financial content
+ * Check if text contains financial content
+ * @param text Text to check
+ * @returns True if text contains financial content
  */
 export function hasFinancialContent(text: string): boolean {
-  if (!text || text.trim().length < 50) {
-    return false;
-  }
+  if (!text || text.length < 50) return false;
   
+  // Common financial terms in Japanese
   const financialTerms = [
-    '売上高', '利益', '営業利益', '経常利益', '当期純利益', 
-    '資産', '負債', '純資産', '株主資本', '現金',
-    '売掛金', '買掛金', '棚卸資産', '固定資産', '流動資産',
-    '固定負債', '流動負債', '資本金', '利益剰余金', '配当',
-    '財務諸表', '貸借対照表', '損益計算書', 'キャッシュフロー', '株式',
-    '収益', '費用', '支出', '減価償却', '税金',
-    '総資産', '自己資本比率', 'ROA', 'ROE', '売上高営業利益率'
+    '売上', '利益', '資産', '負債', '純資産', '営業利益', '経常利益',
+    '当期純利益', '貸借対照表', '損益計算書', '資本金', '利益剰余金',
+    '自己資本比率', '流動比率', '売上高営業利益率'
   ];
   
-  let foundTerms = 0;
+  // Check if any financial term is present in the text
   for (const term of financialTerms) {
     if (text.includes(term)) {
-      foundTerms++;
-      if (foundTerms >= 3) {
-        console.log('財務コンテンツの検出: 検出されました ✓');
-        return true;
-      }
+      return true;
     }
   }
   
-  console.log('財務コンテンツの検出: 検出されませんでした ✗');
-  return false;
+  // Check for numbers with currency symbols or percentage
+  const hasFinancialNumbers = /(\d{1,3}(,\d{3})+|\d+)(円|%|％)/.test(text);
+  
+  return hasFinancialNumbers;
 }
 
 /**
- * Process PDF directly with Gemini 2.0 Flash
+ * Process PDF content with Gemini API
  * @param base64Content Base64 encoded PDF content
- * @param prompt Optional custom prompt to use with the PDF
- * @returns Promise with analysis text
+ * @param customPrompt Optional custom prompt to use instead of default
+ * @returns Analysis result
  */
 export async function processPdfWithGemini(
-  base64Content: string, 
-  prompt: string = '財務分析の専門家として、このPDFドキュメントを詳細に分析してください。財務状況、問題点、改善策を説明してください。'
-): Promise<{ text: string }> {
+  base64Content: string,
+  customPrompt?: string
+): Promise<{ text: string; model: string }> {
   try {
-    console.log(`PDFをGeminiで処理中...`);
+    console.log('Processing PDF with Gemini API...');
     
-    console.log('PDFからテキストを抽出中...');
+    // Extract text from PDF
     const extractedText = await extractTextFromPdf(base64Content);
+    console.log(`Extracted ${extractedText.length} characters from PDF`);
     
-    if (!extractedText || extractedText.length < 50) {
-      console.warn('Failed to extract meaningful text from PDF');
-      console.log('Falling back to direct PDF processing...');
-    } else {
-      console.log(`Successfully extracted text from PDF (${extractedText.length} chars)`);
-      
-      // Check if the extracted text contains financial content
-      const isFinancial = hasFinancialContent(extractedText);
-      
-      const limitedText = extractedText.length > MAX_CONTENT_LENGTH 
-        ? extractedText.substring(0, MAX_CONTENT_LENGTH) + '...(content truncated)'
-        : extractedText;
-      
-      const enhancedPrompt = isFinancial 
-        ? `
-あなたは財務分析の専門家です。以下の財務文書を詳細に分析し、具体的な財務状況、問題点、改善策を説明してください。
+    // Limit text length for API
+    const limitedText = extractedText.substring(0, MAX_CONTENT_LENGTH);
+    
+    // Create enhanced prompt for financial analysis
+    const enhancedPrompt = customPrompt || `
+あなたは財務アドバイザーAIです。以下の文書を分析し、財務状況を詳細に解説してください。
 
-分析すべき重要な点：
-1. 売上高と利益率の推移
-2. 財務健全性（負債比率、流動比率など）
-3. 資金繰り状況
-4. 経営効率（ROA、ROEなど）
-5. キャッシュフローの状況
+分析すべき点:
+1. 主要な財務指標（売上高、営業利益、経常利益、当期純利益など）
+2. 資産・負債・純資産の状況
+3. 収益性（売上高営業利益率、ROA、ROEなど）
+4. 安全性（流動比率、自己資本比率など）
+5. 成長性（前年比増減など）
 
-分析結果は以下の形式で出力してください：
+特に注目すべき点や改善点があれば指摘し、経営改善のためのアドバイスを提供してください。
+数値データは表形式でまとめ、トレンドや比率も計算して示してください。
 
-## 全体的な財務状況
-[具体的な財務状況の説明]
-
-## 主要な財務指標
-[具体的な数値と説明]
-
-## 問題点と課題
-[具体的な問題点の説明]
-
-## 改善策と提案
-[具体的な改善策の提案]
-
-## 今後の見通し
-[今後の見通しについての説明]
-`
-        : `
-あなたは文書分析の専門家です。以下の文書を分析し、主要なポイントと重要な情報を要約してください。
-文書の種類を特定し、その内容に応じた適切な分析を行ってください。
-
-分析結果は以下の形式で出力してください：
-
-## 文書の種類
-[文書の種類の説明]
-
-## 主要なポイント
-[主要なポイントの説明]
-
-## 重要な情報
-[重要な情報の説明]
-
-## 分析と考察
-[分析と考察の説明]
+文書:
+${limitedText}
 `;
-      
-      const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
-      const genAI = new GoogleGenerativeAI(apiKey);
-      
-      try {
-        console.log('Using text-based analysis with best available Gemini model');
-        
-        const textModelName = await getBestAvailableModel(apiKey, false);
-        console.log(`Selected model for text analysis: ${textModelName}`);
-        
-        const model = genAI.getGenerativeModel({ 
-          model: textModelName,
-          generationConfig: {
-            temperature: 0.4,
-            topP: 0.8,
-            topK: 40,
-            maxOutputTokens: 8192,
-          },
-        });
-        
-        const result = await model.generateContent([enhancedPrompt, limitedText]);
-        const response = await result.response;
-        const text = response.text();
-        
-        console.log(`Successfully analyzed PDF text with ${textModelName} (response length: ${text.length} chars)`);
-        return { text };
-      } catch (error: any) {
-        console.error(`Error processing extracted text with Gemini API: ${error.message}`);
-      }
+    
+    // Get API key from environment variables
+    const apiKey = process.env.GEMINI_API_KEY || 
+                  process.env.EXPO_PUBLIC_GEMINI_API_KEY || 
+                  process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+    
+    if (!apiKey) {
+      console.error('GEMINI_API_KEY is not set in environment variables');
+      throw new Error('APIキーが設定されていません。システム管理者にお問い合わせください。');
     }
     
-    const estimatedSizeBytes = base64Content.length * 0.75; // Base64 encoding increases size by ~33%
-    const useFileApi = estimatedSizeBytes > FILE_API_THRESHOLD_BYTES;
-    
-    // Get the optimal model for PDF processing
-    const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
+    // Initialize Gemini API
     const genAI = new GoogleGenerativeAI(apiKey);
     
-    // Initialize with a default model in case getBestAvailableModel fails
-    let bestModelName: GeminiModel = GeminiModel.GEMINI_1_5_FLASH;
-    
+    // Try to get the best available model for PDF processing
     try {
-      console.log(`Using ${useFileApi ? 'File API' : 'direct processing'} for PDF analysis`);
-      
-      bestModelName = await getBestAvailableModel(apiKey, true);
-      console.log(`Selected model for PDF analysis: ${bestModelName}`);
-      
-      const { supportsPdf } = getModelCapabilities(bestModelName);
-      console.log(`選択されたモデル: ${bestModelName}, PDF対応: ${supportsPdf ? 'はい' : 'いいえ'}`);
+      console.log('Getting best available model for PDF processing...');
+      const bestModelName = await getBestAvailableModel(true);
+      console.log(`Using model: ${bestModelName}`);
       
       const model = genAI.getGenerativeModel({ 
         model: bestModelName,
         generationConfig: {
-          temperature: 0.4,
-          topP: 0.8,
-          topK: 40,
+          temperature: 0.2,
+          topK: 32,
+          topP: 0.95,
           maxOutputTokens: 8192,
         },
+        safetySettings: [
+          {
+            category: 'HARM_CATEGORY_HARASSMENT',
+            threshold: 'BLOCK_MEDIUM_AND_ABOVE'
+          },
+          {
+            category: 'HARM_CATEGORY_HATE_SPEECH',
+            threshold: 'BLOCK_MEDIUM_AND_ABOVE'
+          },
+          {
+            category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+            threshold: 'BLOCK_MEDIUM_AND_ABOVE'
+          },
+          {
+            category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+            threshold: 'BLOCK_MEDIUM_AND_ABOVE'
+          }
+        ]
       });
       
-      let result;
-      
-      if (useFileApi) {
-        console.warn('File API not supported in current version, falling back to direct processing');
-        result = await model.generateContent([prompt, base64Content]);
-      } else {
-        result = await model.generateContent([prompt, base64Content]);
-      }
-      
+      console.log('Generating content with Gemini API...');
+      const result = await model.generateContent(enhancedPrompt);
       const response = await result.response;
       const text = response.text();
       
-      console.log(`Gemini処理完了! 処理時間: ${((Date.now() - Date.now()) / 1000).toFixed(2)}秒`);
-      return { text };
-    } catch (error: any) {
-      console.error(`Error processing PDF with ${bestModelName}:`, error);
+      return { text, model: bestModelName };
+    } catch (error) {
+      console.error('Error using best model:', error);
+      console.log('Falling back to gemini-1.5-flash...');
       
+      // Fallback to gemini-1.5-flash
       try {
-        console.log('Primary model failed, trying alternative models...');
+        const model = genAI.getGenerativeModel({ 
+          model: 'gemini-1.5-flash',
+          generationConfig: {
+            temperature: 0.2,
+            topK: 32,
+            topP: 0.95,
+            maxOutputTokens: 8192,
+          }
+        });
         
+        // Try alternative models if the first one fails
         const alternativeModels = [
-          GeminiModel.GEMINI_1_5_FLASH,
-          GeminiModel.GEMINI_1_5_PRO,
-          GeminiModel.GEMINI_2_FLASH
-        ].filter(m => m !== bestModelName);
+          'gemini-1.5-flash',
+          'gemini-1.0-pro',
+          'gemini-pro'
+        ];
         
-        console.log(`Trying alternative models: ${alternativeModels.join(', ')}`);
-        
-        let fallbackModel = null;
-        let fallbackModelName = null;
-        
-        for (const altModel of alternativeModels) {
+        for (const modelName of alternativeModels) {
           try {
-            console.log(`Trying alternative model: ${altModel}`);
-            const isAvailable = await isModelAvailable(apiKey, altModel);
-            
-            if (isAvailable) {
-              fallbackModelName = altModel;
-              fallbackModel = genAI.getGenerativeModel({ 
-                model: fallbackModelName,
+            if (await isModelAvailable(genAI, modelName)) {
+              console.log(`Trying alternative model: ${modelName}`);
+              const fallbackModel = genAI.getGenerativeModel({ 
+                model: modelName,
                 generationConfig: {
-                  temperature: 0.4,
-                  topP: 0.8,
-                  topK: 40,
-                  maxOutputTokens: 8192,
-                },
+                  temperature: 0.2,
+                  topK: 32,
+                  topP: 0.95,
+                  maxOutputTokens: 4096,
+                }
               });
-              console.log(`Using alternative model: ${fallbackModelName}`);
-              break;
+              
+              const result = await fallbackModel.generateContent(enhancedPrompt);
+              const response = await result.response;
+              const text = response.text();
+              
+              return { text, model: modelName };
             }
-          } catch (altModelError) {
-            console.warn(`Error with alternative model ${altModel}:`, altModelError);
+          } catch (modelError) {
+            console.error(`Error with model ${modelName}:`, modelError);
           }
         }
         
-        if (!fallbackModel) {
-          console.warn('No alternative models available, using gemini-1.5-flash as last resort');
-          fallbackModelName = GeminiModel.GEMINI_1_5_FLASH;
-          fallbackModel = genAI.getGenerativeModel({ 
-            model: fallbackModelName,
-            generationConfig: {
-              temperature: 0.4,
-              topP: 0.8,
-              topK: 40,
-              maxOutputTokens: 8192,
-            },
-          });
-        }
-        
-        const fallbackResult = await fallbackModel.generateContent([prompt, base64Content]);
-        const fallbackResponse = await fallbackResult.response;
-        const fallbackText = fallbackResponse.text();
-        
-        console.log(`Successfully analyzed PDF with ${fallbackModelName} (response length: ${fallbackText.length} chars)`);
-        return { text: fallbackText };
-      } catch (fallbackError: any) {
-        console.error('Error with fallback model:', fallbackError);
-        
-        console.log('Using extracted text with regular analysis API...');
-        try {
-          const { analyzeDocument } = require('../utils/gemini');
-          const analysisResult = await analyzeDocument(extractedText);
-          return { text: analysisResult };
-        } catch (analyzeError) {
-          console.error('Error analyzing extracted text:', analyzeError);
-          
-          if (error.message.includes('model not found')) {
-            // モデルが見つからない場合は別のモデルを試す
-            return { text: '申し訳ありませんが、現在このモデルは利用できません。別のモデルで分析を試みています...' };
-          } else if (error.message.includes('API key')) {
-            // APIキーの問題の場合は明確なメッセージを返す
-            return { text: 'APIキーの問題が発生しました。システム管理者にお問い合わせください。' };
-          } else {
-            // その他のエラーの場合は一般的なメッセージを返す
-            return { text: '文書の分析中にエラーが発生しました。別のファイルを試すか、後でもう一度お試しください。' };
+        // Last resort: try with gemini-pro with simplified prompt
+        console.log('Trying last resort with gemini-pro and simplified prompt...');
+        const fallbackModel = genAI.getGenerativeModel({ 
+          model: 'gemini-pro',
+          generationConfig: {
+            temperature: 0.2,
+            maxOutputTokens: 2048,
           }
-        }
+        });
+        
+        const simplifiedPrompt = `以下の文書を分析し、要点をまとめてください：\n\n${limitedText.substring(0, 10000)}`;
+        
+        const result = await fallbackModel.generateContent(simplifiedPrompt);
+        const response = await result.response;
+        const text = response.text();
+        
+        return { text, model: 'gemini-pro (simplified)' };
+      } catch (fallbackError) {
+        console.error('All fallback attempts failed:', fallbackError);
+        throw new Error('PDFの分析中にエラーが発生しました。しばらく経ってからもう一度お試しください。');
       }
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error in processPdfWithGemini:', error);
-    return { text: `PDF処理エラー: ${error.message}` };
+    throw error;
   }
 }
 
-// Helper function to check if a model is available
-async function isModelAvailable(apiKey: string, modelName: GeminiModel): Promise<boolean> {
+/**
+ * Check if a model is available
+ * @param genAI GoogleGenerativeAI instance
+ * @param modelName Model name to check
+ * @returns True if model is available
+ */
+async function isModelAvailable(genAI: GoogleGenerativeAI, modelName: string): Promise<boolean> {
   try {
-    const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: modelName });
     await model.generateContent('test');
     return true;
-  } catch (error: any) {
-    if (error.message.includes('model not found')) {
-      return false;
-    }
-    throw error;
+  } catch (error) {
+    console.error(`Model ${modelName} is not available:`, error);
+    return false;
   }
 }
