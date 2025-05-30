@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "npm run build && cp -r dist/* web-build/",
+  "buildCommand": "npm run build && mkdir -p web-build && cp -r dist/* web-build/",
   "devCommand": "npm run dev",
   "installCommand": "npm install --legacy-peer-deps",
   "framework": null,
