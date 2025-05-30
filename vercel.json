@@ -6,15 +6,6 @@
   "framework": null,
   "outputDirectory": "web-build",
   "public": true,
-  "github": {
-    "enabled": true,
-    "silent": false
-  },
-  "env": {
-    "GEMINI_API_KEY": "AIzaSyDaHD5V0kDzRjSaq0gHM8Fk_GyAJteUdX4",
-    "NEXT_PUBLIC_GEMINI_API_KEY": "AIzaSyDaHD5V0kDzRjSaq0gHM8Fk_GyAJteUdX4",
-    "EXPO_PUBLIC_GEMINI_API_KEY": "AIzaSyDaHD5V0kDzRjSaq0gHM8Fk_GyAJteUdX4"
-  },
   "routes": [
     {
       "src": "/_expo/static/(.*)",
@@ -47,5 +38,10 @@
         "Access-Control-Allow-Headers": "X-Requested-With, Content-Type, Accept"
       }
     }
-  ]
+  ],
+  "env": {
+    "GEMINI_API_KEY": "AIzaSyDaHD5V0kDzRjSaq0gHM8Fk_GyAJteUdX4",
+    "NEXT_PUBLIC_GEMINI_API_KEY": "AIzaSyDaHD5V0kDzRjSaq0gHM8Fk_GyAJteUdX4",
+    "EXPO_PUBLIC_GEMINI_API_KEY": "AIzaSyDaHD5V0kDzRjSaq0gHM8Fk_GyAJteUdX4"
+  }
 }

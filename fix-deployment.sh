@@ -17,21 +17,12 @@ echo "ビルド出力ディレクトリの修正..."
 cat > vercel.json << EOL
 {
   "version": 2,
-  "buildCommand": "npm run build && cp -r dist/* web-build/",
+  "buildCommand": "npm run build && mkdir -p web-build && cp -r dist/* web-build/",
   "devCommand": "npm run dev",
   "installCommand": "npm install --legacy-peer-deps",
   "framework": null,
   "outputDirectory": "web-build",
   "public": true,
-  "github": {
-    "enabled": true,
-    "silent": false
-  },
-  "env": {
-    "GEMINI_API_KEY": "AIzaSyDaHD5V0kDzRjSaq0gHM8Fk_GyAJteUdX4",
-    "NEXT_PUBLIC_GEMINI_API_KEY": "AIzaSyDaHD5V0kDzRjSaq0gHM8Fk_GyAJteUdX4",
-    "EXPO_PUBLIC_GEMINI_API_KEY": "AIzaSyDaHD5V0kDzRjSaq0gHM8Fk_GyAJteUdX4"
-  },
   "routes": [
     {
       "src": "/_expo/static/(.*)",
@@ -64,7 +55,12 @@ cat > vercel.json << EOL
         "Access-Control-Allow-Headers": "X-Requested-With, Content-Type, Accept"
       }
     }
-  ]
+  ],
+  "env": {
+    "GEMINI_API_KEY": "AIzaSyDaHD5V0kDzRjSaq0gHM8Fk_GyAJteUdX4",
+    "NEXT_PUBLIC_GEMINI_API_KEY": "AIzaSyDaHD5V0kDzRjSaq0gHM8Fk_GyAJteUdX4",
+    "EXPO_PUBLIC_GEMINI_API_KEY": "AIzaSyDaHD5V0kDzRjSaq0gHM8Fk_GyAJteUdX4"
+  }
 }
 EOL
 
@@ -102,7 +98,8 @@ echo "Vercel CLIをインストールしています..."
 npm install -g vercel@latest
 
 echo "Vercelにデプロイしています..."
-vercel deploy --prod --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --yes
+# 個人アカウントをスコープとして設定しないように修正
+vercel deploy --token "$VERCEL_TOKEN" --prod --yes
 
 echo "=== デプロイ完了 ==="
 echo "AIBoardアプリケーションがVercelにデプロイされました。"
