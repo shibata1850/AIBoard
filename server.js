@@ -3,10 +3,11 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.static(path.join(__dirname, 'dist')));
+// ビルド出力ディレクトリを'dist'から'web-build'に変更
+app.use(express.static(path.join(__dirname, 'web-build')));
 
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  res.sendFile(path.join(__dirname, 'web-build', 'index.html'));
 });
 
 if (require.main === module) {
