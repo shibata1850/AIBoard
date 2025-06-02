@@ -1,5 +1,6 @@
 import React from 'react';
 import { useState, useEffect, createContext, useContext } from 'react';
+import { Platform } from 'react-native';
 import { supabase } from '../utils/supabase';
 import { AuthState, User } from '../types/auth';
 import { getCurrentUser, setCurrentUser, clearCurrentUser } from '../utils/auth';
@@ -322,10 +323,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       await clearCurrentUser();
       
+      const redirectTo = Platform.OS === 'web' 
+        ? window.location.origin 
+        : 'exp://localhost:8081';
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin,
+          redirectTo,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
@@ -367,10 +372,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       await clearCurrentUser();
       
+      const redirectTo = Platform.OS === 'web' 
+        ? window.location.origin 
+        : 'exp://localhost:8081';
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'apple',
         options: {
-          redirectTo: window.location.origin,
+          redirectTo,
           queryParams: {
             scope: 'name email',
           },
