@@ -35,3 +35,6 @@ yarn-error.*
 
 # build output
 ai-board/
+
+# package lock files
+package-lock.json
