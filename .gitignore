@@ -38,3 +38,4 @@ ai-board/
 
 # package lock files
 package-lock.json
+.vercel
