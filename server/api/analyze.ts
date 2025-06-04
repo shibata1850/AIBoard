@@ -54,9 +54,20 @@ export async function analyzeDocument(content: string) {
     let decodedContent = content;
     try {
       if (/^[A-Za-z0-9+/=]+$/.test(content)) {
-        const buffer = Buffer.from(content, 'base64');
-        decodedContent = buffer.toString('utf-8');
-        console.log('Successfully decoded Base64 content');
+        if (typeof Buffer !== 'undefined') {
+          const buffer = Buffer.from(content, 'base64');
+          decodedContent = buffer.toString('utf-8');
+          console.log('Successfully decoded Base64 content using Buffer (Node.js)');
+        } else {
+          try {
+            const binaryString = atob(content);
+            decodedContent = decodeURIComponent(escape(binaryString));
+            console.log('Successfully decoded Base64 content using atob (browser)');
+          } catch (atobError) {
+            console.warn('atob decoding failed, using content as-is:', atobError);
+            decodedContent = content;
+          }
+        }
       }
       
       if (decodedContent.length > MAX_CONTENT_LENGTH) {
