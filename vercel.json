@@ -29,10 +29,6 @@
       "dest": "/favicon.ico"
     },
     {
-      "src": "/api/(.*)",
-      "dest": "/server/api/$1"
-    },
-    {
       "src": "/(.*)",
       "dest": "/index.html",
       "headers": {
@@ -44,11 +40,6 @@
   ],
   "env": {
     "VERCEL_PROJECT_PROTECTION": "false"
-  },
-  "functions": {
-    "app/api/**/*.js": {
-      "runtime": "nodejs18.x"
-    }
   },
   "ignoreCommand": "echo 'Skipping checks'"
 }
