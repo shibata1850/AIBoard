@@ -27,7 +27,7 @@ export default function LoginScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.logoContainer}>
-        <Logo size={100} />
+        <Logo size="large" />
         <Text style={styles.title}>AIボード</Text>
         <Text style={styles.subtitle}>中小企業向け財務分析・アドバイスツール</Text>
       </View>
