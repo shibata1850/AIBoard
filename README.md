@@ -93,3 +93,6 @@ eas submit --platform all
 ## ライセンス
 
 このプロジェクトはMITライセンスの下で公開されています。
+
+---
+*Dummy PR test change - June 2025*
