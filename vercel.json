@@ -45,5 +45,10 @@
   "env": {
     "VERCEL_PROJECT_PROTECTION": "false"
   },
+  "functions": {
+    "app/api/**/*.js": {
+      "runtime": "nodejs18.x"
+    }
+  },
   "ignoreCommand": "echo 'Skipping checks'"
 }
