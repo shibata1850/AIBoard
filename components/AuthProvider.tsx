@@ -40,7 +40,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         await clearCurrentUser();
         
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error('Error getting session:', sessionError);
+          setState({ user: null, isLoading: false, error: null });
+          return;
+        }
         
         if (session) {
           const { data: profileData, error: profileError } = await supabase
@@ -51,7 +57,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             
           if (profileError && profileError.code !== 'PGRST116') {
             console.error('Error fetching profile:', profileError);
-            throw profileError;
+            setState({ user: null, isLoading: false, error: null });
+            return;
           }
           
           const userData = profileData || {
@@ -81,7 +88,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setState({ 
           user: null, 
           isLoading: false, 
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: null
         });
       }
     }

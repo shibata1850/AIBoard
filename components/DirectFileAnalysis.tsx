@@ -15,6 +15,7 @@ import { analyzeDocument } from '../utils/gemini';
 import { readFileAsBase64, getMimeTypeFromFileName } from '../utils/fileUpload';
 import * as DocumentPicker from 'expo-document-picker';
 import { v4 as uuidv4 } from 'uuid';
+import { VisualReportModal } from './VisualReportModal';
 
 export function DirectFileAnalysis() {
   const { isDark } = useTheme();
@@ -22,6 +23,8 @@ export function DirectFileAnalysis() {
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showVisualReport, setShowVisualReport] = useState(false);
+  const [currentDocument, setCurrentDocument] = useState<any>(null);
 
   async function handleFileUpload() {
     try {
@@ -45,6 +48,14 @@ export function DirectFileAnalysis() {
       
       const analysisResult = await analyzeDocument(fileContent);
       setAnalysis(analysisResult);
+      
+      setCurrentDocument({
+        id: uuidv4(),
+        title: file.name,
+        content: fileContent,
+        type: getMimeTypeFromFileName(file.name),
+        createdAt: Date.now(),
+      });
     } catch (error) {
       console.error('Error analyzing file:', error);
       setError(error instanceof Error ? error.message : '文書の分析中にエラーが発生しました');
@@ -149,9 +160,28 @@ export function DirectFileAnalysis() {
                 {analysis}
               </Text>
             </ScrollView>
+            
+            <TouchableOpacity
+              style={[
+                styles.createReportButton,
+                { backgroundColor: isDark ? '#34C759' : '#30D158' }
+              ]}
+              onPress={() => {
+                setShowVisualReport(true);
+              }}
+            >
+              <Text style={styles.createReportButtonText}>これを資料化する</Text>
+            </TouchableOpacity>
           </View>
         ) : null}
       </View>
+      
+      <VisualReportModal
+        document={currentDocument}
+        analysis={analysis}
+        visible={showVisualReport}
+        onClose={() => setShowVisualReport(false)}
+      />
     </View>
   );
 }
@@ -251,5 +281,17 @@ const styles = StyleSheet.create({
   analysisText: {
     fontSize: 16,
     lineHeight: 24,
+  },
+  createReportButton: {
+    marginTop: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  createReportButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

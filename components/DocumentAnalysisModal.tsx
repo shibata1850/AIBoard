@@ -13,6 +13,7 @@ import { useTheme } from '../components/ThemeProvider';
 import { BusinessDocument, DocumentAnalysis } from '../types/documents';
 import { analyzeDocument } from '../utils/gemini';
 import { supabase } from '../utils/supabase';
+import { VisualReportModal } from './VisualReportModal';
 import { v4 as uuidv4 } from 'uuid';
 
 interface DocumentAnalysisModalProps {
@@ -30,6 +31,7 @@ export function DocumentAnalysisModal({
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showVisualReport, setShowVisualReport] = useState(false);
 
   useEffect(() => {
     if (visible && document) {
@@ -149,12 +151,25 @@ export function DocumentAnalysisModal({
                 </TouchableOpacity>
               </View>
             ) : analysis ? (
-              <Text style={[
-                styles.analysisText,
-                { color: isDark ? '#FFFFFF' : '#000000' }
-              ]}>
-                {analysis}
-              </Text>
+              <View>
+                <Text style={[
+                  styles.analysisText,
+                  { color: isDark ? '#FFFFFF' : '#000000' }
+                ]}>
+                  {analysis}
+                </Text>
+                <TouchableOpacity
+                  style={[
+                    styles.createReportButton,
+                    { backgroundColor: isDark ? '#34C759' : '#30D158' }
+                  ]}
+                  onPress={() => {
+                    setShowVisualReport(true);
+                  }}
+                >
+                  <Text style={styles.createReportButtonText}>これを資料化する</Text>
+                </TouchableOpacity>
+              </View>
             ) : (
               <Text style={[
                 styles.placeholderText,
@@ -166,6 +181,13 @@ export function DocumentAnalysisModal({
           </ScrollView>
         </View>
       </View>
+      
+      <VisualReportModal
+        document={document}
+        analysis={analysis}
+        visible={showVisualReport}
+        onClose={() => setShowVisualReport(false)}
+      />
     </Modal>
   );
 }
@@ -237,5 +259,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     padding: 20,
+  },
+  createReportButton: {
+    marginTop: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  createReportButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

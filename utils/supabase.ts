@@ -4,10 +4,12 @@ import { createClient } from '@supabase/supabase-js';
 import { Database } from '../types/supabase';
 
 if (!process.env.EXPO_PUBLIC_SUPABASE_URL) {
+  console.error('Missing EXPO_PUBLIC_SUPABASE_URL environment variable');
   throw new Error('Missing EXPO_PUBLIC_SUPABASE_URL');
 }
 
 if (!process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY) {
+  console.error('Missing EXPO_PUBLIC_SUPABASE_ANON_KEY environment variable');
   throw new Error('Missing EXPO_PUBLIC_SUPABASE_ANON_KEY');
 }
 

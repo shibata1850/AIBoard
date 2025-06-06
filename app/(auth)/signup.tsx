@@ -46,7 +46,7 @@ export default function SignupScreen() {
     return (
       <View style={styles.container}>
         <View style={styles.logoContainer}>
-          <Logo size={100} />
+          <Logo size="large" />
           <Text style={styles.title}>登録完了</Text>
         </View>
         <View style={styles.formContainer}>
@@ -66,7 +66,7 @@ export default function SignupScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.logoContainer}>
-        <Logo size={100} />
+        <Logo size="large" />
         <Text style={styles.title}>新規アカウント登録</Text>
         <Text style={styles.subtitle}>AIボードを使って財務分析を始めましょう</Text>
       </View>
