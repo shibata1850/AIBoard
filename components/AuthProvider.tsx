@@ -1,5 +1,6 @@
 import React from 'react';
 import { useState, useEffect, createContext, useContext } from 'react';
+import { Platform } from 'react-native';
 import { supabase } from '../utils/supabase';
 import { AuthState, User } from '../types/auth';
 import { getCurrentUser, setCurrentUser, clearCurrentUser } from '../utils/auth';
@@ -39,7 +40,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         await clearCurrentUser();
         
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error('Error getting session:', sessionError);
+          setState({ user: null, isLoading: false, error: null });
+          return;
+        }
         
         if (session) {
           const { data: profileData, error: profileError } = await supabase
@@ -50,7 +57,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             
           if (profileError && profileError.code !== 'PGRST116') {
             console.error('Error fetching profile:', profileError);
-            throw profileError;
+            setState({ user: null, isLoading: false, error: null });
+            return;
           }
           
           const userData = profileData || {
@@ -80,7 +88,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setState({ 
           user: null, 
           isLoading: false, 
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: null
         });
       }
     }
@@ -198,21 +206,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
       
       console.log('SignOut: Step 4 completed - Supabase signOut successful');
-      
-      if (typeof window !== 'undefined') {
-        console.log('SignOut: Step 5 - Redirecting to login page');
-        try {
-          window.location.href = '/login';
-          console.log('SignOut: Redirect initiated');
-        } catch (redirectError) {
-          console.error('SignOut: Redirect error:', redirectError);
-          window.location.replace('/login');
-        }
-      } else {
-        console.log('SignOut: Window is undefined, cannot redirect');
-      }
-      
       console.log('SignOut: All steps completed successfully');
+      
       return;
     } catch (error) {
       console.error('SignOut: Error during logout process:', error);
@@ -222,11 +217,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isLoading: false, 
         error: error instanceof Error ? error.message : 'ログアウト中に予期せぬエラーが発生しました'
       });
-      
-      if (typeof window !== 'undefined') {
-        console.log('SignOut: Attempting to redirect after error');
-        window.location.href = '/login';
-      }
     }
   }
 
@@ -340,10 +330,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       await clearCurrentUser();
       
+      const redirectTo = Platform.OS === 'web' 
+        ? window.location.origin 
+        : 'exp://localhost:8081';
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin,
+          redirectTo,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
@@ -385,10 +379,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       await clearCurrentUser();
       
+      const redirectTo = Platform.OS === 'web' 
+        ? window.location.origin 
+        : 'exp://localhost:8081';
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'apple',
         options: {
-          redirectTo: window.location.origin,
+          redirectTo,
           queryParams: {
             scope: 'name email',
           },

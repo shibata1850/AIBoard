@@ -1,0 +1,37 @@
+
+> ai-board@1.0.0 build
+> expo export --platform web
+
+env: load .env.production .env
+env: export EXPO_PUBLIC_GEMINI_API_KEY EXPO_PUBLIC_SUPABASE_ANON_KEY EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_CHAT_API_BASE_URL NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_ANON_KEY
+Starting Metro Bundler
+Web Bundled 14567ms node_modules/expo-router/entry.js (2727 modules)
+
+› Assets (18):
+assets/images/AIB.e11efaf55e907fcf7b0d8296e1164f8f.webp (9.38 kB)
+node_modules/@react-navigation/elements/lib/module/assets/back-icon-mask.0a328cd9c1afd0afe8e3b1ec5165b1b4.png (653 B)
+node_modules/@react-navigation/elements/lib/module/assets/back-icon.35ba0eaec5a4f5ed12ca16fabeae451d.png (207 B)
+node_modules/@react-navigation/elements/lib/module/assets/clear-icon.c94f6478e7ae0cdd9f15de1fcb9e5e55.png (4 variations | 425 B)
+node_modules/@react-navigation/elements/lib/module/assets/close-icon.808e1b1b9b53114ec2838071a7e6daa7.png (4 variations | 235 B)
+node_modules/@react-navigation/elements/lib/module/assets/search-icon.286d67d3f74808a60a78d3ebf1a5fb57.png (928 B)
+node_modules/expo-router/assets/error.d1ea1496f9057eb392d5bbf3732a61b7.png (469 B)
+node_modules/expo-router/assets/file.19eeb73b9593a38f8e9f418337fc7d10.png (138 B)
+node_modules/expo-router/assets/forward.d8b800c443b8972542883e0b9de2bdc6.png (188 B)
+node_modules/expo-router/assets/pkg.ab19f4cbc543357183a20571f68380a3.png (364 B)
+node_modules/expo-router/assets/sitemap.412dd9275b6b48ad28f5e3d81bb1f626.png (465 B)
+node_modules/expo-router/assets/unmatched.20e71bdf79e3a97bf55fd9e164041578.png (4.75 kB)
+
+› web bundles (6):
+_expo/static/js/web/browser-7e0a9fa7fb78c0eae85c6e154298cd2c.js (180 B)
+_expo/static/js/web/browser-d41d8cd98f00b204e9800998ecf8427e.js (0 B)
+_expo/static/js/web/entry-e04596908850585bda05d85abe0124d2.js (3.93 MB)
+_expo/static/js/web/html2canvas-daaf096a5d15b193c9575d4a07852664.js (202 kB)
+_expo/static/js/web/index-373debb588a36edf9a5adedb0056a154.js (168 kB)
+_expo/static/js/web/purify-cf765166b5078396f04a4d9ae065e379.js (22.2 kB)
+
+› Files (3):
+favicon.ico (14.5 kB)
+index.html (1.23 kB)
+metadata.json (49 B)
+
+Exported: dist

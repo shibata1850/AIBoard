@@ -32,3 +32,10 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+
+# build output
+ai-board/
+
+# package lock files
+package-lock.json
+.vercel
