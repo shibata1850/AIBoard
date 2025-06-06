@@ -265,7 +265,7 @@ export default function AnalysisPage() {
                 onPress={() => setShowDocumentModal(true)}
               >
                 <FileText size={20} color="#FFFFFF" style={styles.documentButtonIcon} />
-                <Text style={styles.documentButtonText}>これを資料化する</Text>
+                <Text style={styles.documentButtonText}>ビジュアルレポート作成</Text>
               </TouchableOpacity>
             </View>
           )}

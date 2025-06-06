@@ -11,8 +11,8 @@ import {
   Platform,
 } from 'react-native';
 import { useTheme } from './ThemeProvider';
-import { generatePDFReport, generateWordReport, DocumentOptions } from '../utils/documentGenerator';
-import { FileText, Download } from 'lucide-react-native';
+import { generateVisualReport, VisualReportOptions } from '../utils/visualReportGenerator';
+import { FileText, Eye } from 'lucide-react-native';
 
 interface DocumentCreationModalProps {
   visible: boolean;
@@ -33,7 +33,7 @@ export function DocumentCreationModal({
   const [title, setTitle] = useState('財務分析レポート');
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const handleGenerateDocument = async (format: 'pdf' | 'word') => {
+  const handleGenerateVisualReport = async () => {
     if (!title.trim()) {
       Alert.alert('エラー', 'タイトルを入力してください');
       return;
@@ -42,38 +42,33 @@ export function DocumentCreationModal({
     setIsGenerating(true);
     
     try {
-      const options: DocumentOptions = {
+      const options: VisualReportOptions = {
         title: title.trim(),
         analysisContent,
         fileName,
         documentType,
       };
 
-      let result: string;
-      if (format === 'pdf') {
-        result = await generatePDFReport(options);
-      } else {
-        result = await generateWordReport(options);
-      }
+      const result = await generateVisualReport(options);
 
       if (Platform.OS !== 'web') {
         Alert.alert(
           '成功',
-          `${format === 'pdf' ? 'PDF' : 'Word'}ドキュメントが生成されました`,
+          'ビジュアルレポートが生成されました',
           [{ text: 'OK', onPress: onClose }]
         );
       } else {
         Alert.alert(
           '成功',
-          `${format === 'pdf' ? 'PDF' : 'Word'}ドキュメントのダウンロードが開始されました`,
+          'ビジュアルレポートのダウンロードが開始されました',
           [{ text: 'OK', onPress: onClose }]
         );
       }
     } catch (error) {
-      console.error('Document generation error:', error);
+      console.error('Visual report generation error:', error);
       Alert.alert(
         'エラー',
-        'ドキュメントの生成中にエラーが発生しました'
+        'ビジュアルレポートの生成中にエラーが発生しました'
       );
     } finally {
       setIsGenerating(false);
@@ -96,7 +91,7 @@ export function DocumentCreationModal({
             styles.modalTitle,
             { color: isDark ? '#FFFFFF' : '#000000' }
           ]}>
-            資料を作成
+            ビジュアルレポート作成
           </Text>
 
           <View style={styles.inputContainer}>
@@ -122,31 +117,17 @@ export function DocumentCreationModal({
             />
           </View>
 
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={[
-                styles.formatButton,
-                { backgroundColor: isDark ? '#FF3B30' : '#FF3B30' }
-              ]}
-              onPress={() => handleGenerateDocument('pdf')}
-              disabled={isGenerating}
-            >
-              <FileText size={20} color="#FFFFFF" />
-              <Text style={styles.formatButtonText}>PDF生成</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.formatButton,
-                { backgroundColor: isDark ? '#0A84FF' : '#007AFF' }
-              ]}
-              onPress={() => handleGenerateDocument('word')}
-              disabled={isGenerating}
-            >
-              <Download size={20} color="#FFFFFF" />
-              <Text style={styles.formatButtonText}>Word生成</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            style={[
+              styles.generateButton,
+              { backgroundColor: isDark ? '#0A84FF' : '#007AFF' }
+            ]}
+            onPress={handleGenerateVisualReport}
+            disabled={isGenerating}
+          >
+            <Eye size={20} color="#FFFFFF" />
+            <Text style={styles.generateButtonText}>ビジュアルレポート生成</Text>
+          </TouchableOpacity>
 
           {isGenerating && (
             <View style={styles.loadingContainer}>
@@ -220,22 +201,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     borderWidth: 1,
   },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-    gap: 12,
-  },
-  formatButton: {
-    flex: 1,
+  generateButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 12,
+    padding: 16,
     borderRadius: 8,
+    marginBottom: 20,
     gap: 8,
   },
-  formatButtonText: {
+  generateButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
