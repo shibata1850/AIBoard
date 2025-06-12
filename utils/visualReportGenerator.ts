@@ -415,6 +415,46 @@ export function generateVisualReportHTML(options: VisualReportOptions): string {
             margin-bottom: 15px;
         }
         
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+            
+            .header-info {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-tabs {
+                flex-direction: column;
+            }
+            
+            .nav-tab {
+                margin-bottom: 5px;
+            }
+            
+            .chart-canvas {
+                min-height: 250px;
+                aspect-ratio: 1.5/1;
+            }
+            
+            .chart-container {
+                padding: 15px;
+            }
+        }
+        
         .recommendations-section {
             background: white;
             border-radius: 12px;
