@@ -72,8 +72,14 @@ export function parseFinancialData(analysisContent: string): ParsedFinancialData
       if (percentMatch) {
         const value = parseFloat(percentMatch[1]);
         const trend = value > 0 ? 'positive' : value < 0 ? 'negative' : 'neutral';
+        const rawLabel = line.split(':')[0] || line.split('：')[0] || '指標';
+        const cleanLabel = rawLabel
+          .replace(/^\*+\s*/, '')
+          .replace(/\*\*/g, '')
+          .replace(/^\d+\.\s*/, '')
+          .trim();
         metrics.push({
-          label: line.split(':')[0] || line.split('：')[0] || '指標',
+          label: cleanLabel,
           value: `${value}%`,
           trend
         });
@@ -137,15 +143,23 @@ export function parseEnhancedFinancialData(analysisContent: string): EnhancedFin
     }
     
     if (line.includes('リスク') || line.includes('懸念') || line.includes('問題')) {
-      const cleanLine = line.replace(/^\*+\s*/, '').trim();
-      if (cleanLine.length > 10) {
+      const cleanLine = line
+        .replace(/^\*+\s*/, '')
+        .replace(/\*\*/g, '')
+        .replace(/^\d+\.\s*/, '')
+        .trim();
+      if (cleanLine.length > 15 && !cleanLine.includes('**')) {
         riskFactors.push(cleanLine);
       }
     }
     
     if (line.includes('改善') || line.includes('提案') || line.includes('対策') || line.includes('必要')) {
-      const cleanLine = line.replace(/^\*+\s*/, '').trim();
-      if (cleanLine.length > 10) {
+      const cleanLine = line
+        .replace(/^\*+\s*/, '')
+        .replace(/\*\*/g, '')
+        .replace(/^\d+\.\s*/, '')
+        .trim();
+      if (cleanLine.length > 15 && !cleanLine.includes('**')) {
         recommendations.push(cleanLine);
       }
     }
@@ -395,7 +409,9 @@ export function generateVisualReportHTML(options: VisualReportOptions): string {
         
         .chart-canvas {
             width: 100%;
-            height: 400px;
+            min-height: 300px;
+            max-height: 500px;
+            aspect-ratio: 2/1;
             margin-bottom: 15px;
         }
         
@@ -485,6 +501,15 @@ export function generateVisualReportHTML(options: VisualReportOptions): string {
             
             .nav-tab {
                 margin-bottom: 5px;
+            }
+            
+            .chart-canvas {
+                min-height: 250px;
+                aspect-ratio: 1.5/1;
+            }
+            
+            .chart-container {
+                padding: 15px;
             }
         }
         
@@ -670,25 +695,31 @@ export function generateVisualReportHTML(options: VisualReportOptions): string {
                     },
                     options: {
                         responsive: true,
-                        maintainAspectRatio: false,
+                        maintainAspectRatio: true,
+                        aspectRatio: 2,
                         plugins: {
                             legend: {
                                 position: 'bottom',
                                 labels: {
-                                    padding: 20,
+                                    padding: 15,
                                     font: {
-                                        size: 14
-                                    }
+                                        size: 12
+                                    },
+                                    usePointStyle: true
                                 }
                             },
                             title: {
                                 display: true,
                                 text: '財務構造の健全性',
                                 font: {
-                                    size: 16,
+                                    size: 14,
                                     weight: 'bold'
-                                }
+                                },
+                                padding: 20
                             }
+                        },
+                        layout: {
+                            padding: 10
                         }
                     }
                 });
@@ -722,7 +753,8 @@ export function generateVisualReportHTML(options: VisualReportOptions): string {
                     },
                     options: {
                         responsive: true,
-                        maintainAspectRatio: false,
+                        maintainAspectRatio: true,
+                        aspectRatio: 2,
                         plugins: {
                             legend: {
                                 display: false
@@ -731,9 +763,10 @@ export function generateVisualReportHTML(options: VisualReportOptions): string {
                                 display: true,
                                 text: '収益性の状況',
                                 font: {
-                                    size: 16,
+                                    size: 14,
                                     weight: 'bold'
-                                }
+                                },
+                                padding: 20
                             }
                         },
                         scales: {
@@ -742,9 +775,22 @@ export function generateVisualReportHTML(options: VisualReportOptions): string {
                                 ticks: {
                                     callback: function(value) {
                                         return '¥' + value.toLocaleString('ja-JP');
+                                    },
+                                    font: {
+                                        size: 11
+                                    }
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    font: {
+                                        size: 11
                                     }
                                 }
                             }
+                        },
+                        layout: {
+                            padding: 10
                         }
                     }
                 });
