@@ -94,6 +94,8 @@ eas submit --platform all
 
 このプロジェクトはMITライセンスの下で公開されています。
 
+<!-- Verified repository access and functionality - Devin test -->
+
 ## 検証済み
 
 - リポジトリアクセス: ✅
