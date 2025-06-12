@@ -29,6 +29,10 @@
       "dest": "/favicon.ico"
     },
     {
+      "src": "/api/(.*)",
+      "dest": "/server/api/$1"
+    },
+    {
       "src": "/(.*)",
       "dest": "/index.html",
       "headers": {
