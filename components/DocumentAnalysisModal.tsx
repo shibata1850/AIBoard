@@ -13,6 +13,7 @@ import { useTheme } from '../components/ThemeProvider';
 import { BusinessDocument, DocumentAnalysis } from '../types/documents';
 import { analyzeDocument } from '../utils/gemini';
 import { supabase } from '../utils/supabase';
+import { useAuth } from './AuthProvider';
 import { VisualReportModal } from './VisualReportModal';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -28,6 +29,7 @@ export function DocumentAnalysisModal({
   onClose,
 }: DocumentAnalysisModalProps) {
   const { isDark } = useTheme();
+  const { user } = useAuth();
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -70,6 +72,7 @@ export function DocumentAnalysisModal({
           content: result,
           createdAt: Date.now(),
           summary: result.substring(0, 100) + '...',
+          userId: user?.id || '',
         };
         
         const { error: insertError } = await supabase
@@ -80,6 +83,7 @@ export function DocumentAnalysisModal({
             analysis_type: newAnalysis.analysisType,
             content: newAnalysis.content,
             summary: newAnalysis.summary,
+            user_id: user?.id,
           });
         
         if (insertError) throw insertError;
