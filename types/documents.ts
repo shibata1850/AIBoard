@@ -14,4 +14,16 @@ export interface DocumentAnalysis {
   content: string;
   createdAt: number;
   summary: string;
+  userId: string;
+}
+
+export interface AnalysisHistoryItem {
+  id: string;
+  documentId: string;
+  documentTitle: string;
+  analysisType: string;
+  content: string;
+  summary: string;
+  createdAt: number;
+  userId: string;
 }

@@ -13,34 +13,44 @@ import { useTheme } from '../components/ThemeProvider';
 import { BusinessDocument, DocumentAnalysis } from '../types/documents';
 import { analyzeDocument } from '../utils/gemini';
 import { supabase } from '../utils/supabase';
-import { VisualReportModal } from './VisualReportModal';
+import { useAuth } from './AuthProvider';
+import { DocumentCreationModal } from './DocumentCreationModal';
 import { v4 as uuidv4 } from 'uuid';
 
 interface DocumentAnalysisModalProps {
   document: BusinessDocument | null;
   visible: boolean;
   onClose: () => void;
+  existingAnalysis?: string;
 }
 
 export function DocumentAnalysisModal({
   document,
   visible,
   onClose,
+  existingAnalysis,
 }: DocumentAnalysisModalProps) {
   const { isDark } = useTheme();
+  const { user } = useAuth();
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showVisualReport, setShowVisualReport] = useState(false);
+  const [showDocumentModal, setShowDocumentModal] = useState(false);
 
   useEffect(() => {
     if (visible && document) {
-      performAnalysis();
+      if (existingAnalysis) {
+        setAnalysis(existingAnalysis);
+        setIsLoading(false);
+        setError(null);
+      } else {
+        performAnalysis();
+      }
     } else {
       setAnalysis(null);
       setError(null);
     }
-  }, [visible, document]);
+  }, [visible, document, existingAnalysis]);
 
   async function performAnalysis() {
     if (!document) return;
@@ -70,6 +80,7 @@ export function DocumentAnalysisModal({
           content: result,
           createdAt: Date.now(),
           summary: result.substring(0, 100) + '...',
+          userId: user?.id || '',
         };
         
         const { error: insertError } = await supabase
@@ -80,6 +91,7 @@ export function DocumentAnalysisModal({
             analysis_type: newAnalysis.analysisType,
             content: newAnalysis.content,
             summary: newAnalysis.summary,
+            user_id: user?.id,
           });
         
         if (insertError) throw insertError;
@@ -164,10 +176,10 @@ export function DocumentAnalysisModal({
                     { backgroundColor: isDark ? '#34C759' : '#30D158' }
                   ]}
                   onPress={() => {
-                    setShowVisualReport(true);
+                    setShowDocumentModal(true);
                   }}
                 >
-                  <Text style={styles.createReportButtonText}>これを資料化する</Text>
+                  <Text style={styles.createReportButtonText}>ビジュアルレポート作成</Text>
                 </TouchableOpacity>
               </View>
             ) : (
@@ -182,11 +194,12 @@ export function DocumentAnalysisModal({
         </View>
       </View>
       
-      <VisualReportModal
-        document={document}
-        analysis={analysis}
-        visible={showVisualReport}
-        onClose={() => setShowVisualReport(false)}
+      <DocumentCreationModal
+        visible={showDocumentModal}
+        onClose={() => setShowDocumentModal(false)}
+        analysisContent={analysis || ''}
+        fileName={document?.title}
+        documentType="財務諸表"
       />
     </Modal>
   );
