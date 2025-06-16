@@ -63,7 +63,9 @@ export default function HistoryPage() {
         documentTitle: (item.business_documents as any)?.title || 'Unknown Document',
         analysisType: item.analysis_type,
         content: item.insights || '',
-        summary: item.insights?.substring(0, 100) + '...' || '',
+        summary: (typeof item.insights === 'string' && item.insights.length > 100) 
+          ? item.insights.substring(0, 100) + '...' 
+          : item.insights || '',
         createdAt: new Date(item.created_at).getTime(),
         userId: user?.id || '',
       })) || [];
