@@ -21,12 +21,14 @@ interface DocumentAnalysisModalProps {
   document: BusinessDocument | null;
   visible: boolean;
   onClose: () => void;
+  existingAnalysis?: string;
 }
 
 export function DocumentAnalysisModal({
   document,
   visible,
   onClose,
+  existingAnalysis,
 }: DocumentAnalysisModalProps) {
   const { isDark } = useTheme();
   const { user } = useAuth();
@@ -37,12 +39,18 @@ export function DocumentAnalysisModal({
 
   useEffect(() => {
     if (visible && document) {
-      performAnalysis();
+      if (existingAnalysis) {
+        setAnalysis(existingAnalysis);
+        setIsLoading(false);
+        setError(null);
+      } else {
+        performAnalysis();
+      }
     } else {
       setAnalysis(null);
       setError(null);
     }
-  }, [visible, document]);
+  }, [visible, document, existingAnalysis]);
 
   async function performAnalysis() {
     if (!document) return;

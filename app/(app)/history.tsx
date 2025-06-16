@@ -256,6 +256,7 @@ export default function HistoryPage() {
               createdAt: selectedAnalysis.createdAt,
               userId: selectedAnalysis.userId,
             }}
+            existingAnalysis={selectedAnalysis.content}
           />
         )}
       </SafeAreaView>
