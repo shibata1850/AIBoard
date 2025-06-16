@@ -1,4 +1,33 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.EXPO_PUBLIC_SUPABASE_URL || '',
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || ''
+);
+
+async function getRelevantCompanyInfo(userMessage: string): Promise<string> {
+  try {
+    const { data, error } = await supabase
+      .from('company_info')
+      .select('title, content, category')
+      .or(`title.ilike.%${userMessage}%,content.ilike.%${userMessage}%`)
+      .limit(3);
+
+    if (error || !data || data.length === 0) {
+      return '';
+    }
+
+    const companyContext = data
+      .map(info => `【${info.category}】${info.title}\n${info.content}`)
+      .join('\n\n');
+
+    return `\n\n以下は関連する社内情報です：\n${companyContext}\n\n上記の社内情報を参考にして回答してください。`;
+  } catch (error) {
+    console.error('Error fetching company info:', error);
+    return '';
+  }
+}
 
 export async function generateChatResponse(messages: any[]) {
   try {
@@ -17,11 +46,22 @@ export async function generateChatResponse(messages: any[]) {
         ...messages
       ];
     }
+
+    const lastUserMessage = messages.filter(msg => msg.isUser).pop();
+    const companyContext = lastUserMessage ? await getRelevantCompanyInfo(lastUserMessage.text) : '';
     
-    const formattedMessages = messages.map(msg => ({
-      role: msg.isUser ? 'user' : 'model',
-      parts: [{ text: msg.text }],
-    }));
+    const formattedMessages = messages.map((msg, index) => {
+      if (msg.isUser && index === messages.length - 1 && companyContext) {
+        return {
+          role: 'user',
+          parts: [{ text: msg.text + companyContext }],
+        };
+      }
+      return {
+        role: msg.isUser ? 'user' : 'model',
+        parts: [{ text: msg.text }],
+      };
+    });
     
     console.log('Formatted messages:', JSON.stringify(formattedMessages));
     
