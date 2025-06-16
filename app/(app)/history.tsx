@@ -7,6 +7,7 @@ import { useAuth } from '../../components/AuthProvider';
 import { FileText, Clock } from 'lucide-react-native';
 import { AnalysisHistoryItem } from '../../types/documents';
 import { supabase } from '../../utils/supabase';
+import { DocumentAnalysisModal } from '../../components/DocumentAnalysisModal';
 
 export default function HistoryPage() {
   const { isDark } = useTheme();
@@ -14,6 +15,8 @@ export default function HistoryPage() {
   const [analysisHistory, setAnalysisHistory] = React.useState<AnalysisHistoryItem[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  const [selectedAnalysis, setSelectedAnalysis] = React.useState<AnalysisHistoryItem | null>(null);
+  const [showAnalysisModal, setShowAnalysisModal] = React.useState(false);
 
   React.useEffect(() => {
     console.log('History useEffect triggered, user:', user);
@@ -117,6 +120,16 @@ export default function HistoryPage() {
     }
   }
 
+  function handleAnalysisClick(item: AnalysisHistoryItem) {
+    setSelectedAnalysis(item);
+    setShowAnalysisModal(true);
+  }
+
+  function handleCloseModal() {
+    setShowAnalysisModal(false);
+    setSelectedAnalysis(null);
+  }
+
   return (
     <AuthWrapper>
       <SafeAreaView style={[
@@ -187,6 +200,7 @@ export default function HistoryPage() {
                     styles.historyItem,
                     { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }
                   ]}
+                  onPress={() => handleAnalysisClick(item)}
                 >
                   <View style={styles.historyContent}>
                     <Text style={[
@@ -229,6 +243,21 @@ export default function HistoryPage() {
             />
           )}
         </View>
+
+        {selectedAnalysis && (
+          <DocumentAnalysisModal
+            visible={showAnalysisModal}
+            onClose={handleCloseModal}
+            document={{
+              id: selectedAnalysis.documentId,
+              title: selectedAnalysis.documentTitle,
+              content: selectedAnalysis.content,
+              fileType: 'application/octet-stream',
+              createdAt: selectedAnalysis.createdAt,
+              userId: selectedAnalysis.userId,
+            }}
+          />
+        )}
       </SafeAreaView>
     </AuthWrapper>
   );
