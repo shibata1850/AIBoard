@@ -14,7 +14,7 @@ import { BusinessDocument, DocumentAnalysis } from '../types/documents';
 import { analyzeDocument } from '../utils/gemini';
 import { supabase } from '../utils/supabase';
 import { useAuth } from './AuthProvider';
-import { VisualReportModal } from './VisualReportModal';
+import { DocumentCreationModal } from './DocumentCreationModal';
 import { v4 as uuidv4 } from 'uuid';
 
 interface DocumentAnalysisModalProps {
@@ -35,7 +35,7 @@ export function DocumentAnalysisModal({
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showVisualReport, setShowVisualReport] = useState(false);
+  const [showDocumentModal, setShowDocumentModal] = useState(false);
 
   useEffect(() => {
     if (visible && document) {
@@ -176,10 +176,10 @@ export function DocumentAnalysisModal({
                     { backgroundColor: isDark ? '#34C759' : '#30D158' }
                   ]}
                   onPress={() => {
-                    setShowVisualReport(true);
+                    setShowDocumentModal(true);
                   }}
                 >
-                  <Text style={styles.createReportButtonText}>これを資料化する</Text>
+                  <Text style={styles.createReportButtonText}>ビジュアルレポート作成</Text>
                 </TouchableOpacity>
               </View>
             ) : (
@@ -194,11 +194,12 @@ export function DocumentAnalysisModal({
         </View>
       </View>
       
-      <VisualReportModal
-        document={document}
-        analysis={analysis}
-        visible={showVisualReport}
-        onClose={() => setShowVisualReport(false)}
+      <DocumentCreationModal
+        visible={showDocumentModal}
+        onClose={() => setShowDocumentModal(false)}
+        analysisContent={analysis || ''}
+        fileName={document?.title}
+        documentType="財務諸表"
       />
     </Modal>
   );
