@@ -39,8 +39,15 @@ export default function HistoryPage() {
       console.log('Attempting to query document_analyses table...');
       const { data, error: fetchError } = await supabase
         .from('document_analyses')
-        .select('*')
-        .limit(1);
+        .select(`
+          id,
+          document_id,
+          analysis_type,
+          insights,
+          created_at,
+          business_documents!inner(title)
+        `)
+        .order('created_at', { ascending: false });
       
       if (fetchError) {
         console.error('Supabase error:', fetchError);
@@ -50,7 +57,16 @@ export default function HistoryPage() {
       console.log('Raw data from document_analyses table:', data);
       console.log('Available columns:', data && data.length > 0 ? Object.keys(data[0]) : 'No data');
       
-      const formattedHistory: AnalysisHistoryItem[] = [];
+      const formattedHistory: AnalysisHistoryItem[] = data?.map(item => ({
+        id: item.id,
+        documentId: item.document_id,
+        documentTitle: (item.business_documents as any)?.title || 'Unknown Document',
+        analysisType: item.analysis_type,
+        content: item.insights || '',
+        summary: item.insights?.substring(0, 100) + '...' || '',
+        createdAt: new Date(item.created_at).getTime(),
+        userId: user?.id || '',
+      })) || [];
       
       setAnalysisHistory(formattedHistory);
     } catch (error) {
