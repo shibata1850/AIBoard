@@ -57,18 +57,36 @@ export default function HistoryPage() {
       console.log('Raw data from document_analyses table:', data);
       console.log('Available columns:', data && data.length > 0 ? Object.keys(data[0]) : 'No data');
       
-      const formattedHistory: AnalysisHistoryItem[] = data?.map(item => ({
-        id: item.id,
-        documentId: item.document_id,
-        documentTitle: (item.business_documents as any)?.title || 'Unknown Document',
-        analysisType: item.analysis_type,
-        content: item.insights || '',
-        summary: (typeof item.insights === 'string' && item.insights.length > 100) 
-          ? item.insights.substring(0, 100) + '...' 
-          : item.insights || '',
-        createdAt: new Date(item.created_at).getTime(),
-        userId: user?.id || '',
-      })) || [];
+      const formattedHistory: AnalysisHistoryItem[] = data?.map(item => {
+        let content = '';
+        let summary = '';
+        
+        if (typeof item.insights === 'string') {
+          content = item.insights;
+          summary = item.insights.length > 100 ? item.insights.substring(0, 100) + '...' : item.insights;
+        } else if (typeof item.insights === 'object' && item.insights) {
+          const insightsObj = item.insights as any;
+          content = insightsObj.summary || JSON.stringify(item.insights);
+          summary = insightsObj.summary || '分析結果が利用可能です';
+          if (summary.length > 100) {
+            summary = summary.substring(0, 100) + '...';
+          }
+        } else {
+          content = '分析結果なし';
+          summary = '分析結果なし';
+        }
+        
+        return {
+          id: item.id,
+          documentId: item.document_id,
+          documentTitle: (item.business_documents as any)?.title || 'Unknown Document',
+          analysisType: item.analysis_type,
+          content,
+          summary,
+          createdAt: new Date(item.created_at).getTime(),
+          userId: user?.id || '',
+        };
+      }) || [];
       
       setAnalysisHistory(formattedHistory);
     } catch (error) {
