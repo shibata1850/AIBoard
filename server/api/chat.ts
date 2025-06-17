@@ -14,7 +14,16 @@ async function getRelevantCompanyInfo(userMessage: string): Promise<string> {
       .or(`title.ilike.%${userMessage}%,content.ilike.%${userMessage}%`)
       .limit(3);
 
-    if (error || !data || data.length === 0) {
+    if (error) {
+      if (error.code === '42P01') {
+        console.log('Company info table does not exist yet - skipping company context');
+        return '';
+      }
+      console.error('Error fetching company info:', error);
+      return '';
+    }
+
+    if (!data || data.length === 0) {
       return '';
     }
 
