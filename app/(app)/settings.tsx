@@ -210,125 +210,121 @@ export default function SettingsPage() {
             </TouchableOpacity>
           </View>
 
-          {user?.role === 'admin' && (
-            <>
-              <View style={styles.sectionTitle}>
+          <View style={styles.sectionTitle}>
+            <Text style={[
+              styles.sectionTitleText,
+              { color: isDark ? '#8E8E93' : '#8E8E93' }
+            ]}>
+              社内情報学習設定
+            </Text>
+          </View>
+
+          <View style={[
+            styles.settingsGroup,
+            { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }
+          ]}>
+            <View style={styles.settingItem}>
+              <View style={styles.settingLeft}>
+                <View style={styles.settingIcon}>
+                  <BookOpen size={22} color={isDark ? '#34C759' : '#30D158'} />
+                </View>
                 <Text style={[
-                  styles.sectionTitleText,
-                  { color: isDark ? '#8E8E93' : '#8E8E93' }
+                  styles.settingText,
+                  { color: isDark ? '#FFFFFF' : '#000000' }
                 ]}>
-                  社内情報学習設定
+                  社内情報学習を有効化
                 </Text>
               </View>
+              <Switch
+                value={companyInfoSettings.learningEnabled}
+                onValueChange={(value) => updateCompanyInfoSetting({ learningEnabled: value })}
+                trackColor={{ false: '#767577', true: '#0A84FF' }}
+                thumbColor="#FFFFFF"
+              />
+            </View>
 
-              <View style={[
-                styles.settingsGroup,
-                { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }
-              ]}>
-                <View style={styles.settingItem}>
-                  <View style={styles.settingLeft}>
-                    <View style={styles.settingIcon}>
-                      <BookOpen size={22} color={isDark ? '#34C759' : '#30D158'} />
-                    </View>
-                    <Text style={[
-                      styles.settingText,
-                      { color: isDark ? '#FFFFFF' : '#000000' }
-                    ]}>
-                      社内情報学習を有効化
-                    </Text>
-                  </View>
-                  <Switch
-                    value={companyInfoSettings.learningEnabled}
-                    onValueChange={(value) => updateCompanyInfoSetting({ learningEnabled: value })}
-                    trackColor={{ false: '#767577', true: '#0A84FF' }}
-                    thumbColor="#FFFFFF"
-                  />
+            <View style={[
+              styles.separator,
+              { backgroundColor: isDark ? '#38383A' : '#E5E5EA' }
+            ]} />
+
+            <TouchableOpacity
+              style={styles.settingItem}
+              onPress={() => {
+                const frequencies: CompanyInfoSettings['updateFrequency'][] = ['realtime', 'hourly', 'daily', 'weekly'];
+                const currentIndex = frequencies.indexOf(companyInfoSettings.updateFrequency);
+                const nextIndex = (currentIndex + 1) % frequencies.length;
+                updateCompanyInfoSetting({ updateFrequency: frequencies[nextIndex] });
+              }}
+            >
+              <View style={styles.settingLeft}>
+                <View style={styles.settingIcon}>
+                  <Settings size={22} color={isDark ? '#FF9F0A' : '#FF9500'} />
                 </View>
-
-                <View style={[
-                  styles.separator,
-                  { backgroundColor: isDark ? '#38383A' : '#E5E5EA' }
-                ]} />
-
-                <TouchableOpacity
-                  style={styles.settingItem}
-                  onPress={() => {
-                    const frequencies: CompanyInfoSettings['updateFrequency'][] = ['realtime', 'hourly', 'daily', 'weekly'];
-                    const currentIndex = frequencies.indexOf(companyInfoSettings.updateFrequency);
-                    const nextIndex = (currentIndex + 1) % frequencies.length;
-                    updateCompanyInfoSetting({ updateFrequency: frequencies[nextIndex] });
-                  }}
-                >
-                  <View style={styles.settingLeft}>
-                    <View style={styles.settingIcon}>
-                      <Settings size={22} color={isDark ? '#FF9F0A' : '#FF9500'} />
-                    </View>
-                    <Text style={[
-                      styles.settingText,
-                      { color: isDark ? '#FFFFFF' : '#000000' }
-                    ]}>
-                      更新頻度
-                    </Text>
-                  </View>
-                  <View style={styles.settingRight}>
-                    <Text style={[
-                      styles.settingValue,
-                      { color: isDark ? '#8E8E93' : '#8E8E93' }
-                    ]}>
-                      {companyInfoSettings.updateFrequency === 'realtime' ? 'リアルタイム' :
-                       companyInfoSettings.updateFrequency === 'hourly' ? '1時間毎' :
-                       companyInfoSettings.updateFrequency === 'daily' ? '1日毎' : '1週間毎'}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-
-                <View style={[
-                  styles.separator,
-                  { backgroundColor: isDark ? '#38383A' : '#E5E5EA' }
-                ]} />
-
-                <TouchableOpacity
-                  style={styles.settingItem}
-                  onPress={() => {
-                    Alert.alert(
-                      '社内情報管理',
-                      '社内情報管理ページに移動しますか？',
-                      [
-                        { text: 'キャンセル', style: 'cancel' },
-                        { text: '移動', onPress: () => {
-                          Alert.alert(
-                            '機能情報',
-                            '社内情報管理機能は /company-info ページで利用できます。\n\n管理者は以下の操作が可能です：\n• 社内情報の追加・編集・削除\n• カテゴリ別の整理\n• チャット機能との連携設定',
-                            [{ text: 'OK' }]
-                          );
-                        }}
-                      ]
-                    );
-                  }}
-                >
-                  <View style={styles.settingLeft}>
-                    <View style={styles.settingIcon}>
-                      <Shield size={22} color={isDark ? '#5E5CE6' : '#5856D6'} />
-                    </View>
-                    <Text style={[
-                      styles.settingText,
-                      { color: isDark ? '#FFFFFF' : '#000000' }
-                    ]}>
-                      社内情報を管理
-                    </Text>
-                  </View>
-                  <View style={styles.settingRight}>
-                    <Text style={[
-                      styles.settingValue,
-                      { color: isDark ? '#8E8E93' : '#8E8E93' }
-                    ]}>
-                      →
-                    </Text>
-                  </View>
-                </TouchableOpacity>
+                <Text style={[
+                  styles.settingText,
+                  { color: isDark ? '#FFFFFF' : '#000000' }
+                ]}>
+                  更新頻度
+                </Text>
               </View>
-            </>
-          )}
+              <View style={styles.settingRight}>
+                <Text style={[
+                  styles.settingValue,
+                  { color: isDark ? '#8E8E93' : '#8E8E93' }
+                ]}>
+                  {companyInfoSettings.updateFrequency === 'realtime' ? 'リアルタイム' :
+                   companyInfoSettings.updateFrequency === 'hourly' ? '1時間毎' :
+                   companyInfoSettings.updateFrequency === 'daily' ? '1日毎' : '1週間毎'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            <View style={[
+              styles.separator,
+              { backgroundColor: isDark ? '#38383A' : '#E5E5EA' }
+            ]} />
+
+            <TouchableOpacity
+              style={styles.settingItem}
+              onPress={() => {
+                Alert.alert(
+                  '社内情報管理',
+                  '社内情報管理ページに移動しますか？',
+                  [
+                    { text: 'キャンセル', style: 'cancel' },
+                    { text: '移動', onPress: () => {
+                      Alert.alert(
+                        '機能情報',
+                        '社内情報管理機能は /company-info ページで利用できます。\n\n管理者は以下の操作が可能です：\n• 社内情報の追加・編集・削除\n• カテゴリ別の整理\n• チャット機能との連携設定',
+                        [{ text: 'OK' }]
+                      );
+                    }}
+                  ]
+                );
+              }}
+            >
+              <View style={styles.settingLeft}>
+                <View style={styles.settingIcon}>
+                  <Shield size={22} color={isDark ? '#5E5CE6' : '#5856D6'} />
+                </View>
+                <Text style={[
+                  styles.settingText,
+                  { color: isDark ? '#FFFFFF' : '#000000' }
+                ]}>
+                  社内情報を管理
+                </Text>
+              </View>
+              <View style={styles.settingRight}>
+                <Text style={[
+                  styles.settingValue,
+                  { color: isDark ? '#8E8E93' : '#8E8E93' }
+                ]}>
+                  →
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
 
           <TouchableOpacity
             style={[
