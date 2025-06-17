@@ -5,7 +5,7 @@ import { AuthWrapper } from '../../components/AuthWrapper';
 
 export default function CompanyInfoScreen() {
   return (
-    <AuthWrapper requiredRole="admin">
+    <AuthWrapper>
       <View style={styles.container}>
         <CompanyInfoManager />
       </View>
