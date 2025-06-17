@@ -1,5 +1,11 @@
 import jsPDF from 'jspdf';
-import { BusinessDocument } from '../types/documents';
+interface BusinessDocument {
+  id: string;
+  title: string;
+  content: string;
+  type?: string;
+  createdAt: number;
+}
 import { FinancialData } from './structuredAnalysis';
 
 export async function exportReportAsPDF(

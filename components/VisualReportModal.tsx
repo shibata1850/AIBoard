@@ -12,7 +12,22 @@ import {
 } from 'react-native';
 import { X, Download } from 'lucide-react-native';
 import { useTheme } from './ThemeProvider';
-import { BusinessDocument, DocumentAnalysis } from '../types/documents';
+interface BusinessDocument {
+  id: string;
+  title: string;
+  content: string;
+  type?: string;
+  createdAt: number;
+}
+
+interface DocumentAnalysis {
+  id: string;
+  documentId: string;
+  analysisType: 'financial' | 'business' | 'strategy';
+  content: string;
+  createdAt: number;
+  summary: string;
+}
 // import { BarChart, PieChart, LineChart } from 'react-native-gifted-charts';
 import { generateStructuredAnalysis } from '../utils/structuredAnalysis';
 import { exportReportAsPDF } from '../utils/reportExport';

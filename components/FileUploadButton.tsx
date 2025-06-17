@@ -2,7 +2,7 @@ import React from 'react';
 import { TouchableOpacity, StyleSheet, Platform, Text } from 'react-native';
 import { FileUp } from 'lucide-react-native';
 import * as DocumentPicker from 'expo-document-picker';
-import { readFileAsBase64, getMimeTypeFromFileName } from './FileUploadUtils';
+import { readFileAsBase64, getMimeTypeFromFileName } from '../utils/fileUpload';
 
 interface FileUploadButtonProps {
   onFileSelected: (fileData: {
