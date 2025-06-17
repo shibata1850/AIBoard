@@ -1,95 +1,183 @@
-# AIボード (AI Board)
+# Supabase CLI
 
-<!-- Verification: Repository access and linting setup confirmed -->
+[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=main)](https://coveralls.io/github/supabase/cli?branch=main) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
+](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
 
-AIボードは中小企業向けの財務分析・アドバイスツールです。財務諸表などを詳しく分析して、的確なアドバイスを提供します。
+[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
 
-## 機能
+This repository contains all the functionality for Supabase CLI.
 
-- AIチャット: 財務や経営に関する質問に回答
-- 書類分析: 財務諸表などの書類をアップロードして分析
-- プロンプト管理: よく使うプロンプトを保存して再利用
-- グループ機能: チームでの共同作業をサポート
-- ダークモード対応: 使いやすいUIデザイン
+- [x] Running Supabase locally
+- [x] Managing database migrations
+- [x] Creating and deploying Supabase Functions
+- [x] Generating types directly from your database schema
+- [x] Making authenticated HTTP requests to [Management API](https://supabase.com/docs/reference/api/introduction)
 
-## 技術スタック
+## Getting started
 
-- [Expo](https://expo.dev/) / [React Native](https://reactnative.dev/)
-- [Supabase](https://supabase.com/) (認証・データベース)
-- [Google Gemini API](https://ai.google.dev/) (AI機能)
-- [TypeScript](https://www.typescriptlang.org/)
+### Install the CLI
 
-## 開発環境のセットアップ
-
-### 前提条件
-
-- Node.js 18以上
-- npm 9以上
-- Expo CLI
-
-### インストール
+Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
 
 ```bash
-# リポジトリをクローン
-git clone https://github.com/yourusername/ai-board.git
-cd ai-board
-
-# 依存関係のインストール
-npm install
+npm i supabase --save-dev
 ```
 
-### 環境変数の設定
-
-`.env.development`ファイルを作成し、以下の環境変数を設定します：
-
-```
-EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
-EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-EXPO_PUBLIC_GEMINI_API_KEY=your_gemini_api_key
-EXPO_PUBLIC_CHAT_API_BASE_URL=http://localhost:3000
-```
-
-### 開発サーバーの起動
+To install the beta release channel:
 
 ```bash
-# 開発サーバーを起動
-npm run dev
+npm i supabase@beta --save-dev
 ```
 
-### モバイルアプリのビルド
+When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
+
+```
+NODE_OPTIONS=--no-experimental-fetch yarn add supabase
+```
+
+> **Note**
+For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
+
+<details>
+  <summary><b>macOS</b></summary>
+
+  Available via [Homebrew](https://brew.sh). To install:
+
+  ```sh
+  brew install supabase/tap/supabase
+  ```
+
+  To install the beta release channel:
+  
+  ```sh
+  brew install supabase/tap/supabase-beta
+  brew link --overwrite supabase-beta
+  ```
+  
+  To upgrade:
+
+  ```sh
+  brew upgrade supabase
+  ```
+</details>
+
+<details>
+  <summary><b>Windows</b></summary>
+
+  Available via [Scoop](https://scoop.sh). To install:
+
+  ```powershell
+  scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
+  scoop install supabase
+  ```
+
+  To upgrade:
+
+  ```powershell
+  scoop update supabase
+  ```
+</details>
+
+<details>
+  <summary><b>Linux</b></summary>
+
+  Available via [Homebrew](https://brew.sh) and Linux packages.
+
+  #### via Homebrew
+
+  To install:
+
+  ```sh
+  brew install supabase/tap/supabase
+  ```
+
+  To upgrade:
+
+  ```sh
+  brew upgrade supabase
+  ```
+
+  #### via Linux packages
+
+  Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
+
+  ```sh
+  sudo apk add --allow-untrusted <...>.apk
+  ```
+
+  ```sh
+  sudo dpkg -i <...>.deb
+  ```
+
+  ```sh
+  sudo rpm -i <...>.rpm
+  ```
+
+  ```sh
+  sudo pacman -U <...>.pkg.tar.zst
+  ```
+</details>
+
+<details>
+  <summary><b>Other Platforms</b></summary>
+
+  You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
+
+  ```sh
+  go install github.com/supabase/cli@latest
+  ```
+
+  Add a symlink to the binary in `$PATH` for easier access:
+
+  ```sh
+  ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
+  ```
+
+  This works on other non-standard Linux distros.
+</details>
+
+<details>
+  <summary><b>Community Maintained Packages</b></summary>
+
+  Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
+  To install in your working directory:
+
+  ```bash
+  pkgx install supabase
+  ```
+
+  Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
+</details>
+
+### Run the CLI
 
 ```bash
-# iOSビルド
-npm run ios
-
-# Androidビルド
-npm run android
+supabase bootstrap
 ```
 
-## データベースのセットアップ
-
-Supabaseプロジェクトを作成し、`supabase/migrations`ディレクトリ内のSQLファイルを実行してデータベースをセットアップします。
-
-## デプロイ
-
-### Expoへのデプロイ
+Or using npx:
 
 ```bash
-# EASでビルド
-eas build --platform all
-
-# EASでデプロイ
-eas submit --platform all
+npx supabase bootstrap
 ```
 
-## トラブルシューティング
+The bootstrap command will guide you through the process of setting up a Supabase project using one of the [starter](https://github.com/supabase-community/supabase-samples/blob/main/samples.json) templates.
 
-### ログアウト機能について
+## Docs
 
-- Chrome拡張機能による "A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received" というエラーが表示される場合がありますが、これは拡張機能の問題であり、アプリケーションの機能には影響しません。
-- ログアウト機能のテストを行う場合は、シークレットモードや拡張機能を無効化した状態でも確認することをお勧めします。
-- ログアウト後は自動的にログイン画面にリダイレクトされます。
+Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
 
-## ライセンス
+## Breaking changes
 
-このプロジェクトはMITライセンスの下で公開されています。
+We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.
+
+However, due to dependencies on other service images, we cannot guarantee that schema migrations, seed.sql, and generated types will always work for the same CLI major version. If you need such guarantees, we encourage you to pin a specific version of CLI in package.json.
+
+## Developing
+
+To run from source:
+
+```sh
+# Go >= 1.22
+go run . help
+```
