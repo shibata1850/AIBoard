@@ -11,12 +11,13 @@ import {
   KeyboardAvoidingView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Send, BookMarked } from 'lucide-react-native';
+import { Send, BookMarked, Building2 } from 'lucide-react-native';
 import { Message } from '../types/chat';
 import { useTheme } from './ThemeProvider';
 import { generateFreeChatResponse } from '../utils/gemini';
 import { v4 as uuidv4 } from 'uuid';
 import { MyPromptsModal } from './MyPromptsModal';
+import { searchCompanyInfo } from '../utils/companyInfo';
 
 function useChatInitialization() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -55,6 +56,7 @@ export default function ChatScreen({ scrollViewRef: externalScrollViewRef }: { s
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isPromptsModalVisible, setIsPromptsModalVisible] = useState(false);
+  const [hasCompanyContext, setHasCompanyContext] = useState(false);
   const { messages, setMessages } = useChatInitialization();
 
   useScrollToBottom(messages, scrollViewRef);
@@ -72,8 +74,12 @@ export default function ChatScreen({ scrollViewRef: externalScrollViewRef }: { s
     setMessages(prev => [...prev, userMessage]);
     setInputText('');
     setIsLoading(true);
+    setHasCompanyContext(false);
 
     try {
+      const companyInfo = await searchCompanyInfo(inputText.trim());
+      setHasCompanyContext(companyInfo.length > 0);
+
       const aiResponse = await generateFreeChatResponse([...messages, userMessage]);
       
       const aiMessage: Message = {
@@ -121,26 +127,35 @@ export default function ChatScreen({ scrollViewRef: externalScrollViewRef }: { s
         ]}
         contentContainerStyle={styles.messagesContent}
       >
-        {messages.map((message) => (
-          <View
-            key={message.id}
-            style={[
-              styles.messageBubble,
-              message.isUser
-                ? [styles.userBubble, { backgroundColor: isDark ? '#0A84FF' : '#007AFF' }]
-                : [styles.aiBubble, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }],
-            ]}
-          >
-            <Text
+        {messages.map((message, index) => (
+          <View key={message.id}>
+            <View
               style={[
-                styles.messageText,
+                styles.messageBubble,
                 message.isUser
-                  ? { color: '#FFFFFF' }
-                  : { color: isDark ? '#FFFFFF' : '#000000' },
+                  ? [styles.userBubble, { backgroundColor: isDark ? '#0A84FF' : '#007AFF' }]
+                  : [styles.aiBubble, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }],
               ]}
             >
-              {message.text}
-            </Text>
+              <Text
+                style={[
+                  styles.messageText,
+                  message.isUser
+                    ? { color: '#FFFFFF' }
+                    : { color: isDark ? '#FFFFFF' : '#000000' },
+                ]}
+              >
+                {message.text}
+              </Text>
+            </View>
+            {!message.isUser && index === messages.length - 1 && hasCompanyContext && (
+              <View style={[styles.contextIndicator, { backgroundColor: isDark ? '#2C2C2E' : '#F2F2F7' }]}>
+                <Building2 size={12} color={isDark ? '#0A84FF' : '#007AFF'} />
+                <Text style={[styles.contextText, { color: isDark ? '#0A84FF' : '#007AFF' }]}>
+                  社内情報を参考にしています
+                </Text>
+              </View>
+            )}
           </View>
         ))}
         {isLoading && (
@@ -253,5 +268,20 @@ const styles = StyleSheet.create({
   },
   sendButton: {
     padding: 8,
+  },
+  contextIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginTop: 4,
+    marginBottom: 8,
+  },
+  contextText: {
+    fontSize: 12,
+    marginLeft: 4,
+    fontWeight: '500',
   },
 });
