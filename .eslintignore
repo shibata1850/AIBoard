@@ -1,0 +1,6 @@
+dist/
+node_modules/
+.expo/
+.next/
+build/
+*.bundle.js
