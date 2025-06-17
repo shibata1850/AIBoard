@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Switch, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { useTheme } from '../../components/ThemeProvider';
 import { useAuth } from '../../components/AuthProvider';
 import { AuthWrapper } from '../../components/AuthWrapper';
@@ -10,6 +11,7 @@ import { getCompanyInfoSettings, saveCompanyInfoSettings, CompanyInfoSettings } 
 export default function SettingsPage() {
   const { isDark, themeMode, setThemeMode } = useTheme();
   const { user, signOut } = useAuth();
+  const router = useRouter();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [language, setLanguage] = useState('ja');
   const [companyInfoSettings, setCompanyInfoSettings] = useState<CompanyInfoSettings>({
@@ -288,20 +290,7 @@ export default function SettingsPage() {
             <TouchableOpacity
               style={styles.settingItem}
               onPress={() => {
-                Alert.alert(
-                  '社内情報管理',
-                  '社内情報管理ページに移動しますか？',
-                  [
-                    { text: 'キャンセル', style: 'cancel' },
-                    { text: '移動', onPress: () => {
-                      Alert.alert(
-                        '機能情報',
-                        '社内情報管理機能は /company-info ページで利用できます。\n\n管理者は以下の操作が可能です：\n• 社内情報の追加・編集・削除\n• カテゴリ別の整理\n• チャット機能との連携設定',
-                        [{ text: 'OK' }]
-                      );
-                    }}
-                  ]
-                );
+                router.push('/company-info');
               }}
             >
               <View style={styles.settingLeft}>
