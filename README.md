@@ -1,6 +1,7 @@
 # AIボード (AI Board)
 
 <!-- Verification: Repository access and linting setup confirmed -->
+<!-- Dummy change for PR test -->
 
 AIボードは中小企業向けの財務分析・アドバイスツールです。財務諸表などを詳しく分析して、的確なアドバイスを提供します。
 
