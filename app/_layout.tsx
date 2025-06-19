@@ -61,7 +61,7 @@ function RootLayoutNav() {
       />
       <Stack.Screen
         name="index"
-        redirect={true}
+        redirect={!isLoading && !!user}
       />
     </Stack>
   );
