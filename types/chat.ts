@@ -1,4 +1,4 @@
-import { DocumentAnalysis } from './documents';
+
 
 export interface Message {
   id: string;
@@ -6,7 +6,6 @@ export interface Message {
   isUser: boolean;
   timestamp: number;
   attachments?: Attachment[];
-  analysis?: DocumentAnalysis;
 }
 
 export interface Attachment {

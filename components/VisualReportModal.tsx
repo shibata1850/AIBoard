@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { X, Download } from 'lucide-react-native';
 import { useTheme } from './ThemeProvider';
-import { BusinessDocument, DocumentAnalysis } from '../types/documents';
+
 // import { BarChart, PieChart, LineChart } from 'react-native-gifted-charts';
 import { generateStructuredAnalysis } from '../utils/structuredAnalysis';
 import { exportReportAsPDF } from '../utils/reportExport';
@@ -20,7 +20,7 @@ import { exportReportAsPDF } from '../utils/reportExport';
 const { width: screenWidth } = Dimensions.get('window');
 
 interface VisualReportModalProps {
-  document: BusinessDocument | null;
+  document: any | null;
   analysis: string | null;
   visible: boolean;
   onClose: () => void;
