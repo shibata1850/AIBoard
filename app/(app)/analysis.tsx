@@ -12,13 +12,14 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../../components/ThemeProvider';
 import { AuthWrapper } from '../../components/AuthWrapper';
-import { FileUp } from 'lucide-react-native';
+import { FileUp, FileText } from 'lucide-react-native';
 import { analyzeDocument } from '../../utils/gemini';
 import { FileUploadButton } from '../../components/FileUploadButton';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '../../utils/supabase';
 import { useAuth } from '../../components/AuthProvider';
 import { extractTextFromPdf, isPdfFile } from '../../utils/pdfUtils';
+import { DocumentCreationModal } from '../../components/DocumentCreationModal';
 
 type DocumentType = '財務諸表' | '貸借対照表' | '損益計算書' | 'キャッシュフロー計算書' | '事業計画書' | 'その他';
 
@@ -30,6 +31,7 @@ export default function AnalysisPage() {
   const [analysisResult, setAnalysisResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [showDocumentModal, setShowDocumentModal] = useState(false);
 
   const documentTypes: DocumentType[] = [
     '財務諸表',
@@ -254,6 +256,17 @@ export default function AnalysisPage() {
                   {analysisResult}
                 </Text>
               </View>
+
+              <TouchableOpacity
+                style={[
+                  styles.documentButton,
+                  { backgroundColor: isDark ? '#0A84FF' : '#007AFF' }
+                ]}
+                onPress={() => setShowDocumentModal(true)}
+              >
+                <FileText size={20} color="#FFFFFF" style={styles.documentButtonIcon} />
+                <Text style={styles.documentButtonText}>ビジュアルレポート作成</Text>
+              </TouchableOpacity>
             </View>
           )}
         </ScrollView>
@@ -269,6 +282,14 @@ export default function AnalysisPage() {
             </Text>
           </View>
         )}
+
+        <DocumentCreationModal
+          visible={showDocumentModal}
+          onClose={() => setShowDocumentModal(false)}
+          analysisContent={analysisResult || ''}
+          fileName={fileName || undefined}
+          documentType={documentType}
+        />
       </SafeAreaView>
     </AuthWrapper>
   );
@@ -410,6 +431,22 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 18,
+    fontWeight: '600',
+  },
+  documentButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 16,
+  },
+  documentButtonIcon: {
+    marginRight: 8,
+  },
+  documentButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
     fontWeight: '600',
   },
 });
