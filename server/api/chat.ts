@@ -1,4 +1,12 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.EXPO_PUBLIC_SUPABASE_URL || '',
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || ''
+);
+
+
 
 export async function generateChatResponse(messages: any[]) {
   try {
@@ -17,11 +25,22 @@ export async function generateChatResponse(messages: any[]) {
         ...messages
       ];
     }
+
+    const lastUserMessage = messages.filter(msg => msg.isUser).pop();
+    const companyContext = '';
     
-    const formattedMessages = messages.map(msg => ({
-      role: msg.isUser ? 'user' : 'model',
-      parts: [{ text: msg.text }],
-    }));
+    const formattedMessages = messages.map((msg, index) => {
+      if (msg.isUser && index === messages.length - 1 && companyContext) {
+        return {
+          role: 'user',
+          parts: [{ text: msg.text + companyContext }],
+        };
+      }
+      return {
+        role: msg.isUser ? 'user' : 'model',
+        parts: [{ text: msg.text }],
+      };
+    });
     
     console.log('Formatted messages:', JSON.stringify(formattedMessages));
     

@@ -7,7 +7,6 @@ import { useAuth } from '../../components/AuthProvider';
 import { FileText, Clock } from 'lucide-react-native';
 import { AnalysisHistoryItem } from '../../types/documents';
 import { supabase } from '../../utils/supabase';
-import { DocumentAnalysisModal } from '../../components/DocumentAnalysisModal';
 
 export default function HistoryPage() {
   const { isDark } = useTheme();
@@ -244,21 +243,8 @@ export default function HistoryPage() {
           )}
         </View>
 
-        {selectedAnalysis && (
-          <DocumentAnalysisModal
-            visible={showAnalysisModal}
-            onClose={handleCloseModal}
-            document={{
-              id: selectedAnalysis.documentId,
-              title: selectedAnalysis.documentTitle,
-              content: selectedAnalysis.content,
-              fileType: 'application/octet-stream',
-              createdAt: selectedAnalysis.createdAt,
-              userId: selectedAnalysis.userId,
-            }}
-            existingAnalysis={selectedAnalysis.content}
-          />
-        )}
+
+
       </SafeAreaView>
     </AuthWrapper>
   );

@@ -1,16 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Switch, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../../components/ThemeProvider';
 import { useAuth } from '../../components/AuthProvider';
 import { AuthWrapper } from '../../components/AuthWrapper';
-import { Moon, Sun, LogOut, User, Shield, Bell, Globe } from 'lucide-react-native';
+import { Moon, Sun, LogOut, User, Shield, Bell, Globe, BookOpen, Settings } from 'lucide-react-native';
+
 
 export default function SettingsPage() {
   const { isDark, themeMode, setThemeMode } = useTheme();
   const { user, signOut } = useAuth();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [language, setLanguage] = useState('ja');
+
+
+
 
   const handleSignOut = async () => {
     console.log('Settings: handleSignOut called');
@@ -178,6 +182,8 @@ export default function SettingsPage() {
               </View>
             </TouchableOpacity>
           </View>
+
+
 
           <TouchableOpacity
             style={[
