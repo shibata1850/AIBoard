@@ -575,7 +575,8 @@ export function generateVisualReportHTML(options: VisualReportOptions): string {
             <h1>${title}</h1>
             <div class="header-info">
                 <div class="company-info">
-                    ${fileName ? `${fileName}` : ''}
+                    <strong>SOFTDOING株式会社</strong>
+                    ${fileName ? ` • ${fileName}` : ''}
                     ${documentType ? ` • ${documentType}` : ''}
                 </div>
                 <div class="date-info">
@@ -697,7 +698,7 @@ export function generateVisualReportHTML(options: VisualReportOptions): string {
 
         <footer class="footer">
             <p>このレポートは AIBoard システムにより自動生成されました</p>
-            <p>© 2025 AIBoard システム All rights reserved.</p>
+            <p>© 2025 SOFTDOING株式会社 All rights reserved.</p>
         </footer>
     </div>
 

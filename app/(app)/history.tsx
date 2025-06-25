@@ -8,7 +8,6 @@ import { FileText, Clock } from 'lucide-react-native';
 import { AnalysisHistoryItem } from '../../types/documents';
 import { supabase } from '../../utils/supabase';
 
-
 export default function HistoryPage() {
   const { isDark } = useTheme();
   const { user } = useAuth();
@@ -243,6 +242,7 @@ export default function HistoryPage() {
             />
           )}
         </View>
+
 
 
       </SafeAreaView>
