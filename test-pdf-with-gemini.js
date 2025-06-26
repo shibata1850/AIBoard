@@ -3,6 +3,8 @@ console.log('=== Testing Enhanced PDF Analysis with Actual Problem PDF ===\n');
 const fs = require('fs');
 const path = require('path');
 
+require('dotenv').config();
+
 async function testActualPDF() {
   try {
     console.log('1. Testing PDF file access...');
@@ -27,7 +29,9 @@ async function testActualPDF() {
     
     const { GoogleGenerativeAI } = require('@google/generative-ai');
     
-    const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
+    const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY || 
+                   process.env.GEMINI_API_KEY || 
+                   'AIzaSyC9BDCws06KaT5L4vhDXhkDMeHRfjvQu90';
     
     if (!apiKey) {
       console.log('❌ Gemini API key not configured');
