@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { v4 as uuidv4 } from 'uuid';
-const tabula = require('@krakz999/tabula-node');
+const { extractTables } = require('@krakz999/tabula-node');
 
 interface TableExtractionResult {
   tables: any[][];
@@ -40,7 +40,7 @@ export async function extractPdfTables(req: Request, res: Response) {
     const extractionResults: TableExtractionResult[] = [];
 
     try {
-      const tables = await tabula(tempFilePath, {
+      const tables = await extractTables(tempFilePath, {
         pages: 'all',
         area: [],
         columns: [],
@@ -68,7 +68,7 @@ export async function extractPdfTables(req: Request, res: Response) {
       if (extractionResults.length === 0) {
         console.log('No tables found with lattice method, trying stream method...');
         
-        const streamTables = await tabula(tempFilePath, {
+        const streamTables = await extractTables(tempFilePath, {
           pages: 'all',
           area: [],
           columns: [],
