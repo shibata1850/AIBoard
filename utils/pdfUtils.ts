@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { FinancialDataConverter } from './financialDataConverter';
 import { ExtractedFinancialData } from '../types/financialStatements';
+import { UnifiedFinancialExtractor, ExtractionResult } from './extractionService';
 
 export async function extractTextFromPdf(base64Content: string): Promise<string> {
   console.log('Enhanced PDF processing: using table extraction + Gemini API for structured analysis');
@@ -89,6 +90,35 @@ async function fallbackToGeminiExtraction(base64Content: string): Promise<string
   }
 
   return extractedText;
+}
+
+/**
+ * Extract specific financial items using the unified extractor
+ * @param base64Content PDF content as base64 string
+ * @param itemType Type of financial item to extract
+ * @returns Promise<ExtractionResult>
+ */
+export async function extractSpecificFinancialItem(base64Content: string, itemType: string): Promise<ExtractionResult> {
+  const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
+  
+  if (!apiKey) {
+    throw new Error('Gemini API key not configured');
+  }
+
+  const extractor = new UnifiedFinancialExtractor(apiKey);
+  
+  switch (itemType) {
+    case 'segment_profit_loss':
+      return await extractor.extractSegmentProfitLoss(base64Content);
+    case 'total_liabilities':
+      return await extractor.extractTotalLiabilities(base64Content);
+    case 'current_liabilities':
+      return await extractor.extractCurrentLiabilities(base64Content);
+    case 'ordinary_expenses':
+      return await extractor.extractOrdinaryExpenses(base64Content);
+    default:
+      throw new Error(`Invalid itemType: ${itemType}`);
+  }
 }
 
 /**

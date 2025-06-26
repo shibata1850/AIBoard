@@ -30,6 +30,17 @@ app.post('/api/extract-pdf-tables', async (req, res) => {
   }
 });
 
+app.post('/api/extract-financial-item', async (req, res) => {
+  try {
+    require('ts-node/register');
+    const { extractFinancialItem } = require('./server/api/extract-financial-item.ts');
+    await extractFinancialItem(req, res);
+  } catch (error) {
+    console.error('Financial item extraction API error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
