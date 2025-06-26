@@ -39,6 +39,16 @@ export interface EnhancedFinancialData extends ParsedFinancialData {
 }
 
 export function parseFinancialData(analysisContent: string): ParsedFinancialData {
+  try {
+    const structuredData = JSON.parse(analysisContent);
+    if (structuredData.statements && structuredData.ratios) {
+      console.log('Using structured financial data for parsing');
+      return convertStructuredToLegacyFormat(structuredData);
+    }
+  } catch (parseError) {
+    console.log('Content is not structured data, using traditional parsing');
+  }
+
   const metrics: Array<{
     label: string;
     value: string;
@@ -112,6 +122,31 @@ export function parseFinancialData(analysisContent: string): ParsedFinancialData
     equity,
     metrics,
     summary: analysisContent.substring(0, 200) + '...'
+  };
+}
+
+function convertStructuredToLegacyFormat(structuredData: any): ParsedFinancialData {
+  const statements = structuredData.statements;
+  const ratios = structuredData.ratios;
+  
+  const metrics = [
+    { label: '収益', value: statements.損益計算書?.経常収益?.経常収益合計?.toString() || '0', trend: 'neutral' as const },
+    { label: '利益', value: statements.損益計算書?.経常利益?.toString() || '0', trend: (statements.損益計算書?.経常利益 || 0) > 0 ? 'positive' as const : 'negative' as const },
+    { label: '費用', value: statements.損益計算書?.経常費用?.経常費用合計?.toString() || '0', trend: 'neutral' as const },
+    { label: '資産', value: statements.貸借対照表?.資産の部?.資産合計?.toString() || '0', trend: 'neutral' as const },
+    { label: '負債', value: statements.貸借対照表?.負債の部?.負債合計?.toString() || '0', trend: 'neutral' as const },
+    { label: '純資産', value: statements.貸借対照表?.純資産の部?.純資産合計?.toString() || '0', trend: 'neutral' as const }
+  ];
+
+  return {
+    revenue: statements.損益計算書?.経常収益?.経常収益合計,
+    profit: statements.損益計算書?.経常利益,
+    expenses: statements.損益計算書?.経常費用?.経常費用合計,
+    assets: statements.貸借対照表?.資産の部?.資産合計,
+    liabilities: statements.貸借対照表?.負債の部?.負債合計,
+    equity: statements.貸借対照表?.純資産の部?.純資産合計,
+    metrics,
+    summary: `構造化データから抽出された財務情報: 負債比率 ${ratios?.負債比率?.toFixed(2)}%, 流動比率 ${ratios?.流動比率?.toFixed(2)}`
   };
 }
 

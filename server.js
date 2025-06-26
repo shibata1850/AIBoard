@@ -18,6 +18,17 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
+app.post('/api/extract-pdf-tables', async (req, res) => {
+  try {
+    require('ts-node/register');
+    const { extractPdfTables } = require('./server/api/extract-pdf-tables.ts');
+    await extractPdfTables(req, res);
+  } catch (error) {
+    console.error('PDF table extraction API error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });

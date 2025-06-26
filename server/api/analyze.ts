@@ -1,4 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { ChainOfThoughtPrompts } from '../../utils/chainOfThoughtPrompts';
+import { ExtractedFinancialData } from '../../types/financialStatements';
 
 const MODELS = {
   PRIMARY: 'gemini-1.5-flash',
@@ -84,15 +86,29 @@ export async function analyzeDocument(content: string) {
     }
     
     const genAI = new GoogleGenerativeAI(apiKey);
+
+    try {
+      const structuredData = JSON.parse(decodedContent);
+      if (structuredData.statements && structuredData.ratios) {
+        console.log('Using Chain of Thought analysis for structured financial data');
+        const analysisResult = await performChainOfThoughtAnalysis(structuredData, genAI);
+        return { text: analysisResult };
+      }
+    } catch (parseError) {
+      console.log('Content is not structured data, using traditional analysis');
+    }
     
     const prompt = `
     あなたは財務分析の専門家です。以下の文書を分析し、財務状況、経営状態、改善点などについて詳細に解説してください。
     特に以下の点に注目してください：
-    1. 財務健全性
-    2. 収益性
+    1. 財務健全性（負債比率、流動比率の正確な計算）
+    2. 収益性（経常利益・損失の正確な識別）
     3. 成長性
-    4. リスク要因
-    5. 改善のための具体的なアドバイス
+    4. セグメント情報の活用（附属病院セグメントの業務損益など）
+    5. リスク要因
+    6. 改善のための具体的なアドバイス
+
+    重要：負債比率、流動比率、経常損失、当期純損失の数値は正確に抽出・計算してください。
 
     文書：
     ${decodedContent}
@@ -254,5 +270,59 @@ export async function analyzeDocument(content: string) {
     }
     
     throw new Error(userFriendlyMessage);
+  }
+}
+
+async function performChainOfThoughtAnalysis(structuredData: ExtractedFinancialData, genAI: GoogleGenerativeAI): Promise<string> {
+  try {
+    const model = genAI.getGenerativeModel({ 
+      model: MODELS.PRIMARY,
+      generationConfig: {
+        temperature: 0.2,
+        topP: 0.8,
+        maxOutputTokens: 2048,
+      }
+    });
+
+    console.log('Step 1: Calculating financial ratios with explicit formulas');
+    const calculationPrompt = ChainOfThoughtPrompts.createFinancialCalculationPrompt(structuredData);
+    const calculationResult = await model.generateContent(calculationPrompt);
+    let calculatedRatios;
+    
+    try {
+      const calculationText = calculationResult.response.text();
+      const jsonMatch = calculationText.match(/\{[\s\S]*\}/);
+      calculatedRatios = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
+    } catch (parseError) {
+      console.warn('Failed to parse calculation results, using fallback');
+      calculatedRatios = { 財務指標: structuredData.ratios };
+    }
+
+    console.log('Step 2: Performing qualitative analysis with segment information');
+    const qualitativePrompt = ChainOfThoughtPrompts.createQualitativeAnalysisPrompt(structuredData, calculatedRatios);
+    const qualitativeResult = await model.generateContent(qualitativePrompt);
+    let qualitativeAnalysis;
+    
+    try {
+      const qualitativeText = qualitativeResult.response.text();
+      const jsonMatch = qualitativeText.match(/\{[\s\S]*\}/);
+      qualitativeAnalysis = jsonMatch ? JSON.parse(jsonMatch[0]) : { 
+        収益性分析: qualitativeText,
+        財務健全性分析: '構造化データに基づく分析',
+        セグメント分析: structuredData.statements.セグメント情報 ? 'セグメント情報を活用した分析' : 'セグメント情報なし'
+      };
+    } catch (parseError) {
+      console.warn('Failed to parse qualitative analysis, using text response');
+      qualitativeAnalysis = { 分析結果: qualitativeResult.response.text() };
+    }
+
+    console.log('Step 3: Generating comprehensive final report');
+    const finalReportPrompt = ChainOfThoughtPrompts.createFinalReportPrompt(calculatedRatios, qualitativeAnalysis);
+    const finalResult = await model.generateContent(finalReportPrompt);
+
+    return finalResult.response.text();
+  } catch (error) {
+    console.error('Chain of Thought analysis failed:', error);
+    throw error;
   }
 }
