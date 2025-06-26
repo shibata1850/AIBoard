@@ -93,3 +93,5 @@ eas submit --platform all
 ## ライセンス
 
 このプロジェクトはMITライセンスの下で公開されています。
+
+<!-- Dummy change for PR test -->
