@@ -62,12 +62,12 @@ async function testFallbackAccuracy() {
     
     console.log('\n3. Verifying accuracy of generated metrics...');
     
-    const debtRatioMatch = htmlContent.match(/負債比率.*?(\d+(?:\.\d+)?)%/);
-    const currentRatioMatch = htmlContent.match(/流動比率.*?(\d+(?:\.\d+)?)/);
-    const totalAssetsMatch = htmlContent.match(/資産.*?(\d+(?:\.\d+)?)<span[^>]*>億円/);
-    const totalLiabilitiesMatch = htmlContent.match(/負債.*?(\d+(?:\.\d+)?)<span[^>]*>億円/);
-    const netAssetsMatch = htmlContent.match(/純資産.*?(\d+(?:\.\d+)?)<span[^>]*>億円/);
-    const hospitalLossMatch = htmlContent.match(/附属病院.*?(\d+(?:\.\d+)?)億円/);
+    const debtRatioMatch = htmlContent.match(/(\d+(?:\.\d+)?)%[^>]*>[^<]*負債比率/) || htmlContent.match(/負債比率[^>]*>(\d+(?:\.\d+)?)%/);
+    const currentRatioMatch = htmlContent.match(/(\d+(?:\.\d+)?)[^>]*>[^<]*流動比率/) || htmlContent.match(/流動比率[^>]*>(\d+(?:\.\d+)?)/);
+    const totalAssetsMatch = htmlContent.match(/(\d+(?:\.\d+)?)<span[^>]*>億円[^<]*総資産/) || htmlContent.match(/総資産[^>]*>(\d+(?:\.\d+)?)<span[^>]*>億円/);
+    const totalLiabilitiesMatch = htmlContent.match(/(\d+(?:\.\d+)?)<span[^>]*>億円[^<]*負債/) || htmlContent.match(/負債[^>]*>(\d+(?:\.\d+)?)<span[^>]*>億円/);
+    const netAssetsMatch = htmlContent.match(/(\d+(?:\.\d+)?)<span[^>]*>億円[^<]*純資産/) || htmlContent.match(/純資産[^>]*>(\d+(?:\.\d+)?)<span[^>]*>億円/);
+    const hospitalLossMatch = htmlContent.match(/-?(\d+(?:\.\d+)?)億円[^<]*附属病院/) || htmlContent.match(/附属病院[^>]*>-?(\d+(?:\.\d+)?)億円/);
     
     const results = {
       debtRatio: debtRatioMatch ? parseFloat(debtRatioMatch[1]) : null,

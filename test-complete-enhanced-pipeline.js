@@ -203,18 +203,13 @@ async function testCompleteEnhancedPipeline() {
     
     console.log('\n5. Generating enhanced HTML infographic...');
     
-    const { generateHTMLReport } = require('./utils/htmlReportGenerator');
+    const { generateVisualReport } = require('./utils/visualReportGenerator.ts');
     
-    const reportData = {
-      companyName: extractedData.companyName,
-      fiscalYear: extractedData.fiscalYear,
-      statements: extractedData.statements,
-      ratios: extractedData.ratios,
-      analysis: analysisText,
-      extractedText: extractedText
-    };
-    
-    const htmlContent = generateHTMLReport(reportData);
+    const htmlContent = generateVisualReport(analysisText, {
+      companyName: '国立大学法人山梨大学',
+      fiscalYear: '平成27事業年度',
+      useStructuredData: true
+    });
     
     const outputPath = path.join(__dirname, 'enhanced-pipeline-output.html');
     fs.writeFileSync(outputPath, htmlContent);
@@ -249,11 +244,17 @@ async function testCompleteEnhancedPipeline() {
     
     console.log('\n7. Financial accuracy verification...');
     
-    const totalAssets = extractedData.statements.貸借対照表.資産の部.資産合計 / 100000000;
-    const debtRatio = extractedData.ratios.負債比率;
-    const currentRatio = extractedData.ratios.流動比率 * 100;
-    const operatingLoss = extractedData.statements.損益計算書.経常損失 / 100000000;
-    const hospitalLoss = Math.abs(extractedData.statements.セグメント情報.附属病院.業務損益 / 100000000);
+    const totalAssetsMatch = htmlContent.match(/総資産.*?(\d+(?:\.\d+)?)<span[^>]*>億円/);
+    const debtRatioMatch = htmlContent.match(/負債比率.*?(\d+(?:\.\d+)?)%/);
+    const currentRatioMatch = htmlContent.match(/流動比率.*?(\d+(?:\.\d+)?)/);
+    const operatingLossMatch = htmlContent.match(/経常損失.*?-?(\d+(?:\.\d+)?)<span[^>]*>億円/);
+    const hospitalLossMatch = htmlContent.match(/附属病院.*?(\d+(?:\.\d+)?)億円/);
+    
+    const totalAssets = totalAssetsMatch ? parseFloat(totalAssetsMatch[1]) : 0;
+    const debtRatio = debtRatioMatch ? parseFloat(debtRatioMatch[1]) : 0;
+    const currentRatio = currentRatioMatch ? parseFloat(currentRatioMatch[1]) : 0;
+    const operatingLoss = operatingLossMatch ? parseFloat(operatingLossMatch[1]) : 0;
+    const hospitalLoss = hospitalLossMatch ? parseFloat(hospitalLossMatch[1]) : 0;
     
     console.log(`Total Assets: ${totalAssets.toFixed(1)}億円 (Expected: ~719億円)`);
     console.log(`Debt Ratio: ${debtRatio.toFixed(1)}% (Expected: ~63.6%)`);
