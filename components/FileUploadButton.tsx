@@ -22,7 +22,7 @@ export function FileUploadButton({ onFileSelected, style, isDark = false }: File
         copyToCacheDirectory: true,
       });
       
-      if (result.canceled) return;
+      if (result.canceled || !result.assets || result.assets.length === 0) return;
       
       const file = result.assets[0];
       

@@ -141,6 +141,7 @@ export interface Database {
           content: string
           created_at: string
           summary: string
+          user_id: string
         }
         Insert: {
           id?: string
@@ -149,6 +150,7 @@ export interface Database {
           content: string
           created_at?: string
           summary: string
+          user_id: string
         }
         Update: {
           id?: string
@@ -157,6 +159,7 @@ export interface Database {
           content?: string
           created_at?: string
           summary?: string
+          user_id?: string
         }
       }
       my_prompts: {

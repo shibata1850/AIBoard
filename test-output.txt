@@ -1,0 +1,97 @@
+=== Testing Enhanced PDF Analysis with Actual Problem PDF ===
+
+1. Testing PDF file access...
+✅ PDF file found: 760965 bytes
+
+2. Converting PDF to base64 for testing...
+✅ PDF converted to base64: 1014648 characters
+
+3. Testing Gemini API direct extraction...
+✅ Gemini API key found
+Calling Gemini API with enhanced prompt...
+✅ PDF text extraction successful: 494 characters extracted
+
+4. Analyzing extracted financial data...
+Balance Sheet terms found: ✅
+Income Statement terms found: ✅
+Segment Information found: ✅
+Numbers found in text: 25
+Debt Ratio (負債比率) mentioned: ✅
+Current Ratio (流動比率) mentioned: ✅
+Operating Loss (経常損失) mentioned: ✅
+Net Loss (当期純損失) mentioned: ✅
+
+5. Sample of extracted text (first 1000 characters):
+---
+## 財務諸表データの抽出結果
+
+**1. 貸借対照表（Balance Sheet） (単位: 千円)**
+
+*   流動資産合計: 8,838,001
+*   固定資産合計: 63,054,601
+*   流動負債合計: 7,020,870
+*   固定負債合計: 20,926,388
+*   純資産合計: 43,945,344
+
+**2. 損益計算書（Income Statement） (単位: 千円)**
+
+*   経常収益: 34,069,533
+*   経常費用: 34,723,539
+*   経常損失: △ 654,006
+*   当期純損失: △ 325,961
+
+**3. セグメント情報 (単位: 千円)**
+
+*   附属病院セグメントの業務損益: △410,984
+
+**4. 財務比率の計算**
+
+*   **負債比率**: ((20,926,388 + 7,020,870) / 43,945,344) × 100 = **63.62%**
+*   **流動比率**: (8,838,001 / 7,020,870) × 100 = **125.88%**
+---
+
+6. Testing Chain of Thought analysis approach...
+Chain of Thought prompt structure created ✅
+Prompt length: 769 characters
+
+7. Running Chain of Thought analysis...
+✅ Chain of Thought analysis completed: 1578 characters
+
+8. Analysis Results Sample (first 1000 characters):
+---
+承知いたしました。ご提供いただいた財務データに基づき、以下の手順で分析を行います。
+
+**ステップ1: 財務指標の計算**
+
+*   **負債比率**: ((20,926,388 + 7,020,870) / 43,945,344) × 100 = **63.62%**
+*   **流動比率**: (8,838,001 / 7,020,870) = **1.26倍 (または125.88%)**
+*   **固定比率**: (63,054,601 / 43,945,344) × 100 = **143.49%**
+
+**ステップ2: 定性分析**
+
+セグメント情報によると、附属病院セグメントの業務損益は△410,984千円の損失となっています。  これは法人全体の経常損失△654,006千円の約63%を占めています。  このことは、附属病院セグメントの業績が法人全体の収益性に大きく影響していることを示しています。  附属病院の損失が法人全体の損失の主要な原因の一つとなっている可能性が高いと考えられます。
+
+附属病院の損失の原因を特定するため、さらに詳細な分析が必要です。  例えば、入院患者数、外来患者数、診療単価、人件費、医薬品費などの情報を分析することで、損失の要因を特定し、改善策を検討することができます。
+
+**ステップ3: 総合評価**
+
+財務指標と定性分析を統合すると、以下の総合的な評価が得られます。
+
+*   **負債比率**: 63.62% は、健全な範囲内と考えられます。一般的に、負債比率が100%を超える場合は、財務リスクが高いと判断されますが、本件では100%を下回っており、比較的安定した財務状況であると考えられます。
+
+*   **流動比率**: 1.26倍は、短期的な支払い能力があることを示しています。一般的に、流動比率が1.0倍以上であれば、流動負債を十分に賄えると考えられます。
+
+*   **固定比率**: 143.49% は、固定資産への投資が自己資本を上回っていることを示しています。  これは、固定資産の取得に借入金などの外部資金を利用していることを意味し、固定資産の回収状況や償却状況を注視する必要があります。
+
+*   **収益性**: 損益計算書によると、当期純損失は△325,961千円であり、収益性は低い状況です。経常損失も発生して
+---
+
+=== Test Summary ===
+✅ PDF file successfully processed
+✅ Enhanced Gemini extraction tested
+✅ Financial terms detection verified
+✅ Chain of Thought analysis completed
+✅ Ready for accuracy evaluation
+✅ Results saved to extracted-text-sample.txt and analysis-result-sample.txt
+
+🎉 Test completed successfully!
