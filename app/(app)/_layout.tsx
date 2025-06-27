@@ -2,11 +2,7 @@ import React from 'react';
 import { Tabs } from 'expo-router';
 import { View, StyleSheet, Platform } from 'react-native';
 import {
-  MessageSquare,
   History,
-  FileText,
-  BookMarked,
-  CircleHelp,
   Settings,
   BarChart,
 } from 'lucide-react-native';
@@ -51,34 +47,6 @@ export default function AppLayout() {
           options={{
             title: '分析履歴',
             tabBarIcon: ({ size, color }) => <History size={size} color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="index"
-          options={{
-            title: 'フリーチャット',
-            tabBarIcon: ({ size, color }) => <MessageSquare size={size} color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="myprompts"
-          options={{
-            title: 'マイプロンプト',
-            tabBarIcon: ({ size, color }) => <BookMarked size={size} color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="documents"
-          options={{
-            title: '書類',
-            tabBarIcon: ({ size, color }) => <FileText size={size} color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="help"
-          options={{
-            title: 'ヘルプ',
-            tabBarIcon: ({ size, color }) => <CircleHelp size={size} color={color} />,
           }}
         />
         <Tabs.Screen

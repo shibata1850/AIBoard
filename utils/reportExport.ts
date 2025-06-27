@@ -1,9 +1,9 @@
 import jsPDF from 'jspdf';
-import { BusinessDocument } from '../types/documents';
+
 import { FinancialData } from './structuredAnalysis';
 
 export async function exportReportAsPDF(
-  document: BusinessDocument,
+  document: any,
   financialData: FinancialData
 ): Promise<void> {
   try {

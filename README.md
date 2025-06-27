@@ -95,3 +95,8 @@ eas submit --platform all
 このプロジェクトはMITライセンスの下で公開されています。
 
 <!-- Dummy change for PR test -->
+
+## 検証済み
+
+- リポジトリアクセス: ✅
+- Lintコマンド実行: ✅ (2024年6月10日に検証済み)

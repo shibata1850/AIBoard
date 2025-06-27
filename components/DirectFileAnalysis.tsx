@@ -9,13 +9,14 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-import { FileUp } from 'lucide-react-native';
+import { FileUp, FileText } from 'lucide-react-native';
 import { useTheme } from './ThemeProvider';
 import { analyzeDocument } from '../utils/gemini';
 import { readFileAsBase64, getMimeTypeFromFileName } from '../utils/fileUpload';
 import * as DocumentPicker from 'expo-document-picker';
 import { v4 as uuidv4 } from 'uuid';
 import { VisualReportModal } from './VisualReportModal';
+import { DocumentCreationModal } from './DocumentCreationModal';
 
 export function DirectFileAnalysis() {
   const { isDark } = useTheme();
@@ -25,6 +26,7 @@ export function DirectFileAnalysis() {
   const [error, setError] = useState<string | null>(null);
   const [showVisualReport, setShowVisualReport] = useState(false);
   const [currentDocument, setCurrentDocument] = useState<any>(null);
+  const [showDocumentModal, setShowDocumentModal] = useState(false);
 
   async function handleFileUpload() {
     try {
@@ -172,8 +174,26 @@ export function DirectFileAnalysis() {
             >
               <Text style={styles.createReportButtonText}>これを資料化する</Text>
             </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.documentButton,
+                { backgroundColor: isDark ? '#0A84FF' : '#007AFF' }
+              ]}
+              onPress={() => setShowDocumentModal(true)}
+            >
+              <FileText size={20} color="#FFFFFF" style={styles.documentButtonIcon} />
+              <Text style={styles.documentButtonText}>ビジュアルレポート作成</Text>
+            </TouchableOpacity>
           </View>
         ) : null}
+
+        <DocumentCreationModal
+          visible={showDocumentModal}
+          onClose={() => setShowDocumentModal(false)}
+          analysisContent={analysis || ''}
+          fileName={fileName || undefined}
+        />
       </View>
       
       <VisualReportModal
@@ -290,6 +310,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   createReportButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  documentButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 16,
+  },
+  documentButtonIcon: {
+    marginRight: 8,
+  },
+  documentButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
