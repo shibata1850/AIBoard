@@ -1,29 +1,9 @@
-function generateHTMLReport(data) {
-  const { companyName, fiscalYear, statements, ratios, analysis } = data;
-  
-  const safeStatements = statements || {};
-  const safeRatios = ratios || { 負債比率: 0, 流動比率: 0 };
-
-  const totalAssets = (safeStatements.貸借対照表?.資産の部?.資産合計 || 0) / 100000000;
-  const currentAssets = (safeStatements.貸借対照表?.資産の部?.流動資産?.流動資産合計 || 0) / 100000000;
-  const fixedAssets = (safeStatements.貸借対照表?.資産の部?.固定資産?.固定資産合計 || 0) / 100000000;
-  const totalLiabilities = (safeStatements.貸借対照表?.負債の部?.負債合計 || 0) / 100000000;
-  const totalEquity = (safeStatements.貸借対照表?.純資産の部?.純資産合計 || 0) / 100000000;
-  const totalRevenue = (safeStatements.損益計算書?.経常収益?.経常収益合計 || 0) / 100000000;
-  const totalExpenses = (safeStatements.損益計算書?.経常費用?.経常費用合計 || 0) / 100000000;
-  const operatingLoss = Math.abs(safeStatements.損益計算書?.経常損失 || 0) / 100000000;
-  const netLoss = Math.abs(safeStatements.損益計算書?.当期純損失 || 0) / 100000000;
-  
-  const operatingCF = (safeStatements.キャッシュフロー計算書?.営業活動によるキャッシュフロー?.営業活動によるキャッシュフロー合計 || 0) / 100000000;
-  const investingCF = (safeStatements.キャッシュフロー計算書?.投資活動によるキャッシュフロー?.投資活動によるキャッシュフロー合計 || 0) / 100000000;
-  const financingCF = (safeStatements.キャッシュフロー計算書?.財務活動によるキャッシュフロー?.財務活動によるキャッシュフロー合計 || 0) / 100000000;
-
-  return `<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${companyName} 財務分析インフォグラフィック</title>
+    <title>国立大学法人山梨大学 財務分析インフォグラフィック</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -77,23 +57,23 @@ function generateHTMLReport(data) {
 <body class="text-[#242F40]">
     <div class="container mx-auto p-4 md:p-8 max-w-7xl">
         <header class="text-center mb-12">
-            <h1 class="text-3xl md:text-5xl font-bold text-[#004AAD] mb-2">${companyName}</h1>
-            <h2 class="text-xl md:text-2xl font-bold text-[#009FFD]">${fiscalYear}事業年度 財務分析インフォグラフィック</h2>
+            <h1 class="text-3xl md:text-5xl font-bold text-[#004AAD] mb-2">国立大学法人山梨大学</h1>
+            <h2 class="text-xl md:text-2xl font-bold text-[#009FFD]">平成27事業年度事業年度 財務分析インフォグラフィック</h2>
             <p class="text-base text-gray-600 mt-2">財務データから読み解く、大学経営の現在地と未来</p>
         </header>
 
         <section id="kpi" class="mb-12">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="kpi-card">
-                    <div class="kpi-value">${totalAssets.toFixed(0)}<span class="text-xl">億円</span></div>
+                    <div class="kpi-value">719<span class="text-xl">億円</span></div>
                     <div class="kpi-label">総資産</div>
                 </div>
                 <div class="kpi-card">
-                    <div class="kpi-value">${(safeRatios.自己資本比率 || ((totalEquity/(totalAssets || 1))*100)).toFixed(1)}<span class="text-xl">%</span></div>
+                    <div class="kpi-value">61.1<span class="text-xl">%</span></div>
                     <div class="kpi-label">自己資本比率</div>
                 </div>
                 <div class="kpi-card">
-                    <div class="kpi-value text-red-600">-${operatingLoss.toFixed(1)}<span class="text-xl">億円</span></div>
+                    <div class="kpi-value text-red-600">-0.0<span class="text-xl">億円</span></div>
                     <div class="kpi-label">経常損失</div>
                 </div>
             </div>
@@ -103,14 +83,14 @@ function generateHTMLReport(data) {
         <section id="balance-sheet" class="mb-16">
             <div class="text-center mb-8">
                 <h3 class="text-2xl md:text-3xl font-bold">財務健全性分析：磐石な資産基盤</h3>
-                <p class="mt-2 max-w-3xl mx-auto text-gray-600">${totalAssets.toFixed(0)}億円に上る総資産と${(safeRatios.自己資本比率 || ((totalEquity/(totalAssets || 1))*100)).toFixed(1)}%という高い自己資本比率は、安定した大学経営の礎です。資産の大部分は教育研究活動を支える固定資産で構成されています。</p>
+                <p class="mt-2 max-w-3xl mx-auto text-gray-600">719億円に上る総資産と61.1%という高い自己資本比率は、安定した大学経営の礎です。資産の大部分は教育研究活動を支える固定資産で構成されています。</p>
                 <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
                     <div class="bg-white p-4 rounded-lg shadow-md text-center">
-                        <div class="text-2xl font-bold text-[#004AAD]">${(safeRatios.負債比率 || ((totalLiabilities/(totalEquity || 1))*100)).toFixed(1)}%</div>
+                        <div class="text-2xl font-bold text-[#004AAD]">63.6%</div>
                         <div class="text-sm text-gray-600">負債比率</div>
                     </div>
                     <div class="bg-white p-4 rounded-lg shadow-md text-center">
-                        <div class="text-2xl font-bold text-[#009FFD]">${(safeRatios.流動比率 || (currentAssets/(safeStatements.貸借対照表?.負債の部?.流動負債?.流動負債合計/100000000 || 1))).toFixed(2)}</div>
+                        <div class="text-2xl font-bold text-[#009FFD]">1.26</div>
                         <div class="text-sm text-gray-600">流動比率</div>
                     </div>
                 </div>
@@ -134,7 +114,7 @@ function generateHTMLReport(data) {
         <section id="income-statement" class="mb-16">
             <div class="text-center mb-8">
                 <h3 class="text-2xl md:text-3xl font-bold">収益構造分析：附属病院が牽引するも赤字体質</h3>
-                <p class="mt-2 max-w-3xl mx-auto text-gray-600">経常収益の半分を附属病院が占める一方、人件費と診療経費が費用全体の8割を超え、結果として${operatingLoss.toFixed(1)}億円の経常損失を計上。収益構造の改革が急務です。</p>
+                <p class="mt-2 max-w-3xl mx-auto text-gray-600">経常収益の半分を附属病院が占める一方、人件費と診療経費が費用全体の8割を超え、結果として0.0億円の経常損失を計上。収益構造の改革が急務です。</p>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
                 <div class="bg-white p-6 rounded-lg shadow-md">
@@ -168,23 +148,23 @@ function generateHTMLReport(data) {
         <section id="cash-flow" class="mb-16">
             <div class="text-center mb-8">
                 <h3 class="text-2xl md:text-3xl font-bold">キャッシュフロー分析：積極投資と財務活動</h3>
-                <p class="mt-2 max-w-3xl mx-auto text-gray-600">本業で着実にキャッシュを生み出し（+${operatingCF.toFixed(1)}億円）、それを上回る大規模な設備投資（${investingCF.toFixed(1)}億円）を実施。不足分は借入で補う、成長に向けた投資フェーズにあります。</p>
+                <p class="mt-2 max-w-3xl mx-auto text-gray-600">本業で着実にキャッシュを生み出し（+0.0億円）、それを上回る大規模な設備投資（0.0億円）を実施。不足分は借入で補う、成長に向けた投資フェーズにあります。</p>
             </div>
             <div class="bg-white p-6 rounded-lg shadow-md">
                 <div class="grid grid-cols-1 md:grid-cols-5 items-center text-center gap-y-4">
                     <div class="kpi-card border border-green-200">
                         <p class="text-lg font-bold">業務CF</p>
-                        <p class="text-2xl font-bold ${operatingCF >= 0 ? 'text-green-600' : 'text-red-600'}">${operatingCF >= 0 ? '+' : ''}${operatingCF.toFixed(1)}<span class="text-sm">億円</span></p>
+                        <p class="text-2xl font-bold text-green-600">+0.0<span class="text-sm">億円</span></p>
                     </div>
                     <div class="flow-arrow hidden md:block">➔</div>
                     <div class="kpi-card border border-red-200">
                         <p class="text-lg font-bold">投資CF</p>
-                        <p class="text-2xl font-bold ${investingCF >= 0 ? 'text-green-600' : 'text-red-600'}">${investingCF >= 0 ? '+' : ''}${investingCF.toFixed(1)}<span class="text-sm">億円</span></p>
+                        <p class="text-2xl font-bold text-green-600">+0.0<span class="text-sm">億円</span></p>
                     </div>
                     <div class="flow-arrow hidden md:block">➔</div>
                     <div class="kpi-card border border-blue-200">
                         <p class="text-lg font-bold">財務CF</p>
-                        <p class="text-2xl font-bold ${financingCF >= 0 ? 'text-blue-600' : 'text-red-600'}">${financingCF >= 0 ? '+' : ''}${financingCF.toFixed(1)}<span class="text-sm">億円</span></p>
+                        <p class="text-2xl font-bold text-blue-600">+0.0<span class="text-sm">億円</span></p>
                     </div>
                 </div>
             </div>
@@ -212,8 +192,8 @@ function generateHTMLReport(data) {
         </section>
 
         <footer class="text-center mt-16 pt-8 border-t">
-            <p class="text-sm text-gray-500">本インフォグラフィックは、${companyName}が公開した${fiscalYear}事業年度財務諸表に基づいて作成されました。</p>
-            <p class="text-sm text-gray-500">作成日: ${new Date().toLocaleDateString('ja-JP')}</p>
+            <p class="text-sm text-gray-500">本インフォグラフィックは、国立大学法人山梨大学が公開した平成27事業年度事業年度財務諸表に基づいて作成されました。</p>
+            <p class="text-sm text-gray-500">作成日: 2025/6/27</p>
         </footer>
     </div>
 
@@ -286,7 +266,7 @@ function generateHTMLReport(data) {
                 labels: ['固定資産', '流動資産'],
                 datasets: [{
                     label: '資産構成',
-                    data: [${fixedAssets.toFixed(1)}, ${currentAssets.toFixed(1)}],
+                    data: [630.5, 88.4],
                     backgroundColor: [brilliantBlues[0], brilliantBlues[1]],
                     borderColor: '#FFFFFF',
                     borderWidth: 2
@@ -301,7 +281,7 @@ function generateHTMLReport(data) {
                 labels: ['純資産', '負債'],
                 datasets: [{
                     label: '負債・純資産構成',
-                    data: [${totalEquity.toFixed(1)}, ${totalLiabilities.toFixed(1)}],
+                    data: [439.5, 279.5],
                     backgroundColor: [brilliantBlues[0], brilliantBlues[3]],
                     borderColor: '#FFFFFF',
                     borderWidth: 2
@@ -316,7 +296,7 @@ function generateHTMLReport(data) {
                 labels: processLabels(['附属病院収益', '運営費交付金収益', '学生納付金等収益', '受託研究等収益', 'その他']),
                 datasets: [{
                     label: '経常収益 (億円)',
-                    data: [${totalRevenue > 0 ? (totalRevenue * 0.5).toFixed(1) : '171.0'}, ${totalRevenue > 0 ? (totalRevenue * 0.28).toFixed(1) : '96.7'}, ${totalRevenue > 0 ? (totalRevenue * 0.08).toFixed(1) : '28.7'}, ${totalRevenue > 0 ? (totalRevenue * 0.05).toFixed(1) : '15.4'}, ${totalRevenue > 0 ? (totalRevenue * 0.09).toFixed(1) : '28.9'}],
+                    data: [170.3, 95.4, 27.3, 17.0, 30.7],
                     backgroundColor: [brilliantBlues[0], brilliantBlues[1], '#5DA9E9', '#84C0EF', brilliantBlues[4]],
                     borderColor: '#FFFFFF',
                     borderWidth: 2
@@ -331,7 +311,7 @@ function generateHTMLReport(data) {
                 labels: processLabels(['人件費', '診療経費', '教育経費', '研究経費', 'その他']),
                 datasets: [{
                     label: '経常費用 (億円)',
-                    data: [${totalExpenses > 0 ? (totalExpenses * 0.47).toFixed(1) : '163.6'}, ${totalExpenses > 0 ? (totalExpenses * 0.36).toFixed(1) : '125.1'}, ${totalExpenses > 0 ? (totalExpenses * 0.045).toFixed(1) : '15.6'}, ${totalExpenses > 0 ? (totalExpenses * 0.045).toFixed(1) : '15.7'}, ${totalExpenses > 0 ? (totalExpenses * 0.08).toFixed(1) : '27.2'}],
+                    data: [163.2, 125.0, 15.6, 15.6, 27.8],
                     backgroundColor: [brilliantBlues[0], brilliantBlues[1], brilliantBlues[2], brilliantBlues[3], brilliantBlues[4]],
                     borderColor: [brilliantBlues[0], brilliantBlues[1], brilliantBlues[2], brilliantBlues[3], brilliantBlues[4]],
                     borderWidth: 1
@@ -393,7 +373,4 @@ function generateHTMLReport(data) {
         });
     </script>
 </body>
-</html>`;
-}
-
-module.exports = { generateHTMLReport };
+</html>
