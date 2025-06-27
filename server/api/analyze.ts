@@ -1,6 +1,10 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { ChainOfThoughtPrompts } from '../../utils/chainOfThoughtPrompts';
 import { ExtractedFinancialData } from '../../types/financialStatements';
+import { spawn } from 'child_process';
+import * as fs from 'fs';
+import * as path from 'path';
+import { v4 as uuidv4 } from 'uuid';
 
 const MODELS = {
   PRIMARY: 'gemini-1.5-flash',
@@ -86,6 +90,17 @@ export async function analyzeDocument(content: string) {
     }
     
     const genAI = new GoogleGenerativeAI(apiKey);
+
+    if (/^[A-Za-z0-9+/=]+$/.test(content) && content.length > 1000) {
+      console.log('Attempting to extract structured data from PDF...');
+      const structuredData = await extractStructuredDataFromPdf(content);
+      
+      if (structuredData && structuredData.statements && structuredData.ratios) {
+        console.log('Using Chain of Thought analysis for extracted structured financial data');
+        const analysisResult = await performChainOfThoughtAnalysis(structuredData, genAI);
+        return { text: analysisResult };
+      }
+    }
 
     try {
       const structuredData = JSON.parse(decodedContent);
@@ -270,6 +285,63 @@ export async function analyzeDocument(content: string) {
     }
     
     throw new Error(userFriendlyMessage);
+  }
+}
+
+async function extractStructuredDataFromPdf(base64Content: string): Promise<ExtractedFinancialData | null> {
+  try {
+    const tempDir = path.join(process.cwd(), 'temp');
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+    }
+    
+    const tempPdfPath = path.join(tempDir, `temp_${uuidv4()}.pdf`);
+    const pdfBuffer = Buffer.from(base64Content, 'base64');
+    fs.writeFileSync(tempPdfPath, pdfBuffer);
+    
+    console.log('Running Python data extractor...');
+    
+    return new Promise((resolve, reject) => {
+      const pythonProcess = spawn('python3', ['data_extractor.py', tempPdfPath], {
+        cwd: process.cwd(),
+        env: { ...process.env }
+      });
+      
+      let output = '';
+      let errorOutput = '';
+      
+      pythonProcess.stdout.on('data', (data) => {
+        output += data.toString();
+      });
+      
+      pythonProcess.stderr.on('data', (data) => {
+        errorOutput += data.toString();
+      });
+      
+      pythonProcess.on('close', (code) => {
+        try {
+          fs.unlinkSync(tempPdfPath);
+        } catch (cleanupError) {
+          console.warn('Failed to clean up temp file:', cleanupError);
+        }
+        
+        if (code === 0) {
+          try {
+            const structuredData = JSON.parse(output);
+            resolve(structuredData);
+          } catch (parseError) {
+            console.error('Failed to parse Python extractor output:', parseError);
+            resolve(null);
+          }
+        } else {
+          console.error('Python extractor failed:', errorOutput);
+          resolve(null);
+        }
+      });
+    });
+  } catch (error) {
+    console.error('Error in extractStructuredDataFromPdf:', error);
+    return null;
   }
 }
 

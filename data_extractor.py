@@ -3,6 +3,7 @@
 import os
 import sys
 import time
+import json
 import google.generativeai as genai
 from typing import Dict, Any, Optional
 
@@ -259,20 +260,13 @@ def extract_financial_data(pdf_path: str = './b67155c2806c76359d1b3637d7ff2ac7.p
 def main():
     """Main execution function"""
     try:
-        print("🏥 国立大学法人山梨大学 財務データ抽出システム")
-        print("=" * 60)
+        pdf_path = sys.argv[1] if len(sys.argv) > 1 else './b67155c2806c76359d1b3637d7ff2ac7.pdf'
+        financial_data = extract_financial_data(pdf_path)
         
-        financial_data = extract_financial_data()
-        
-        print("\n🎯 データ抽出完了！HTMLインフォグラフィック生成の準備が整いました。")
-        print("\n次のステップ:")
-        print("1. python3 generate_final_infographic.py でHTMLインフォグラフィックを生成")
-        print("2. 生成されたHTMLファイルをブラウザで確認")
-        
-        return financial_data
+        print(json.dumps(financial_data, ensure_ascii=False, indent=2))
         
     except Exception as error:
-        print(f"❌ エラーが発生しました: {error}")
+        print(f"Error: {error}", file=sys.stderr)
         sys.exit(1)
 
 
