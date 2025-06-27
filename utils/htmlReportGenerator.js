@@ -104,6 +104,16 @@ function generateHTMLReport(data) {
             <div class="text-center mb-8">
                 <h3 class="text-2xl md:text-3xl font-bold">財務健全性分析：磐石な資産基盤</h3>
                 <p class="mt-2 max-w-3xl mx-auto text-gray-600">${totalAssets.toFixed(0)}億円に上る総資産と${(safeRatios.自己資本比率 || ((totalEquity/(totalAssets || 1))*100)).toFixed(1)}%という高い自己資本比率は、安定した大学経営の礎です。資産の大部分は教育研究活動を支える固定資産で構成されています。</p>
+                <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+                    <div class="bg-white p-4 rounded-lg shadow-md text-center">
+                        <div class="text-2xl font-bold text-[#004AAD]">${(safeRatios.負債比率 || ((totalLiabilities/(totalEquity || 1))*100)).toFixed(1)}%</div>
+                        <div class="text-sm text-gray-600">負債比率</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow-md text-center">
+                        <div class="text-2xl font-bold text-[#009FFD]">${(safeRatios.流動比率 || (currentAssets/(safeStatements.貸借対照表?.負債の部?.流動負債?.流動負債合計/100000000 || 1))).toFixed(2)}</div>
+                        <div class="text-sm text-gray-600">流動比率</div>
+                    </div>
+                </div>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
                 <div class="bg-white p-6 rounded-lg shadow-md">

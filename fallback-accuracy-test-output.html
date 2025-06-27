@@ -65,7 +65,7 @@
         <section id="kpi" class="mb-12">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="kpi-card">
-                    <div class="kpi-value">0<span class="text-xl">億円</span></div>
+                    <div class="kpi-value">719<span class="text-xl">億円</span></div>
                     <div class="kpi-label">総資産</div>
                 </div>
                 <div class="kpi-card">
@@ -83,7 +83,17 @@
         <section id="balance-sheet" class="mb-16">
             <div class="text-center mb-8">
                 <h3 class="text-2xl md:text-3xl font-bold">財務健全性分析：磐石な資産基盤</h3>
-                <p class="mt-2 max-w-3xl mx-auto text-gray-600">0億円に上る総資産と61.1%という高い自己資本比率は、安定した大学経営の礎です。資産の大部分は教育研究活動を支える固定資産で構成されています。</p>
+                <p class="mt-2 max-w-3xl mx-auto text-gray-600">719億円に上る総資産と61.1%という高い自己資本比率は、安定した大学経営の礎です。資産の大部分は教育研究活動を支える固定資産で構成されています。</p>
+                <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+                    <div class="bg-white p-4 rounded-lg shadow-md text-center">
+                        <div class="text-2xl font-bold text-[#004AAD]">63.6%</div>
+                        <div class="text-sm text-gray-600">負債比率</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow-md text-center">
+                        <div class="text-2xl font-bold text-[#009FFD]">1.26</div>
+                        <div class="text-sm text-gray-600">流動比率</div>
+                    </div>
+                </div>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
                 <div class="bg-white p-6 rounded-lg shadow-md">
@@ -138,7 +148,7 @@
         <section id="cash-flow" class="mb-16">
             <div class="text-center mb-8">
                 <h3 class="text-2xl md:text-3xl font-bold">キャッシュフロー分析：積極投資と財務活動</h3>
-                <p class="mt-2 max-w-3xl mx-auto text-gray-600">本業で着実にキャッシュを生み出し（+0.0億円）、それを上回る大規模な設備投資（-0.0億円）を実施。不足分は借入で補う、成長に向けた投資フェーズにあります。</p>
+                <p class="mt-2 max-w-3xl mx-auto text-gray-600">本業で着実にキャッシュを生み出し（+0.0億円）、それを上回る大規模な設備投資（0.0億円）を実施。不足分は借入で補う、成長に向けた投資フェーズにあります。</p>
             </div>
             <div class="bg-white p-6 rounded-lg shadow-md">
                 <div class="grid grid-cols-1 md:grid-cols-5 items-center text-center gap-y-4">
@@ -149,7 +159,7 @@
                     <div class="flow-arrow hidden md:block">➔</div>
                     <div class="kpi-card border border-red-200">
                         <p class="text-lg font-bold">投資CF</p>
-                        <p class="text-2xl font-bold text-red-600">-0.0<span class="text-sm">億円</span></p>
+                        <p class="text-2xl font-bold text-green-600">+0.0<span class="text-sm">億円</span></p>
                     </div>
                     <div class="flow-arrow hidden md:block">➔</div>
                     <div class="kpi-card border border-blue-200">
@@ -256,7 +266,7 @@
                 labels: ['固定資産', '流動資産'],
                 datasets: [{
                     label: '資産構成',
-                    data: [0.0, 0.0],
+                    data: [630.5, 88.4],
                     backgroundColor: [brilliantBlues[0], brilliantBlues[1]],
                     borderColor: '#FFFFFF',
                     borderWidth: 2
@@ -271,7 +281,7 @@
                 labels: ['純資産', '負債'],
                 datasets: [{
                     label: '負債・純資産構成',
-                    data: [0.0, 0.0],
+                    data: [439.5, 279.5],
                     backgroundColor: [brilliantBlues[0], brilliantBlues[3]],
                     borderColor: '#FFFFFF',
                     borderWidth: 2
@@ -286,7 +296,7 @@
                 labels: processLabels(['附属病院収益', '運営費交付金収益', '学生納付金等収益', '受託研究等収益', 'その他']),
                 datasets: [{
                     label: '経常収益 (億円)',
-                    data: [0.0, 0.0, 0.0, 0.0, 0.0],
+                    data: [170.3, 95.4, 27.3, 17.0, 30.7],
                     backgroundColor: [brilliantBlues[0], brilliantBlues[1], '#5DA9E9', '#84C0EF', brilliantBlues[4]],
                     borderColor: '#FFFFFF',
                     borderWidth: 2
@@ -301,7 +311,7 @@
                 labels: processLabels(['人件費', '診療経費', '教育経費', '研究経費', 'その他']),
                 datasets: [{
                     label: '経常費用 (億円)',
-                    data: [0.0, 0.0, 0.0, 0.0, 0.0],
+                    data: [163.2, 125.0, 15.6, 15.6, 27.8],
                     backgroundColor: [brilliantBlues[0], brilliantBlues[1], brilliantBlues[2], brilliantBlues[3], brilliantBlues[4]],
                     borderColor: [brilliantBlues[0], brilliantBlues[1], brilliantBlues[2], brilliantBlues[3], brilliantBlues[4]],
                     borderWidth: 1
