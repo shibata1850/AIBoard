@@ -13,8 +13,15 @@ export async function extractTextFromPdf(base64Content: string): Promise<string>
       console.log('High-confidence structured data extraction successful');
       return JSON.stringify(structuredData, null, 2);
     } else {
-      console.log('Falling back to Gemini text extraction due to low confidence');
-      return await fallbackToGeminiExtraction(base64Content);
+      console.log('Medium/low confidence structured data, attempting UnifiedFinancialExtractor enhancement');
+      const enhancedData = await enhanceWithUnifiedFinancialExtractor(base64Content);
+      if (enhancedData) {
+        console.log('UnifiedFinancialExtractor enhancement successful');
+        return JSON.stringify(enhancedData, null, 2);
+      } else {
+        console.log('Falling back to Gemini text extraction');
+        return await fallbackToGeminiExtraction(base64Content);
+      }
     }
   } catch (error) {
     console.warn('Structured extraction failed, falling back to Gemini:', error);
@@ -126,6 +133,73 @@ export async function extractSpecificFinancialItem(base64Content: string, itemTy
  * @param mimeType File MIME type
  * @returns Boolean indicating if the file is a PDF
  */
+async function enhanceWithUnifiedFinancialExtractor(base64Content: string): Promise<ExtractedFinancialData | null> {
+  try {
+    const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
+    if (!apiKey) {
+      console.warn('Gemini API key not available for UnifiedFinancialExtractor');
+      return null;
+    }
+
+    const extractor = new UnifiedFinancialExtractor(apiKey);
+    console.log('Using UnifiedFinancialExtractor for PDF enhancement...');
+    
+    const [segmentResult, liabilitiesResult, currentLiabilitiesResult, expensesResult] = await Promise.allSettled([
+      extractor.extractSegmentProfitLoss(base64Content),
+      extractor.extractTotalLiabilities(base64Content),
+      extractor.extractCurrentLiabilities(base64Content),
+      extractor.extractOrdinaryExpenses(base64Content)
+    ]);
+
+    const statements = {
+      貸借対照表: {
+        資産の部: { 資産合計: 0, 流動資産: { 流動資産合計: 0 }, 固定資産: { 固定資産合計: 0 } },
+        負債の部: { 
+          負債合計: liabilitiesResult.status === 'fulfilled' ? liabilitiesResult.value.numericValue || 0 : 0,
+          流動負債: { 流動負債合計: currentLiabilitiesResult.status === 'fulfilled' ? currentLiabilitiesResult.value.numericValue || 0 : 0 },
+          固定負債: { 固定負債合計: 0 }
+        },
+        純資産の部: { 純資産合計: 0 }
+      },
+      損益計算書: {
+        経常収益: { 経常収益合計: 0 },
+        経常費用: { 経常費用合計: expensesResult.status === 'fulfilled' ? expensesResult.value.numericValue || 0 : 0 },
+        経常利益: 0
+      },
+      キャッシュフロー計算書: {
+        営業活動によるキャッシュフロー: { 営業活動によるキャッシュフロー合計: 0 },
+        投資活動によるキャッシュフロー: { 投資活動によるキャッシュフロー合計: 0 },
+        財務活動によるキャッシュフロー: { 財務活動によるキャッシュフロー合計: 0 },
+        現金及び現金同等物の増減額: 0
+      },
+      セグメント情報: segmentResult.status === 'fulfilled' && segmentResult.value.success ? {
+        附属病院: { 業務損益: segmentResult.value.numericValue }
+      } : undefined
+    };
+
+    const ratios = {
+      負債比率: 0,
+      流動比率: 0,
+      固定比率: 0,
+      自己資本比率: 0
+    };
+
+    return {
+      statements: statements as any,
+      ratios,
+      extractionMetadata: {
+        extractedAt: new Date().toISOString(),
+        tablesFound: 0,
+        confidence: 'medium',
+        warnings: ['Enhanced with UnifiedFinancialExtractor']
+      }
+    };
+  } catch (error) {
+    console.error('UnifiedFinancialExtractor enhancement failed:', error);
+    return null;
+  }
+}
+
 export function isPdfFile(mimeType: string): boolean {
   return mimeType === 'application/pdf';
 }

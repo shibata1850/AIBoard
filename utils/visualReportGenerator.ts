@@ -41,7 +41,7 @@ export interface EnhancedFinancialData extends ParsedFinancialData {
 export function parseFinancialData(analysisContent: string): ParsedFinancialData {
   try {
     const structuredData = JSON.parse(analysisContent);
-    if (structuredData.statements && structuredData.ratios) {
+    if (structuredData.statements) {
       console.log('Using structured financial data for parsing');
       return convertStructuredToLegacyFormat(structuredData);
     }
@@ -127,7 +127,7 @@ export function parseFinancialData(analysisContent: string): ParsedFinancialData
 
 function convertStructuredToLegacyFormat(structuredData: any): ParsedFinancialData {
   const statements = structuredData.statements;
-  const ratios = structuredData.ratios;
+  const ratios = structuredData.ratios || {};
   
   const metrics = [
     { label: '収益', value: statements.損益計算書?.経常収益?.経常収益合計?.toString() || '0', trend: 'neutral' as const },
@@ -138,6 +138,14 @@ function convertStructuredToLegacyFormat(structuredData: any): ParsedFinancialDa
     { label: '純資産', value: statements.貸借対照表?.純資産の部?.純資産合計?.toString() || '0', trend: 'neutral' as const }
   ];
 
+  if (statements.セグメント情報?.附属病院?.業務損益) {
+    metrics.push({
+      label: '附属病院業務損益',
+      value: statements.セグメント情報.附属病院.業務損益.toString(),
+      trend: statements.セグメント情報.附属病院.業務損益 > 0 ? 'positive' as const : 'negative' as const
+    });
+  }
+
   return {
     revenue: statements.損益計算書?.経常収益?.経常収益合計,
     profit: statements.損益計算書?.経常利益,
@@ -146,7 +154,7 @@ function convertStructuredToLegacyFormat(structuredData: any): ParsedFinancialDa
     liabilities: statements.貸借対照表?.負債の部?.負債合計,
     equity: statements.貸借対照表?.純資産の部?.純資産合計,
     metrics,
-    summary: `構造化データから抽出された財務情報: 負債比率 ${ratios?.負債比率?.toFixed(2)}%, 流動比率 ${ratios?.流動比率?.toFixed(2)}`
+    summary: `構造化データから抽出された財務情報: 負債比率 ${ratios?.負債比率?.toFixed(2) || 'N/A'}%, 流動比率 ${ratios?.流動比率?.toFixed(2) || 'N/A'}`
   };
 }
 

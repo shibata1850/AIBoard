@@ -95,10 +95,18 @@ export async function analyzeDocument(content: string) {
       console.log('Attempting to extract structured data from PDF...');
       const structuredData = await extractStructuredDataFromPdf(content);
       
-      if (structuredData && structuredData.statements && structuredData.ratios) {
+      if (structuredData && structuredData.statements) {
         console.log('Using Chain of Thought analysis for extracted structured financial data');
         const analysisResult = await performChainOfThoughtAnalysis(structuredData, genAI);
         return { text: analysisResult };
+      } else {
+        console.log('Structured data extraction failed, falling back to enhanced PDF processing');
+        const enhancedData = await enhanceWithUnifiedExtractor(content);
+        if (enhancedData && enhancedData.statements) {
+          console.log('Using Chain of Thought analysis with UnifiedFinancialExtractor data');
+          const analysisResult = await performChainOfThoughtAnalysis(enhancedData, genAI);
+          return { text: analysisResult };
+        }
       }
     }
 
@@ -318,7 +326,7 @@ async function extractStructuredDataFromPdf(base64Content: string): Promise<Extr
         errorOutput += data.toString();
       });
       
-      pythonProcess.on('close', (code) => {
+      pythonProcess.on('close', async (code) => {
         try {
           fs.unlinkSync(tempPdfPath);
         } catch (cleanupError) {
@@ -331,16 +339,92 @@ async function extractStructuredDataFromPdf(base64Content: string): Promise<Extr
             resolve(structuredData);
           } catch (parseError) {
             console.error('Failed to parse Python extractor output:', parseError);
-            resolve(null);
+            const enhancedData = await enhanceWithUnifiedExtractor(base64Content);
+            resolve(enhancedData);
           }
         } else {
           console.error('Python extractor failed:', errorOutput);
-          resolve(null);
+          const enhancedData = await enhanceWithUnifiedExtractor(base64Content);
+          resolve(enhancedData);
         }
       });
     });
   } catch (error) {
     console.error('Error in extractStructuredDataFromPdf:', error);
+    return null;
+  }
+}
+
+async function enhanceWithUnifiedExtractor(base64Content: string): Promise<ExtractedFinancialData | null> {
+  try {
+    const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
+    if (!apiKey) {
+      console.warn('Gemini API key not available for UnifiedFinancialExtractor');
+      return null;
+    }
+
+    const extractionService = require('../../utils/extractionService');
+    const { UnifiedFinancialExtractor } = extractionService;
+    const extractor = new UnifiedFinancialExtractor(apiKey);
+    
+    console.log('Using UnifiedFinancialExtractor for enhanced data extraction...');
+    
+    const [segmentResult, liabilitiesResult, currentLiabilitiesResult, expensesResult] = await Promise.allSettled([
+      extractor.extractSegmentProfitLoss(base64Content),
+      extractor.extractTotalLiabilities(base64Content),
+      extractor.extractCurrentLiabilities(base64Content),
+      extractor.extractOrdinaryExpenses(base64Content)
+    ]);
+
+    const statements = {
+      貸借対照表: {
+        資産の部: { 
+          資産合計: 0, 
+          流動資産: { 流動資産合計: 0 }, 
+          固定資産: { 固定資産合計: 0 } 
+        },
+        負債の部: { 
+          負債合計: liabilitiesResult.status === 'fulfilled' ? liabilitiesResult.value.numericValue || 0 : 0,
+          流動負債: { 流動負債合計: currentLiabilitiesResult.status === 'fulfilled' ? currentLiabilitiesResult.value.numericValue || 0 : 0 },
+          固定負債: { 固定負債合計: 0 }
+        },
+        純資産の部: { 純資産合計: 0 }
+      },
+      損益計算書: {
+        経常収益: { 経常収益合計: 0 },
+        経常費用: { 経常費用合計: expensesResult.status === 'fulfilled' ? expensesResult.value.numericValue || 0 : 0 },
+        経常利益: 0
+      },
+      キャッシュフロー計算書: {
+        営業活動によるキャッシュフロー: { 営業活動によるキャッシュフロー合計: 0 },
+        投資活動によるキャッシュフロー: { 投資活動によるキャッシュフロー合計: 0 },
+        財務活動によるキャッシュフロー: { 財務活動によるキャッシュフロー合計: 0 },
+        現金及び現金同等物の増減額: 0
+      },
+      セグメント情報: segmentResult.status === 'fulfilled' && segmentResult.value.success ? {
+        附属病院: { 業務損益: segmentResult.value.numericValue }
+      } : undefined
+    };
+
+    const ratios = {
+      負債比率: 0,
+      流動比率: 0,
+      固定比率: 0,
+      自己資本比率: 0
+    };
+
+    return {
+      statements: statements as any,
+      ratios,
+      extractionMetadata: {
+        extractedAt: new Date().toISOString(),
+        tablesFound: 0,
+        confidence: 'medium',
+        warnings: ['Using UnifiedFinancialExtractor fallback method']
+      }
+    };
+  } catch (error) {
+    console.error('UnifiedFinancialExtractor fallback failed:', error);
     return null;
   }
 }
