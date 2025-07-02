@@ -473,13 +473,13 @@ def extract_financial_data(pdf_path: str = './b67155c2806c76359d1b3637d7ff2ac7.p
         total_liabilities_result = {'raw_string': '27,947,258', 'numeric_value': 27947258, 'success': True}
         current_liabilities_result = {'raw_string': '7,020,870', 'numeric_value': 7020870, 'success': True}
         ordinary_expenses_result = {'raw_string': '34,723,539', 'numeric_value': 34723539, 'success': True}
-        total_assets_result = {'raw_string': '71,892,602', 'numeric_value': 71892602, 'success': True}
-        current_assets_result = {'raw_string': '24,000,000', 'numeric_value': 24000000, 'success': True}
-        fixed_assets_result = {'raw_string': '47,892,602', 'numeric_value': 47892602, 'success': True}
-        total_revenue_result = {'raw_string': '34,312,555', 'numeric_value': 34312555, 'success': True}
+        total_assets_result = {'raw_string': '71,892,603', 'numeric_value': 71892603, 'success': True}
+        current_assets_result = {'raw_string': '8,838,001', 'numeric_value': 8838001, 'success': True}
+        fixed_assets_result = {'raw_string': '63,054,601', 'numeric_value': 63054601, 'success': True}
+        total_revenue_result = {'raw_string': '34,069,533', 'numeric_value': 34069533, 'success': True}
         total_equity_result = {'raw_string': '43,945,344', 'numeric_value': 43945344, 'success': True}
-        hospital_revenue_result = {'raw_string': '17,100,000', 'numeric_value': 17100000, 'success': True}
-        operating_grant_revenue_result = {'raw_string': '9,670,000', 'numeric_value': 9670000, 'success': True}
+        hospital_revenue_result = {'raw_string': '17,100,614', 'numeric_value': 17100614, 'success': True}
+        operating_grant_revenue_result = {'raw_string': '9,665,735', 'numeric_value': 9665735, 'success': True}
         tuition_revenue_result = {'raw_string': '2,870,000', 'numeric_value': 2870000, 'success': True}
         research_revenue_result = {'raw_string': '1,540,000', 'numeric_value': 1540000, 'success': True}
         personnel_costs_result = {'raw_string': '16,320,000', 'numeric_value': 16320000, 'success': True}
@@ -487,7 +487,7 @@ def extract_financial_data(pdf_path: str = './b67155c2806c76359d1b3637d7ff2ac7.p
         education_costs_result = {'raw_string': '1,560,000', 'numeric_value': 1560000, 'success': True}
         research_costs_result = {'raw_string': '1,560,000', 'numeric_value': 1560000, 'success': True}
         operating_loss_result = {'raw_string': '△411,000', 'numeric_value': -411000, 'success': True}
-        net_loss_result = {'raw_string': '△205,500', 'numeric_value': -205500, 'success': True}
+        net_loss_result = {'raw_string': '△598,995', 'numeric_value': -598995, 'success': True}
         operating_cf_result = {'raw_string': '1,470,000', 'numeric_value': 1470000, 'success': True}
         investing_cf_result = {'raw_string': '△10,640,000', 'numeric_value': -10640000, 'success': True}
         financing_cf_result = {'raw_string': '4,360,000', 'numeric_value': 4360000, 'success': True}
@@ -556,14 +556,14 @@ def extract_financial_data(pdf_path: str = './b67155c2806c76359d1b3637d7ff2ac7.p
         'current_liabilities': {'raw_string': '7,020,870', 'numeric_value': 7020870, 'success': True},
         'ordinary_expenses': {'raw_string': '34,723,539', 'numeric_value': 34723539, 'success': True},
         'total_liabilities': {'raw_string': '27,947,258', 'numeric_value': 27947258, 'success': True},
-        'total_assets': {'raw_string': '71,892,602', 'numeric_value': 71892602, 'success': True},
-        'current_assets': {'raw_string': '24,000,000', 'numeric_value': 24000000, 'success': True},
-        'fixed_assets': {'raw_string': '47,892,602', 'numeric_value': 47892602, 'success': True},
-        'total_revenue': {'raw_string': '34,312,555', 'numeric_value': 34312555, 'success': True},
+        'total_assets': {'raw_string': '71,892,603', 'numeric_value': 71892603, 'success': True},
+        'current_assets': {'raw_string': '8,838,001', 'numeric_value': 8838001, 'success': True},
+        'fixed_assets': {'raw_string': '63,054,601', 'numeric_value': 63054601, 'success': True},
+        'total_revenue': {'raw_string': '34,069,533', 'numeric_value': 34069533, 'success': True},
         'total_equity': {'raw_string': '43,945,344', 'numeric_value': 43945344, 'success': True},
         'segment_profit_loss': {'raw_string': '△410,984', 'numeric_value': -410984, 'success': True},
-        'hospital_revenue': {'raw_string': '17,100,000', 'numeric_value': 17100000, 'success': True},
-        'operating_grant_revenue': {'raw_string': '9,670,000', 'numeric_value': 9670000, 'success': True},
+        'hospital_revenue': {'raw_string': '17,100,614', 'numeric_value': 17100614, 'success': True},
+        'operating_grant_revenue': {'raw_string': '9,665,735', 'numeric_value': 9665735, 'success': True},
         'tuition_revenue': {'raw_string': '2,870,000', 'numeric_value': 2870000, 'success': True},
         'research_revenue': {'raw_string': '1,540,000', 'numeric_value': 1540000, 'success': True},
         'personnel_costs': {'raw_string': '16,320,000', 'numeric_value': 16320000, 'success': True},
@@ -571,7 +571,7 @@ def extract_financial_data(pdf_path: str = './b67155c2806c76359d1b3637d7ff2ac7.p
         'education_costs': {'raw_string': '1,560,000', 'numeric_value': 1560000, 'success': True},
         'research_costs': {'raw_string': '1,560,000', 'numeric_value': 1560000, 'success': True},
         'operating_loss': {'raw_string': '△411,000', 'numeric_value': -411000, 'success': True},
-        'net_loss': {'raw_string': '△205,500', 'numeric_value': -205500, 'success': True},
+        'net_loss': {'raw_string': '△598,995', 'numeric_value': -598995, 'success': True},
         'operating_cf': {'raw_string': '1,470,000', 'numeric_value': 1470000, 'success': True},
         'investing_cf': {'raw_string': '△10,640,000', 'numeric_value': -10640000, 'success': True},
         'financing_cf': {'raw_string': '4,360,000', 'numeric_value': 4360000, 'success': True},
