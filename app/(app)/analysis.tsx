@@ -20,6 +20,7 @@ import { supabase } from '../../utils/supabase';
 import { useAuth } from '../../components/AuthProvider';
 import { extractTextFromPdf, isPdfFile } from '../../utils/pdfUtils';
 import { DocumentCreationModal } from '../../components/DocumentCreationModal';
+import { router } from 'expo-router';
 
 type DocumentType = '財務諸表' | '貸借対照表' | '損益計算書' | 'キャッシュフロー計算書' | '事業計画書' | 'その他';
 
@@ -77,6 +78,37 @@ export default function AnalysisPage() {
         }
       }
       
+      if (isPdfFile(fileData.type)) {
+        console.log('PDF detected, redirecting to verification page');
+        try {
+          const response = await fetch('/api/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              action: 'extract',
+              base64Content: contentToAnalyze 
+            })
+          });
+
+          const verificationResult = await response.json();
+
+          if (verificationResult.success) {
+            router.push({
+              pathname: '/(app)/internal/verify',
+              params: {
+                pdfBase64: fileData.content,
+                verificationData: JSON.stringify(verificationResult.verifiedData)
+              }
+            });
+            return;
+          } else {
+            console.error('Verification failed, falling back to direct analysis');
+          }
+        } catch (verifyError) {
+          console.error('Verification API error:', verifyError);
+        }
+      }
+
       const result = await analyzeDocument(contentToAnalyze);
       setAnalysisResult(result);
       setError(null); // 成功したらエラーをクリア
