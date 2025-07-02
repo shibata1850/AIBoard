@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
 import { useTheme } from '../components/ThemeProvider';
-import ChatScreen from '../components/ChatScreen';
+
 import { AuthWrapper } from '../components/AuthWrapper';
 import { DirectFileAnalysis } from '../components/DirectFileAnalysis';
 
@@ -30,9 +30,7 @@ export default function HomePage() {
             <DirectFileAnalysis />
           </View>
           
-          <View style={styles.chatContainer}>
-            <ChatScreen />
-          </View>
+
         </ScrollView>
       </SafeAreaView>
     </AuthWrapper>

@@ -6,6 +6,7 @@ module.exports = [
   js.configs.recommended,
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
+    ignores: ['dist/**/*', 'build/**/*', '.expo/**/*', 'node_modules/**/*'],
     languageOptions: {
       parser: typescriptParser,
       parserOptions: {
@@ -33,6 +34,10 @@ module.exports = [
         FileReader: 'readonly',
         atob: 'readonly',
         btoa: 'readonly',
+        document: 'readonly',
+        window: 'readonly',
+        URL: 'readonly',
+        Blob: 'readonly',
       },
     },
     plugins: {
