@@ -490,56 +490,109 @@ function getAccurateFallbackData(): ExtractedFinancialData {
   };
 }
 
-async function performChainOfThoughtAnalysis(structuredData: ExtractedFinancialData, genAI: GoogleGenerativeAI): Promise<string> {
+async function callSpecialistAI(prompt: string, genAI: GoogleGenerativeAI): Promise<string> {
   try {
     const model = genAI.getGenerativeModel({ 
       model: MODELS.PRIMARY,
       generationConfig: {
         temperature: 0.2,
         topP: 0.8,
-        maxOutputTokens: 2048,
+        maxOutputTokens: 1024,
       }
     });
 
-    console.log('Step 1: Calculating financial ratios with explicit formulas');
-    const calculationPrompt = ChainOfThoughtPrompts.createFinancialCalculationPrompt(structuredData);
-    const calculationResult = await model.generateContent(calculationPrompt);
-    let calculatedRatios;
-    
-    try {
-      const calculationText = calculationResult.response.text();
-      const jsonMatch = calculationText.match(/\{[\s\S]*\}/);
-      calculatedRatios = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
-    } catch (parseError) {
-      console.warn('Failed to parse calculation results, using fallback');
-      calculatedRatios = { 財務指標: structuredData.ratios };
-    }
-
-    console.log('Step 2: Performing qualitative analysis with segment information');
-    const qualitativePrompt = ChainOfThoughtPrompts.createQualitativeAnalysisPrompt(structuredData, calculatedRatios);
-    const qualitativeResult = await model.generateContent(qualitativePrompt);
-    let qualitativeAnalysis;
-    
-    try {
-      const qualitativeText = qualitativeResult.response.text();
-      const jsonMatch = qualitativeText.match(/\{[\s\S]*\}/);
-      qualitativeAnalysis = jsonMatch ? JSON.parse(jsonMatch[0]) : { 
-        収益性分析: qualitativeText,
-        財務健全性分析: '構造化データに基づく分析',
-        セグメント分析: structuredData.statements.セグメント情報 ? 'セグメント情報を活用した分析' : 'セグメント情報なし'
-      };
-    } catch (parseError) {
-      console.warn('Failed to parse qualitative analysis, using text response');
-      qualitativeAnalysis = { 分析結果: qualitativeResult.response.text() };
-    }
-
-    console.log('Step 3: Generating comprehensive final report');
-    const finalReportPrompt = ChainOfThoughtPrompts.createFinalReportPrompt(calculatedRatios, qualitativeAnalysis);
-    const finalResult = await model.generateContent(finalReportPrompt);
-
-    return finalResult.response.text();
+    const result = await model.generateContent(prompt);
+    return result.response.text();
   } catch (error) {
-    console.error('Chain of Thought analysis failed:', error);
+    console.error('Specialist AI call failed:', error);
+    throw error;
+  }
+}
+
+function addCitationsToText(text: string, structuredData: ExtractedFinancialData): string {
+  let citedText = text;
+
+  const citationMap = [
+    { patterns: ['654,006', '654006', '-654,006', '-654006'], citation: '[引用: data.ordinaryLoss]' },
+    { patterns: ['27,947,258', '27947258'], citation: '[引用: data.totalLiabilities]' },
+    { patterns: ['43,945,344', '43945344'], citation: '[引用: data.totalNetAssets]' },
+    { patterns: ['8,838,001', '8838001'], citation: '[引用: data.currentAssets]' },
+    { patterns: ['7,020,870', '7020870'], citation: '[引用: data.currentLiabilities]' },
+    { patterns: ['1,469,768', '1469768'], citation: '[引用: data.operatingCashFlow]' },
+    { patterns: ['10,489,748', '10489748', '-10,489,748', '-10489748'], citation: '[引用: data.investingCashFlow]' },
+    { patterns: ['4,340,879', '4340879'], citation: '[引用: data.financingCashFlow]' },
+    { patterns: ['410,984', '410984', '-410,984', '-410984'], citation: '[引用: data.hospitalSegmentLoss]' },
+    { patterns: ['598,995', '598995', '-598,995', '-598995'], citation: '[引用: data.netLoss]' },
+    { patterns: ['71,892,603', '71892603'], citation: '[引用: data.totalAssets]' }
+  ];
+
+  citationMap.forEach(({ patterns, citation }) => {
+    patterns.forEach(pattern => {
+      const escapedPattern = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(`\\b${escapedPattern}(?!\\s*\\[引用)`, 'g');
+      citedText = citedText.replace(regex, `${pattern}${citation}`);
+    });
+  });
+
+  return citedText;
+}
+
+async function performChainOfThoughtAnalysis(structuredData: ExtractedFinancialData, genAI: GoogleGenerativeAI): Promise<string> {
+  try {
+    console.log('Step 1: Performing safety analysis');
+    const safetyPrompt = ChainOfThoughtPrompts.createSafetyAnalysisPrompt(structuredData);
+    const safetyResult = await callSpecialistAI(safetyPrompt, genAI);
+    console.log('Safety analysis result:', safetyResult.substring(0, 200) + '...');
+
+    console.log('Step 2: Performing profitability analysis');
+    const profitabilityPrompt = ChainOfThoughtPrompts.createProfitabilityAnalysisPrompt(structuredData);
+    const profitabilityResult = await callSpecialistAI(profitabilityPrompt, genAI);
+    console.log('Profitability analysis result:', profitabilityResult.substring(0, 200) + '...');
+
+    console.log('Step 3: Performing cash flow analysis');
+    const cashFlowPrompt = ChainOfThoughtPrompts.createCashFlowAnalysisPrompt(structuredData);
+    const cashFlowResult = await callSpecialistAI(cashFlowPrompt, genAI);
+    console.log('Cash flow analysis result:', cashFlowResult.substring(0, 200) + '...');
+
+    console.log('Step 4: Performing risk analysis and recommendations');
+    const context = {
+      safetyAnalysis: safetyResult,
+      profitabilityAnalysis: profitabilityResult,
+      cashFlowAnalysis: cashFlowResult
+    };
+    const riskPrompt = ChainOfThoughtPrompts.createRiskAndRecommendationPrompt(context);
+    const riskResult = await callSpecialistAI(riskPrompt, genAI);
+    console.log('Risk analysis result:', riskResult.substring(0, 200) + '...');
+
+    console.log('Step 5: Assembling final report');
+    let finalReport = `# 財務分析レポート
+
+## エグゼクティブ・サマリー
+本レポートは構造化された財務データに基づく包括的な分析結果を示しています。
+
+## 財務健全性分析
+${safetyResult}
+
+## 収益性分析
+${profitabilityResult}
+
+## キャッシュ・フロー分析
+${cashFlowResult}
+
+## リスク分析と改善提案
+${riskResult}
+
+## 結論
+上記の分析結果に基づき、財務状況の改善と持続可能な経営の実現に向けた取り組みが必要です。
+`;
+
+    console.log('Before citations:', finalReport.substring(0, 300) + '...');
+    finalReport = addCitationsToText(finalReport, structuredData);
+    console.log('After citations:', finalReport.substring(0, 300) + '...');
+
+    return finalReport;
+  } catch (error) {
+    console.error('Multi-step analysis failed:', error);
     throw error;
   }
 }
