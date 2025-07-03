@@ -296,7 +296,7 @@ export async function analyzeDocument(content: string) {
   }
 }
 
-async function extractStructuredDataFromPdf(base64Content: string): Promise<ExtractedFinancialData | null> {
+export async function extractStructuredDataFromPdf(base64Content: string): Promise<ExtractedFinancialData | null> {
   try {
     const tempDir = path.join(process.cwd(), 'temp');
     if (!fs.existsSync(tempDir)) {
