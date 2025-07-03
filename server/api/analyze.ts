@@ -48,6 +48,114 @@ function isQuotaOrRateLimitError(error: any): boolean {
   return quotaPatterns.some(pattern => errorMsg.includes(pattern));
 }
 
+function transformFinancialData(rawData: any): ExtractedFinancialData | null {
+  try {
+    if (!rawData.financial_statements || !Array.isArray(rawData.financial_statements)) {
+      return null;
+    }
+
+    const statements: any = {};
+    
+    rawData.financial_statements.forEach((statement: any) => {
+      const tableName = statement.tableName;
+      const data = statement.data;
+      
+      if (tableName.includes('貸借対照表')) {
+        if (tableName.includes('資産')) {
+          statements.貸借対照表 = statements.貸借対照表 || {};
+          statements.貸借対照表.資産の部 = {
+            固定資産: data.fixedAssets,
+            流動資産: data.currentAssets,
+            流動資産合計: data.currentAssets?.total,
+            資産合計: data.totalAssets
+          };
+        } else if (tableName.includes('負債') || tableName.includes('純資産')) {
+          statements.貸借対照表 = statements.貸借対照表 || {};
+          statements.貸借対照表.負債の部 = {
+            固定負債: data.liabilities?.fixedLiabilities,
+            流動負債: data.liabilities?.currentLiabilities,
+            流動負債合計: data.liabilities?.currentLiabilities?.total,
+            負債合計: data.liabilities?.total
+          };
+          statements.貸借対照表.純資産の部 = {
+            純資産合計: data.netAssets?.total
+          };
+          if (data.totalLiabilitiesAndNetAssets) {
+            statements.貸借対照表.資産の部 = statements.貸借対照表.資産の部 || {};
+            statements.貸借対照表.資産の部.資産合計 = data.totalLiabilitiesAndNetAssets;
+          }
+        }
+      } else if (tableName.includes('損益計算書')) {
+        statements.損益計算書 = {
+          経常損失: data.ordinaryLoss,
+          経常利益: data.ordinaryLoss > 0 ? data.ordinaryLoss : undefined,
+          当期純損失: data.netLoss
+        };
+      } else if (tableName.includes('キャッシュ')) {
+        statements.キャッシュフロー計算書 = {
+          営業活動によるキャッシュフロー: {
+            営業活動によるキャッシュフロー合計: data.operatingActivities
+          },
+          投資活動によるキャッシュフロー: {
+            投資活動によるキャッシュフロー合計: data.investingActivities
+          },
+          財務活動によるキャッシュフロー: {
+            財務活動によるキャッシュフロー合計: data.financingActivities
+          }
+        };
+      } else if (tableName.includes('セグメント')) {
+        statements.セグメント情報 = {};
+        if (data.operatingProfitLoss) {
+          data.operatingProfitLoss.forEach((segment: any) => {
+            if (segment.segment === '附属病院') {
+              statements.セグメント情報.附属病院 = {
+                業務損益: segment.amount
+              };
+            }
+          });
+        }
+      }
+    });
+
+    const ratios: any = {};
+    if (statements.貸借対照表) {
+      const totalLiabilities = statements.貸借対照表.負債の部?.負債合計;
+      const totalAssets = statements.貸借対照表.資産の部?.資産合計;
+      const currentAssets = statements.貸借対照表.資産の部?.流動資産?.total || statements.貸借対照表.資産の部?.流動資産合計;
+      const currentLiabilities = statements.貸借対照表.負債の部?.流動負債?.total || statements.貸借対照表.負債の部?.流動負債合計;
+      const netAssets = statements.貸借対照表.純資産の部?.純資産合計;
+      
+      if (totalLiabilities && totalAssets) {
+        ratios.負債比率 = parseFloat((totalLiabilities / totalAssets * 100).toFixed(1));
+      }
+      if (currentAssets && currentLiabilities) {
+        ratios.流動比率 = parseFloat((currentAssets / currentLiabilities).toFixed(2));
+      }
+      if (netAssets && totalAssets) {
+        ratios.自己資本比率 = parseFloat((netAssets / totalAssets * 100).toFixed(1));
+      }
+      if (totalAssets && totalLiabilities && netAssets) {
+        const fixedAssets = totalAssets - (currentAssets || 0);
+        ratios.固定比率 = parseFloat((fixedAssets / netAssets * 100).toFixed(1));
+      }
+    }
+
+    return {
+      statements,
+      ratios,
+      extractionMetadata: {
+        extractedAt: new Date().toISOString(),
+        tablesFound: rawData.financial_statements.length,
+        confidence: 'high',
+        warnings: []
+      }
+    };
+  } catch (error) {
+    console.error('Failed to transform financial data:', error);
+    return null;
+  }
+}
+
 /**
  * 文書を分析する
  */
@@ -111,10 +219,22 @@ export async function analyzeDocument(content: string) {
     }
 
     try {
-      const structuredData = JSON.parse(decodedContent);
-      if (structuredData.statements && structuredData.ratios) {
+      const rawData = JSON.parse(decodedContent);
+      
+      if (rawData.financial_statements && Array.isArray(rawData.financial_statements)) {
+        console.log('Detected financial_statements array, transforming to structured format');
+        const structuredData = transformFinancialData(rawData);
+        
+        if (structuredData && structuredData.statements) {
+          console.log('Using Chain of Thought analysis for transformed financial data');
+          const analysisResult = await performChainOfThoughtAnalysis(structuredData, genAI);
+          return { text: analysisResult };
+        }
+      }
+      
+      if (rawData.statements && rawData.ratios) {
         console.log('Using Chain of Thought analysis for structured financial data');
-        const analysisResult = await performChainOfThoughtAnalysis(structuredData, genAI);
+        const analysisResult = await performChainOfThoughtAnalysis(rawData, genAI);
         return { text: analysisResult };
       }
     } catch (parseError) {
