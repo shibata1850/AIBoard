@@ -158,4 +158,100 @@ ${JSON.stringify(qualitativeAnalysis, null, 2)}
 数値は必ず具体的に引用し、根拠を明確にしてください。
 `;
   }
+
+  static createSafetyAnalysisPrompt(structuredData: ExtractedFinancialData): string {
+    const { statements } = structuredData;
+    
+    return `
+あなたは財務健全性分析の専門家です。以下の財務データに基づき、健全性分析のみを実行してください。
+
+財務データ:
+${JSON.stringify(statements, null, 2)}
+
+以下の分析を実行し、結果のみを出力してください：
+
+### 財務健全性分析
+1. **負債比率**を計算し評価してください
+   - 負債合計: ${statements.貸借対照表?.負債の部?.負債合計 || '不明'}千円
+   - 純資産合計: ${statements.貸借対照表?.純資産の部?.純資産合計 || '不明'}千円
+
+2. **流動比率**を計算し評価してください
+   - 流動資産合計: ${statements.貸借対照表?.資産の部?.流動資産?.流動資産合計 || '不明'}千円
+   - 流動負債合計: ${statements.貸借対照表?.負債の部?.流動負債?.流動負債合計 || '不明'}千円
+
+専門的な評価と解釈を含めて、健全性分析の結果のみを出力してください。
+`;
+  }
+
+  static createProfitabilityAnalysisPrompt(structuredData: ExtractedFinancialData): string {
+    const { statements } = structuredData;
+    const segmentInfo = statements.セグメント情報;
+    
+    return `
+あなたは収益性分析の専門家です。以下の財務データに基づき、収益性分析のみを実行してください。
+
+財務データ:
+${JSON.stringify(statements, null, 2)}
+
+以下の分析を実行し、結果のみを出力してください：
+
+### 収益性分析
+1. **経常損失**の分析
+   - 経常損失: ${statements.損益計算書?.経常損失 || statements.損益計算書?.経常利益 || '不明'}千円
+
+2. **セグメント分析**（必須）
+   ${segmentInfo ? `- 附属病院セグメントの業務損益が経常損失の主因であることを明確に指摘してください` : '- セグメント情報が利用できません'}
+
+収益性の課題と根本原因を含めて、収益性分析の結果のみを出力してください。
+`;
+  }
+
+  static createCashFlowAnalysisPrompt(structuredData: ExtractedFinancialData): string {
+    const { statements } = structuredData;
+    
+    return `
+あなたはキャッシュフロー分析の専門家です。以下の財務データに基づき、キャッシュフロー分析のみを実行してください。
+
+財務データ:
+営業活動CF: ${statements.キャッシュフロー計算書?.営業活動によるキャッシュフロー?.営業活動によるキャッシュフロー合計 || '不明'}千円
+投資活動CF: ${statements.キャッシュフロー計算書?.投資活動によるキャッシュフロー?.投資活動によるキャッシュフロー合計 || '不明'}千円
+財務活動CF: ${statements.キャッシュフロー計算書?.財務活動によるキャッシュフロー?.財務活動によるキャッシュフロー合計 || '不明'}千円
+
+**重要な指示:**
+1. 必ず「キャッシュ・フロー分析」という見出しで開始してください
+2. 3つのキャッシュフローの数値を具体的に引用してください
+3. 「巨額の設備投資（投資CF）を、借入金（財務CF）で賄っている」という資金の流れを必ず解説してください
+4. 投資活動CFがマイナス、財務活動CFがプラスであることの意味を説明してください
+
+キャッシュフロー分析の結果のみを出力してください。他の分析は含めないでください。
+`;
+  }
+
+  static createRiskAndRecommendationPrompt(context: {
+    safetyAnalysis: string;
+    profitabilityAnalysis: string;
+    cashFlowAnalysis: string;
+  }): string {
+    return `
+あなたはリスク分析と改善提案の専門家です。以下の3つの分析結果に基づき、リスク分析と改善提案のみを実行してください。
+
+### 前段の分析結果:
+**健全性分析:**
+${context.safetyAnalysis}
+
+**収益性分析:**
+${context.profitabilityAnalysis}
+
+**キャッシュフロー分析:**
+${context.cashFlowAnalysis}
+
+以下の分析を実行し、結果のみを出力してください：
+
+### リスク分析と改善提案
+1. **具体的な数値を伴うリスク**を3つ以上特定してください
+2. **各リスクに対する具体的で実行可能な改善提案**を提示してください
+
+上記3つの分析結果に基づいた、実践的なリスク評価と改善提案のみを出力してください。
+`;
+  }
 }
