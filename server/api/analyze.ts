@@ -513,26 +513,30 @@ function addCitationsToText(text: string, structuredData: ExtractedFinancialData
   let citedText = text;
 
   const citationMap = [
-    { patterns: ['654,006', '654006', '-654,006', '-654006'], citation: '[引用: data.ordinaryLoss]' },
-    { patterns: ['27,947,258', '27947258'], citation: '[引用: data.totalLiabilities]' },
-    { patterns: ['43,945,344', '43945344'], citation: '[引用: data.totalNetAssets]' },
-    { patterns: ['8,838,001', '8838001'], citation: '[引用: data.currentAssets]' },
-    { patterns: ['7,020,870', '7020870'], citation: '[引用: data.currentLiabilities]' },
-    { patterns: ['1,469,768', '1469768'], citation: '[引用: data.operatingCashFlow]' },
-    { patterns: ['10,489,748', '10489748', '-10,489,748', '-10489748'], citation: '[引用: data.investingCashFlow]' },
-    { patterns: ['4,340,879', '4340879'], citation: '[引用: data.financingCashFlow]' },
-    { patterns: ['410,984', '410984', '-410,984', '-410984'], citation: '[引用: data.hospitalSegmentLoss]' },
-    { patterns: ['598,995', '598995', '-598,995', '-598995'], citation: '[引用: data.netLoss]' },
-    { patterns: ['71,892,603', '71892603'], citation: '[引用: data.totalAssets]' }
+    { patterns: ['654,006', '654006', '-654,006', '-654006', '654006千円', '654,006千円'], citation: '[引用: data.ordinaryLoss]' },
+    { patterns: ['27,947,258', '27947258', '27947258千円', '27,947,258千円'], citation: '[引用: data.totalLiabilities]' },
+    { patterns: ['43,945,344', '43945344', '43945344千円', '43,945,344千円'], citation: '[引用: data.totalNetAssets]' },
+    { patterns: ['8,838,001', '8838001', '8838001千円', '8,838,001千円'], citation: '[引用: data.currentAssets]' },
+    { patterns: ['7,020,870', '7020870', '7020870千円', '7,020,870千円'], citation: '[引用: data.currentLiabilities]' },
+    { patterns: ['1,469,768', '1469768', '1469768千円', '1,469,768千円'], citation: '[引用: data.operatingCashFlow]' },
+    { patterns: ['10,489,748', '10489748', '-10,489,748', '-10489748', '10489748千円', '10,489,748千円'], citation: '[引用: data.investingCashFlow]' },
+    { patterns: ['4,340,879', '4340879', '4340879千円', '4,340,879千円'], citation: '[引用: data.financingCashFlow]' },
+    { patterns: ['410,984', '410984', '-410,984', '-410984', '410984千円', '410,984千円'], citation: '[引用: data.hospitalSegmentLoss]' },
+    { patterns: ['598,995', '598995', '-598,995', '-598995', '598995千円', '598,995千円'], citation: '[引用: data.netLoss]' },
+    { patterns: ['71,892,603', '71892603', '71892603千円', '71,892,603千円'], citation: '[引用: data.totalAssets]' }
   ];
 
   citationMap.forEach(({ patterns, citation }) => {
     patterns.forEach(pattern => {
       const escapedPattern = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const regex = new RegExp(`\\b${escapedPattern}(?!\\s*\\[引用)`, 'g');
-      citedText = citedText.replace(regex, `${pattern}${citation}`);
+      const regex = new RegExp(`(${escapedPattern})(?!\\s*\\[引用)`, 'g');
+      citedText = citedText.replace(regex, `$1${citation}`);
     });
   });
+
+  console.log('Citation mapping applied. Sample before/after:');
+  console.log('Before:', text.substring(0, 200));
+  console.log('After:', citedText.substring(0, 200));
 
   return citedText;
 }
