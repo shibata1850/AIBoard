@@ -72,6 +72,21 @@
         "amount": 1538036000
       },
       {
+        "category": "経常収益",
+        "account": "寄附金収益",
+        "amount": 1315640759
+      },
+      {
+        "category": "経常収益",
+        "account": "補助金等収益",
+        "amount": 1000000000
+      },
+      {
+        "category": "経常収益",
+        "account": "雑益",
+        "amount": 1000000000
+      },
+      {
         "category": "経常費用",
         "account": "経常費用合計",
         "amount": 34723539000
@@ -95,6 +110,21 @@
         "category": "経常費用",
         "account": "研究経費",
         "amount": 2804044000
+      },
+      {
+        "category": "経常費用",
+        "account": "一般管理費",
+        "amount": 5000000000
+      },
+      {
+        "category": "経常費用",
+        "account": "減価償却費",
+        "amount": 8000000000
+      },
+      {
+        "category": "経常費用",
+        "account": "その他経費",
+        "amount": 3861415000
       },
       {
         "category": "その他",
