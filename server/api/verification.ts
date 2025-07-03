@@ -1,4 +1,4 @@
-import { ExtractedFinancialData, FinancialStatements } from '../../types/financialStatements';
+import { ExtractedFinancialData } from '../../types/financialStatements';
 
 export interface VerificationResult {
   isValid: boolean;
@@ -63,6 +63,46 @@ export function performAutomaticIntegrityCheck(data: ExtractedFinancialData): Ve
     difference: number;
     passed: boolean;
   }> = [];
+  
+  const revenueItems = incomeStatement.経常収益;
+  const calculatedRevenueTotal = Object.entries(revenueItems)
+    .filter(([key, value]) => key !== '経常収益合計' && typeof value === 'number')
+    .reduce((sum, [, value]) => sum + (value as number), 0);
+
+  const revenueTotalDiff = Math.abs(calculatedRevenueTotal - revenueItems.経常収益合計);
+  const revenueTotalPassed = revenueTotalDiff <= tolerance;
+
+  incomeChecks.push({
+    name: '経常収益内訳合計チェック',
+    expected: revenueItems.経常収益合計,
+    actual: calculatedRevenueTotal,
+    difference: revenueTotalDiff,
+    passed: revenueTotalPassed
+  });
+
+  if (!revenueTotalPassed) {
+    warnings.push(`経常収益の内訳合計に誤差があります。差額: ${revenueTotalDiff.toLocaleString()}円`);
+  }
+
+  const expenseItems = incomeStatement.経常費用;
+  const calculatedExpenseTotal = Object.entries(expenseItems)
+    .filter(([key, value]) => key !== '経常費用合計' && typeof value === 'number')
+    .reduce((sum, [, value]) => sum + (value as number), 0);
+
+  const expenseTotalDiff = Math.abs(calculatedExpenseTotal - expenseItems.経常費用合計);
+  const expenseTotalPassed = expenseTotalDiff <= tolerance;
+
+  incomeChecks.push({
+    name: '経常費用内訳合計チェック',
+    expected: expenseItems.経常費用合計,
+    actual: calculatedExpenseTotal,
+    difference: expenseTotalDiff,
+    passed: expenseTotalPassed
+  });
+
+  if (!expenseTotalPassed) {
+    warnings.push(`経常費用の内訳合計に誤差があります。差額: ${expenseTotalDiff.toLocaleString()}円`);
+  }
   
   const expectedOrdinaryIncome = incomeStatement.経常収益.経常収益合計 - incomeStatement.経常費用.経常費用合計;
   const actualOrdinaryIncome = incomeStatement.経常利益;
