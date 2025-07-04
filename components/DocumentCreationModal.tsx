@@ -175,11 +175,13 @@ export function DocumentCreationModal({
             URL.revokeObjectURL(url);
           }, 1000);
           
-          Alert.alert(
-            '成功',
-            'HTMLレポートのダウンロードが開始されました',
-            [{ text: 'OK', onPress: onClose }]
-          );
+          setTimeout(() => {
+            Alert.alert(
+              '成功',
+              'HTMLレポートのダウンロードが開始されました',
+              [{ text: 'OK', onPress: onClose }]
+            );
+          }, 500);
         } catch (downloadError) {
           console.error('Download error:', downloadError);
           Alert.alert(
