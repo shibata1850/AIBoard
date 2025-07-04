@@ -112,7 +112,7 @@ export function DocumentCreationModal({
                 '附属病院事業の効率化と収益向上',
                 '運営費交付金以外の収益源多様化',
                 '経営管理システムの高度化'
-              ].filter(rec => typeof rec === 'string')
+              ].filter(rec => typeof rec === 'string' && rec.length > 0)
             },
             extractedText: analysisContent
           };
@@ -127,7 +127,7 @@ export function DocumentCreationModal({
           ratios: {},
           analysis: {
             summary: 'テキスト形式の分析データ',
-            recommendations: ['データ構造の改善', '分析精度の向上'].filter(rec => typeof rec === 'string')
+            recommendations: ['データ構造の改善', '分析精度の向上'].filter(rec => typeof rec === 'string' && rec.length > 0)
           },
           extractedText: analysisContent
         };
