@@ -99,4 +99,4 @@ eas submit --platform all
 ## 検証済み
 
 - リポジトリアクセス: ✅
-- Lintコマンド実行: ✅ (2024年6月10日に検証済み)
+- Lintコマンド実行: ✅ (2025年7月4日に再検証済み - 69 warnings detected)
