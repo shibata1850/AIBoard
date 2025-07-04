@@ -46,7 +46,25 @@ export function DocumentCreationModal({
       
       try {
         const parsedContent = JSON.parse(analysisContent);
-        if (parsedContent.financial_statements) {
+        
+        if (parsedContent.statements && parsedContent.ratios) {
+          console.log('Using structured financial data from analysis');
+          reportData = {
+            companyName: '国立大学法人',
+            fiscalYear: '2023年度',
+            statements: parsedContent.statements,
+            ratios: parsedContent.ratios,
+            analysis: {
+              summary: '構造化された財務データに基づく分析',
+              recommendations: [
+                '財務健全性の維持',
+                '収益性の改善',
+                'キャッシュフロー管理の強化'
+              ]
+            },
+            extractedText: typeof (parsedContent.text || analysisContent) === 'string' ? (parsedContent.text || analysisContent) : JSON.stringify(parsedContent.text || analysisContent)
+          };
+        } else if (parsedContent.financial_statements) {
           const balanceSheetAssets = parsedContent.financial_statements.find((item: any) => item.tableName === "貸借対照表 - 資産の部");
           const balanceSheetLiabilities = parsedContent.financial_statements.find((item: any) => item.tableName === "貸借対照表 - 負債・純資産の部");
           const incomeStatement = parsedContent.financial_statements.find((item: any) => item.tableName === "損益計算書");
@@ -114,12 +132,15 @@ export function DocumentCreationModal({
                 '経営管理システムの高度化'
               ].filter(rec => typeof rec === 'string' && rec.length > 0)
             },
-            extractedText: analysisContent
+            extractedText: typeof (parsedContent.text || analysisContent) === 'string' ? (parsedContent.text || analysisContent) : JSON.stringify(parsedContent.text || analysisContent)
           };
+        } else if (parsedContent.text) {
+          throw new Error('Text-only analysis, use fallback');
         } else {
-          throw new Error('Not structured data');
+          throw new Error('Unknown data format');
         }
       } catch (parseError) {
+        console.log('Using fallback data due to parse error:', parseError);
         reportData = {
           companyName: '国立大学法人',
           fiscalYear: '2023年度',
