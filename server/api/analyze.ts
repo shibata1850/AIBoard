@@ -206,14 +206,14 @@ export async function analyzeDocument(content: string) {
       if (structuredData && structuredData.statements) {
         console.log('Using Chain of Thought analysis for extracted structured financial data');
         const analysisResult = await performChainOfThoughtAnalysis(structuredData, genAI);
-        return { text: analysisResult };
+        return { text: analysisResult, statements: structuredData.statements, ratios: structuredData.ratios };
       } else {
         console.log('Structured data extraction failed, falling back to enhanced PDF processing');
         const enhancedData = await enhanceWithUnifiedExtractor(content);
         if (enhancedData && enhancedData.statements) {
           console.log('Using Chain of Thought analysis with UnifiedFinancialExtractor data');
           const analysisResult = await performChainOfThoughtAnalysis(enhancedData, genAI);
-          return { text: analysisResult };
+          return { text: analysisResult, statements: enhancedData.statements, ratios: enhancedData.ratios };
         }
       }
     }
@@ -228,14 +228,14 @@ export async function analyzeDocument(content: string) {
         if (structuredData && structuredData.statements) {
           console.log('Using Chain of Thought analysis for transformed financial data');
           const analysisResult = await performChainOfThoughtAnalysis(structuredData, genAI);
-          return { text: analysisResult };
+          return { text: analysisResult, statements: structuredData.statements, ratios: structuredData.ratios };
         }
       }
       
       if (rawData.statements && rawData.ratios) {
         console.log('Using Chain of Thought analysis for structured financial data');
         const analysisResult = await performChainOfThoughtAnalysis(rawData, genAI);
-        return { text: analysisResult };
+        return { text: analysisResult, statements: rawData.statements, ratios: rawData.ratios };
       }
     } catch (parseError) {
       console.log('Content is not structured data, using traditional analysis');

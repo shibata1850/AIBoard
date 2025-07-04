@@ -110,7 +110,7 @@ export default function AnalysisPage() {
       }
 
       const result = await analyzeDocument(contentToAnalyze);
-      setAnalysisResult(result);
+      setAnalysisResult(JSON.stringify(result));
       setError(null); // 成功したらエラーをクリア
       
       if (user) {
