@@ -1,0 +1,196 @@
+{
+  "companyName": "国立大学法人山梨大学",
+  "fiscalYear": "平成27事業年度",
+  "extractionDate": "2025-07-02",
+  "totalTables": 8,
+  "financialStatements": [
+    {
+      "tableName": "貸借対照表",
+      "unit": "千円",
+      "data": [
+        {
+          "category": "資産の部",
+          "account": "流動資産合計",
+          "amount": 8838001
+        },
+        {
+          "category": "資産の部",
+          "account": "固定資産合計",
+          "amount": 63054601
+        },
+        {
+          "category": "資産の部",
+          "account": "資産合計",
+          "amount": 71892603
+        },
+        {
+          "category": "負債の部",
+          "account": "流動負債合計",
+          "amount": 7020870
+        },
+        {
+          "category": "負債の部",
+          "account": "負債合計",
+          "amount": 27947258
+        },
+        {
+          "category": "純資産の部",
+          "account": "純資産合計",
+          "amount": 43945344
+        }
+      ]
+    },
+    {
+      "tableName": "損益計算書",
+      "unit": "千円",
+      "data": [
+        {
+          "category": "経常収益",
+          "account": "経常収益合計",
+          "amount": 34069533
+        },
+        {
+          "category": "経常収益",
+          "account": "附属病院収益",
+          "amount": 17100614
+        },
+        {
+          "category": "経常収益",
+          "account": "運営費交付金収益",
+          "amount": 9665735
+        },
+        {
+          "category": "経常収益",
+          "account": "学生納付金等収益",
+          "amount": 2870000
+        },
+        {
+          "category": "経常収益",
+          "account": "受託研究等収益",
+          "amount": 1540000
+        },
+        {
+          "category": "経常費用",
+          "account": "経常費用合計",
+          "amount": 34723539
+        },
+        {
+          "category": "経常費用",
+          "account": "人件費",
+          "amount": 16320000
+        },
+        {
+          "category": "経常費用",
+          "account": "診療経費",
+          "amount": 12500000
+        },
+        {
+          "category": "経常費用",
+          "account": "教育経費",
+          "amount": 1560000
+        },
+        {
+          "category": "経常費用",
+          "account": "研究経費",
+          "amount": 1560000
+        },
+        {
+          "category": "損益",
+          "account": "経常損失",
+          "amount": -411000
+        },
+        {
+          "category": "損益",
+          "account": "当期純損失",
+          "amount": -598995
+        }
+      ]
+    },
+    {
+      "tableName": "キャッシュフロー計算書",
+      "unit": "千円",
+      "data": [
+        {
+          "category": "営業活動によるキャッシュフロー",
+          "account": "営業活動によるキャッシュフロー合計",
+          "amount": 1470000
+        },
+        {
+          "category": "投資活動によるキャッシュフロー",
+          "account": "投資活動によるキャッシュフロー合計",
+          "amount": -10640000
+        },
+        {
+          "category": "財務活動によるキャッシュフロー",
+          "account": "財務活動によるキャッシュフロー合計",
+          "amount": 4360000
+        }
+      ]
+    },
+    {
+      "tableName": "国立大学法人等業務実施コスト計算書",
+      "unit": "千円",
+      "data": [
+        {
+          "category": "業務実施コスト",
+          "account": "業務実施コスト合計",
+          "amount": 0
+        }
+      ]
+    },
+    {
+      "tableName": "固定資産の取得及び処分並びに減価償却費及び減損損失の明細",
+      "unit": "千円",
+      "data": [
+        {
+          "category": "固定資産",
+          "account": "固定資産明細",
+          "amount": 0
+        }
+      ]
+    },
+    {
+      "tableName": "借入金の明細",
+      "unit": "千円",
+      "data": [
+        {
+          "category": "借入金",
+          "account": "借入金明細",
+          "amount": 0
+        }
+      ]
+    },
+    {
+      "tableName": "業務費及び一般管理費の明細",
+      "unit": "千円",
+      "data": [
+        {
+          "category": "業務費及び一般管理費",
+          "account": "業務費及び一般管理費明細",
+          "amount": 0
+        }
+      ]
+    },
+    {
+      "tableName": "開示すべきセグメント情報",
+      "unit": "千円",
+      "data": [
+        {
+          "category": "セグメント情報",
+          "account": "附属病院業務損益",
+          "amount": -410984
+        },
+        {
+          "category": "セグメント情報",
+          "account": "学部・研究科等業務損益",
+          "amount": 350000
+        },
+        {
+          "category": "セグメント情報",
+          "account": "附属学校業務損益",
+          "amount": -90000
+        }
+      ]
+    }
+  ]
+}

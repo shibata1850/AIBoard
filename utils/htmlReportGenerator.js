@@ -223,10 +223,11 @@ function generateHTMLReport(data) {
         function processLabels(labels) {
             const maxLen = 16;
             return labels.map(label => {
-                if (label.length <= maxLen) {
-                    return label;
+                const labelStr = String(label || '');
+                if (labelStr.length <= maxLen) {
+                    return labelStr;
                 }
-                const words = label.split(' ');
+                const words = labelStr.split(' ');
                 let currentLine = '';
                 const lines = [];
                 words.forEach(word => {
