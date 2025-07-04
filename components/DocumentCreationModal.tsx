@@ -133,7 +133,7 @@ export function DocumentCreationModal({
         };
       }
 
-      const htmlContent = generateHTMLReport(reportData);
+      const htmlContent = generateHTMLReport(reportData as any);
       
       const fileName = `${title.trim().replace(/[^a-zA-Z0-9]/g, '_')}_report.html`;
       
