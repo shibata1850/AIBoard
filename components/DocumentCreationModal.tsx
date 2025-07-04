@@ -186,7 +186,7 @@ export function DocumentCreationModal({
             
             console.log('Showing success alert and closing modal');
             if (Platform.OS === 'web') {
-              alert('HTMLレポートのダウンロードが開始されました');
+              Alert.alert('成功', 'HTMLレポートのダウンロードが開始されました');
               setTimeout(() => {
                 onClose();
               }, 100);
