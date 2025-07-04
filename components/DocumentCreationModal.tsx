@@ -151,8 +151,15 @@ export function DocumentCreationModal({
         );
       } else {
         try {
+          console.log('Starting web download process...');
+          console.log('HTML content length:', htmlContent.length);
+          
           const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+          console.log('Blob created successfully, size:', blob.size);
+          
           const url = URL.createObjectURL(blob);
+          console.log('Object URL created:', url);
+          
           const link = document.createElement('a');
           link.href = url;
           link.download = fileName;
@@ -160,22 +167,29 @@ export function DocumentCreationModal({
           link.target = '_blank';
           link.rel = 'noopener noreferrer';
           
+          console.log('Download link created with filename:', fileName);
+          
           document.body.appendChild(link);
+          console.log('Link appended to document body');
           
           if (link.click) {
+            console.log('Triggering download via link.click()');
             link.click();
           } else if (document.createEvent) {
+            console.log('Triggering download via createEvent');
             const event = document.createEvent('MouseEvents');
             event.initEvent('click', true, true);
             link.dispatchEvent(event);
           }
           
           setTimeout(() => {
+            console.log('Cleaning up download link and URL');
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
           }, 1000);
           
           setTimeout(() => {
+            console.log('Showing success alert and closing modal');
             Alert.alert(
               '成功',
               'HTMLレポートのダウンロードが開始されました',
