@@ -164,38 +164,25 @@ export function DocumentCreationModal({
           link.href = url;
           link.download = fileName;
           link.style.display = 'none';
-          link.target = '_blank';
-          link.rel = 'noopener noreferrer';
           
           console.log('Download link created with filename:', fileName);
           
           document.body.appendChild(link);
           console.log('Link appended to document body');
           
-          if (link.click) {
-            console.log('Triggering download via link.click()');
-            link.click();
-          } else if (document.createEvent) {
-            console.log('Triggering download via createEvent');
-            const event = document.createEvent('MouseEvents');
-            event.initEvent('click', true, true);
-            link.dispatchEvent(event);
-          }
+          console.log('Triggering download via link.click()');
+          link.click();
           
-          setTimeout(() => {
-            console.log('Cleaning up download link and URL');
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-          }, 1000);
+          console.log('Cleaning up download link and URL');
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
           
-          setTimeout(() => {
-            console.log('Showing success alert and closing modal');
-            Alert.alert(
-              '成功',
-              'HTMLレポートのダウンロードが開始されました',
-              [{ text: 'OK', onPress: onClose }]
-            );
-          }, 500);
+          console.log('Showing success alert and closing modal');
+          Alert.alert(
+            '成功',
+            'HTMLレポートのダウンロードが開始されました',
+            [{ text: 'OK', onPress: onClose }]
+          );
         } catch (downloadError) {
           console.error('Download error:', downloadError);
           Alert.alert(
