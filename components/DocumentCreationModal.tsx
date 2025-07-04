@@ -185,11 +185,16 @@ export function DocumentCreationModal({
             URL.revokeObjectURL(url);
             
             console.log('Showing success alert and closing modal');
-            Alert.alert(
-              '成功',
-              'HTMLレポートのダウンロードが開始されました',
-              [{ text: 'OK', onPress: onClose }]
-            );
+            if (Platform.OS === 'web') {
+              onClose();
+              alert('HTMLレポートのダウンロードが開始されました');
+            } else {
+              Alert.alert(
+                '成功',
+                'HTMLレポートのダウンロードが開始されました',
+                [{ text: 'OK', onPress: onClose }]
+              );
+            }
           }, 1000);
         } catch (downloadError) {
           console.error('Download error:', downloadError);
