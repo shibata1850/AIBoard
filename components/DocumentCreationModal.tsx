@@ -150,25 +150,43 @@ export function DocumentCreationModal({
           [{ text: 'OK', onPress: onClose }]
         );
       } else {
-        const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = fileName;
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        setTimeout(() => {
-          URL.revokeObjectURL(url);
-        }, 100);
-        
-        Alert.alert(
-          '成功',
-          'HTMLレポートのダウンロードが開始されました',
-          [{ text: 'OK', onPress: onClose }]
-        );
+        try {
+          const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = fileName;
+          link.style.display = 'none';
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+          
+          document.body.appendChild(link);
+          
+          if (link.click) {
+            link.click();
+          } else if (document.createEvent) {
+            const event = document.createEvent('MouseEvents');
+            event.initEvent('click', true, true);
+            link.dispatchEvent(event);
+          }
+          
+          setTimeout(() => {
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+          }, 1000);
+          
+          Alert.alert(
+            '成功',
+            'HTMLレポートのダウンロードが開始されました',
+            [{ text: 'OK', onPress: onClose }]
+          );
+        } catch (downloadError) {
+          console.error('Download error:', downloadError);
+          Alert.alert(
+            'エラー',
+            'ダウンロード中にエラーが発生しました。ブラウザの設定を確認してください。'
+          );
+        }
       }
     } catch (error) {
       console.error('HTML report generation error:', error);
