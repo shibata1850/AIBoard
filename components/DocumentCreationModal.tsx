@@ -171,18 +171,26 @@ export function DocumentCreationModal({
           console.log('Link appended to document body');
           
           console.log('Triggering download via link.click()');
-          link.click();
           
-          console.log('Cleaning up download link and URL');
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
+          setTimeout(() => {
+            link.click();
+            console.log('Download triggered');
+          }, 100);
           
-          console.log('Showing success alert and closing modal');
-          Alert.alert(
-            '成功',
-            'HTMLレポートのダウンロードが開始されました',
-            [{ text: 'OK', onPress: onClose }]
-          );
+          setTimeout(() => {
+            console.log('Cleaning up download link and URL');
+            if (document.body.contains(link)) {
+              document.body.removeChild(link);
+            }
+            URL.revokeObjectURL(url);
+            
+            console.log('Showing success alert and closing modal');
+            Alert.alert(
+              '成功',
+              'HTMLレポートのダウンロードが開始されました',
+              [{ text: 'OK', onPress: onClose }]
+            );
+          }, 1000);
         } catch (downloadError) {
           console.error('Download error:', downloadError);
           Alert.alert(
