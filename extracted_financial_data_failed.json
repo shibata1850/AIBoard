@@ -1,0 +1,259 @@
+{
+  "financial_statements": [
+    {
+      "tableName": "貸借対照表 - 資産の部",
+      "sourcePage": 3,
+      "unit": "千円",
+      "data": {
+        "fixedAssets": {
+          "total": 63054601,
+          "tangible": {
+            "total": 62227851,
+            "items": [
+              {
+                "account": "土地",
+                "amount": 23779853
+              },
+              {
+                "account": "建物",
+                "amount": 24132543
+              },
+              {
+                "account": "構築物",
+                "amount": 1182288
+              },
+              {
+                "account": "機械装置",
+                "amount": 95023
+              },
+              {
+                "account": "工具器具備品",
+                "amount": 10170562
+              },
+              {
+                "account": "図書",
+                "amount": 2623389
+              },
+              {
+                "account": "建設仮勘定",
+                "amount": 204586
+              }
+            ]
+          },
+          "intangible": {
+            "total": 226791
+          },
+          "investmentsAndOther": {
+            "total": 599959
+          }
+        },
+        "currentAssets": {
+          "total": 8838001,
+          "items": [
+            {
+              "account": "現金及び預金",
+              "amount": 4346107
+            },
+            {
+              "account": "未収附属病院収入",
+              "amount": 3259484
+            },
+            {
+              "account": "その他未収入金",
+              "amount": 855865
+            }
+          ]
+        },
+        "totalAssets": 71892603
+      }
+    },
+    {
+      "tableName": "貸借対照表 - 負債・純資産の部",
+      "sourcePage": 4,
+      "unit": "千円",
+      "data": {
+        "liabilities": {
+          "total": 27947258,
+          "fixedLiabilities": {
+            "total": 20926388,
+            "items": [
+              {
+                "account": "資産見返負債",
+                "amount": 8075262
+              },
+              {
+                "account": "国立大学財務・経営センター債務負担金",
+                "amount": 992106
+              },
+              {
+                "account": "長期借入金",
+                "amount": 10366372
+              },
+              {
+                "account": "退職給付引当金",
+                "amount": 70443
+              }
+            ]
+          },
+          "currentLiabilities": {
+            "total": 7020870,
+            "items": [
+              {
+                "account": "寄附金債務",
+                "amount": 1991176
+              },
+              {
+                "account": "前受受託研究費等",
+                "amount": 517520
+              },
+              {
+                "account": "未払金",
+                "amount": 3572873
+              }
+            ]
+          }
+        },
+        "netAssets": {
+          "total": 43945344,
+          "capitalStock": {
+            "total": 34280637
+          },
+          "capitalSurplus": {
+            "total": 1050059
+          },
+          "retainedEarnings": {
+            "total": 8614648
+          }
+        },
+        "totalLiabilitiesAndNetAssets": 71892603
+      }
+    },
+    {
+      "tableName": "損益計算書",
+      "sourcePage": 5,
+      "unit": "千円",
+      "data": {
+        "ordinaryExpenses": {
+          "total": 34723539,
+          "operatingExpenses": {
+            "total": 33773313,
+            "items": [
+              {
+                "account": "教育経費",
+                "amount": 1557327
+              },
+              {
+                "account": "研究経費",
+                "amount": 1569518
+              },
+              {
+                "account": "診療経費",
+                "amount": 12508491
+              },
+              {
+                "account": "教員人件費",
+                "amount": 7934598
+              },
+              {
+                "account": "職員人件費",
+                "amount": 8313685
+              }
+            ]
+          },
+          "generalAndAdministrativeExpenses": 829565,
+          "financialExpenses": 120300
+        },
+        "ordinaryRevenues": {
+          "total": 34069533,
+          "items": [
+            {
+              "account": "運営費交付金収益",
+              "amount": 9665735
+            },
+            {
+              "account": "授業料収益",
+              "amount": 2443766
+            },
+            {
+              "account": "附属病院収益",
+              "amount": 17100614
+            },
+            {
+              "account": "資産見返負債戻入",
+              "amount": 1106681
+            }
+          ]
+        },
+        "ordinaryLoss": -654006,
+        "extraordinaryLosses": 22927,
+        "extraordinaryGains": 77938,
+        "netLoss": -598995,
+        "totalLoss": -325961
+      }
+    },
+    {
+      "tableName": "キャッシュ・フロー計算書",
+      "sourcePage": 6,
+      "unit": "千円",
+      "data": {
+        "operatingActivities": 1469768,
+        "investingActivities": -10489748,
+        "financingActivities": 4340879,
+        "netDecreaseInCash": -4679100,
+        "cashBeginningBalance": 7825207,
+        "cashEndingBalance": 3146107
+      }
+    },
+    {
+      "tableName": "セグメント情報",
+      "sourcePage": 24,
+      "unit": "千円",
+      "data": {
+        "operatingProfitLoss": [
+          {
+            "segment": "学部研究科等",
+            "amount": 354270
+          },
+          {
+            "segment": "附属病院",
+            "amount": -410984
+          },
+          {
+            "segment": "附属学校",
+            "amount": -93455
+          },
+          {
+            "segment": "法人共通",
+            "amount": -503837
+          },
+          {
+            "segment": "合計",
+            "amount": -654006
+          }
+        ],
+        "segmentAssets": [
+          {
+            "segment": "学部研究科等",
+            "amount": 31197116
+          },
+          {
+            "segment": "附属病院",
+            "amount": 27942693
+          },
+          {
+            "segment": "附属学校",
+            "amount": 4653446
+          },
+          {
+            "segment": "法人共通",
+            "amount": 8099346
+          },
+          {
+            "segment": "合計",
+            "amount": 71892603
+          }
+        ]
+      }
+    }
+  ]
+}

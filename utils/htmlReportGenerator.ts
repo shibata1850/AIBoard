@@ -237,7 +237,7 @@ export function generateHTMLReport(data: ReportData): string {
             </div>
             <div class="bg-white p-6 rounded-lg shadow-md">
                 <div class="prose max-w-none">
-                    ${analysis.split('\n').map(paragraph => 
+                    ${String(analysis || '').split('\n').map(paragraph => 
                         paragraph.trim() ? `<p class="mb-4 text-gray-700">${paragraph.trim()}</p>` : ''
                     ).join('')}
                 </div>
