@@ -186,8 +186,10 @@ export function DocumentCreationModal({
             
             console.log('Showing success alert and closing modal');
             if (Platform.OS === 'web') {
-              onClose();
               alert('HTMLレポートのダウンロードが開始されました');
+              setTimeout(() => {
+                onClose();
+              }, 100);
             } else {
               Alert.alert(
                 '成功',
