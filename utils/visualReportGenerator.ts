@@ -55,7 +55,7 @@ export function parseFinancialData(analysisContent: string): ParsedFinancialData
     trend: 'positive' | 'negative' | 'neutral';
   }> = [];
 
-  const lines = analysisContent.split('\n');
+  const lines = String(analysisContent || '').split('\n');
   let revenue: number | undefined, profit: number | undefined, expenses: number | undefined;
   let assets: number | undefined, liabilities: number | undefined, equity: number | undefined;
 
@@ -82,7 +82,8 @@ export function parseFinancialData(analysisContent: string): ParsedFinancialData
       if (percentMatch) {
         const value = parseFloat(percentMatch[1]);
         const trend = value > 0 ? 'positive' : value < 0 ? 'negative' : 'neutral';
-        const rawLabel = line.split(':')[0] || line.split('：')[0] || '指標';
+        const lineStr = String(line || '');
+        const rawLabel = lineStr.split(':')[0] || lineStr.split('：')[0] || '指標';
         const cleanLabel = rawLabel
           .replace(/^\*+\s*/, '')
           .replace(/\*\*/g, '')
@@ -212,7 +213,7 @@ export function parseEnhancedFinancialData(analysisContent: string): EnhancedFin
   const riskFactors: string[] = [];
   const recommendations: string[] = [];
   
-  const lines = analysisContent.split('\n');
+  const lines = String(analysisContent || '').split('\n');
   
   lines.forEach(line => {
     const lowerLine = line.toLowerCase();

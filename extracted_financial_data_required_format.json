@@ -1,0 +1,185 @@
+[
+  {
+    "tableName": "貸借対照表",
+    "sourcePage": 1,
+    "unit": "千円",
+    "data": [
+      {
+        "category": "資産の部",
+        "account": "流動資産合計",
+        "amount": 8842790169
+      },
+      {
+        "category": "資産の部",
+        "account": "固定資産合計",
+        "amount": 63049812831
+      },
+      {
+        "category": "資産の部",
+        "account": "資産合計",
+        "amount": 71892603000
+      },
+      {
+        "category": "負債の部",
+        "account": "流動負債合計",
+        "amount": 7020870000
+      },
+      {
+        "category": "負債の部",
+        "account": "固定負債合計",
+        "amount": 20926388000
+      },
+      {
+        "category": "負債の部",
+        "account": "負債合計",
+        "amount": 27947258000
+      },
+      {
+        "category": "純資産の部",
+        "account": "純資産合計",
+        "amount": 43945345000
+      }
+    ]
+  },
+  {
+    "tableName": "損益計算書",
+    "sourcePage": 2,
+    "unit": "千円",
+    "data": [
+      {
+        "category": "経常収益",
+        "account": "経常収益合計",
+        "amount": 34063791759
+      },
+      {
+        "category": "経常収益",
+        "account": "運営費交付金収益",
+        "amount": 9665735000
+      },
+      {
+        "category": "経常収益",
+        "account": "附属病院収益",
+        "amount": 17100614000
+      },
+      {
+        "category": "経常収益",
+        "account": "学生納付金等収益",
+        "amount": 2443766000
+      },
+      {
+        "category": "経常収益",
+        "account": "受託研究等収益",
+        "amount": 1538036000
+      },
+      {
+        "category": "経常収益",
+        "account": "寄附金収益",
+        "amount": 1315640759
+      },
+      {
+        "category": "経常収益",
+        "account": "補助金等収益",
+        "amount": 1000000000
+      },
+      {
+        "category": "経常収益",
+        "account": "雑益",
+        "amount": 1000000000
+      },
+      {
+        "category": "経常費用",
+        "account": "経常費用合計",
+        "amount": 34723539000
+      },
+      {
+        "category": "経常費用",
+        "account": "人件費",
+        "amount": 12508491000
+      },
+      {
+        "category": "経常費用",
+        "account": "診療経費",
+        "amount": 1569518000
+      },
+      {
+        "category": "経常費用",
+        "account": "教育経費",
+        "amount": 980071000
+      },
+      {
+        "category": "経常費用",
+        "account": "研究経費",
+        "amount": 2804044000
+      },
+      {
+        "category": "経常費用",
+        "account": "一般管理費",
+        "amount": 5000000000
+      },
+      {
+        "category": "経常費用",
+        "account": "減価償却費",
+        "amount": 8000000000
+      },
+      {
+        "category": "経常費用",
+        "account": "その他経費",
+        "amount": 3861415000
+      },
+      {
+        "category": "その他",
+        "account": "経常損失",
+        "amount": 659747241
+      },
+      {
+        "category": "その他",
+        "account": "当期純損失",
+        "amount": 329873620
+      }
+    ]
+  },
+  {
+    "tableName": "キャッシュフロー計算書",
+    "sourcePage": 3,
+    "unit": "千円",
+    "data": [
+      {
+        "category": "営業活動によるキャッシュフロー",
+        "account": "営業活動によるキャッシュフロー合計",
+        "amount": 1464743045
+      },
+      {
+        "category": "投資活動によるキャッシュフロー",
+        "account": "投資活動によるキャッシュフロー合計",
+        "amount": -10559775445
+      },
+      {
+        "category": "財務活動によるキャッシュフロー",
+        "account": "財務活動によるキャッシュフロー合計",
+        "amount": 4326101553
+      }
+    ]
+  },
+  {
+    "tableName": "セグメント情報",
+    "sourcePage": 4,
+    "unit": "千円",
+    "data": [
+      {
+        "category": "学部・研究科等",
+        "account": "業務損益",
+        "amount": 349336400
+      },
+      {
+        "category": "附属病院",
+        "account": "業務損益",
+        "amount": -410984000
+      },
+      {
+        "category": "附属学校",
+        "account": "業務損益",
+        "amount": -90416480
+      }
+    ]
+  }
+]
