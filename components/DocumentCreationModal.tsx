@@ -178,8 +178,10 @@ export function DocumentCreationModal({
         };
         
         const extractedNumbers = extractFinancialNumbers(analysisContent);
+        console.log('Extracted numbers:', extractedNumbers);
         
         const totalAssets = (extractedNumbers.totalLiabilities || 27947258000) + (extractedNumbers.totalNetAssets || 43945344000);
+        console.log('Calculated total assets:', totalAssets);
         
         reportData = {
           companyName: '国立大学法人',
@@ -199,6 +201,9 @@ export function DocumentCreationModal({
                 負債合計: extractedNumbers.totalLiabilities || 27947258000,
                 流動負債: {
                   流動負債合計: extractedNumbers.currentLiabilities || 7020870000
+                },
+                固定負債: {
+                  固定負債合計: (extractedNumbers.totalLiabilities || 27947258000) - (extractedNumbers.currentLiabilities || 7020870000)
                 }
               },
               純資産の部: {
