@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system';
+import { downloadHTMLReport } from './downloadUtils';
 
 export interface VisualReportOptions {
   title: string;
@@ -952,20 +953,11 @@ export async function generateVisualReport(options: VisualReportOptions): Promis
   const htmlContent = generateVisualReportHTML(options);
   const fileName = `${options.title.replace(/[^a-zA-Z0-9]/g, '_')}_visual_report.html`;
   
-  if (Platform.OS === 'web') {
-    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = fileName;
-    link.click();
-    URL.revokeObjectURL(url);
-    return url;
-  } else {
-    const fileUri = `${FileSystem.documentDirectory}${fileName}`;
-    await FileSystem.writeAsStringAsync(fileUri, htmlContent, {
-      encoding: FileSystem.EncodingType.UTF8,
-    });
-    return fileUri;
+  try {
+    await downloadHTMLReport(htmlContent, fileName);
+    return fileName;
+  } catch (error) {
+    console.error('Visual report generation error:', error);
+    throw new Error('ビジュアルレポートの生成中にエラーが発生しました');
   }
 }

@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useTheme } from './ThemeProvider';
 import { generateHTMLReport } from '../utils/htmlReportGenerator';
+import { downloadHTMLReport } from '../utils/downloadUtils';
 import { FileText } from 'lucide-react-native';
 
 interface DocumentCreationModalProps {
@@ -151,53 +152,9 @@ export function DocumentCreationModal({
         );
       } else {
         try {
-          console.log('Starting web download process...');
-          console.log('HTML content length:', htmlContent.length);
-          
-          const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
-          console.log('Blob created successfully, size:', blob.size);
-          
-          const url = URL.createObjectURL(blob);
-          console.log('Object URL created:', url);
-          
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = fileName;
-          link.style.display = 'none';
-          
-          console.log('Download link created with filename:', fileName);
-          
-          document.body.appendChild(link);
-          console.log('Link appended to document body');
-          
-          console.log('Triggering download via link.click()');
-          
-          setTimeout(() => {
-            link.click();
-            console.log('Download triggered');
-          }, 100);
-          
-          setTimeout(() => {
-            console.log('Cleaning up download link and URL');
-            if (document.body.contains(link)) {
-              document.body.removeChild(link);
-            }
-            URL.revokeObjectURL(url);
-            
-            console.log('Showing success alert and closing modal');
-            if (Platform.OS === 'web') {
-              Alert.alert('成功', 'HTMLレポートのダウンロードが開始されました');
-              setTimeout(() => {
-                onClose();
-              }, 100);
-            } else {
-              Alert.alert(
-                '成功',
-                'HTMLレポートのダウンロードが開始されました',
-                [{ text: 'OK', onPress: onClose }]
-              );
-            }
-          }, 1000);
+          await downloadHTMLReport(htmlContent, fileName);
+          Alert.alert('成功', 'HTMLレポートのダウンロードが開始されました');
+          onClose();
         } catch (downloadError) {
           console.error('Download error:', downloadError);
           Alert.alert(
