@@ -92,14 +92,47 @@ export default function AnalysisPage() {
 
           const verificationResult = await response.json();
 
-          if (verificationResult.success) {
-            router.push({
-              pathname: '/(app)/internal/verify',
-              params: {
-                pdfBase64: fileData.content,
-                verificationData: JSON.stringify(verificationResult.verifiedData)
+          if (verificationResult.success && verificationResult.verifiedData) {
+            console.log('Verification successful, storing structured data');
+            setAnalysisResult(JSON.stringify({
+              statements: verificationResult.verifiedData.statements,
+              ratios: verificationResult.verifiedData.ratios,
+              text: verificationResult.verifiedData.analysis || 'Structured financial data extracted successfully'
+            }));
+            setError(null);
+            
+            if (user) {
+              const analysisId = uuidv4();
+              const documentId = uuidv4();
+              
+              try {
+                await supabase
+                  .from('business_documents')
+                  .insert({
+                    id: documentId,
+                    title: fileData.name,
+                    content: JSON.stringify({ 
+                      originalBase64: fileData.content.substring(0, 100) + '...', 
+                      extractedText: contentToAnalyze 
+                    }),
+                    file_type: documentType,
+                    user_id: user.id,
+                  });
+                
+                await supabase
+                  .from('document_analyses')
+                  .insert({
+                    id: analysisId,
+                    document_id: documentId,
+                    analysis_type: 'financial',
+                    content: JSON.stringify(verificationResult.verifiedData),
+                    summary: 'Structured financial data extracted from PDF',
+                    user_id: user.id,
+                  });
+              } catch (dbError) {
+                console.error('Database error:', dbError);
               }
-            });
+            }
             return;
           } else {
             console.error('Verification failed, falling back to direct analysis');

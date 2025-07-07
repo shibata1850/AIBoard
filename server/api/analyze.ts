@@ -416,7 +416,7 @@ export async function analyzeDocument(content: string) {
   }
 }
 
-async function extractStructuredDataFromPdf(base64Content: string): Promise<ExtractedFinancialData | null> {
+export async function extractStructuredDataFromPdf(base64Content: string): Promise<ExtractedFinancialData | null> {
   try {
     const tempDir = path.join(process.cwd(), 'temp');
     if (!fs.existsSync(tempDir)) {
@@ -476,7 +476,7 @@ async function extractStructuredDataFromPdf(base64Content: string): Promise<Extr
   }
 }
 
-async function enhanceWithUnifiedExtractor(base64Content: string): Promise<ExtractedFinancialData | null> {
+export async function enhanceWithUnifiedExtractor(base64Content: string): Promise<ExtractedFinancialData | null> {
   try {
     const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
     if (!apiKey) {
@@ -564,7 +564,7 @@ async function enhanceWithUnifiedExtractor(base64Content: string): Promise<Extra
   }
 }
 
-function getAccurateFallbackData(): ExtractedFinancialData {
+export function getAccurateFallbackData(): ExtractedFinancialData {
   return {
     statements: {
       貸借対照表: {
@@ -610,7 +610,7 @@ function getAccurateFallbackData(): ExtractedFinancialData {
   };
 }
 
-async function callSpecialistAI(prompt: string, genAI: GoogleGenerativeAI): Promise<string> {
+export async function callSpecialistAI(prompt: string, genAI: GoogleGenerativeAI): Promise<string> {
   try {
     const model = genAI.getGenerativeModel({ 
       model: MODELS.PRIMARY,
@@ -629,7 +629,7 @@ async function callSpecialistAI(prompt: string, genAI: GoogleGenerativeAI): Prom
   }
 }
 
-function addCitationsToText(text: string, structuredData: ExtractedFinancialData): string {
+export function addCitationsToText(text: string, structuredData: ExtractedFinancialData): string {
   let citedText = text;
 
   const citationMap = [
@@ -661,7 +661,7 @@ function addCitationsToText(text: string, structuredData: ExtractedFinancialData
   return citedText;
 }
 
-async function performChainOfThoughtAnalysis(structuredData: ExtractedFinancialData, genAI: GoogleGenerativeAI): Promise<string> {
+export async function performChainOfThoughtAnalysis(structuredData: ExtractedFinancialData, genAI: GoogleGenerativeAI): Promise<string> {
   try {
     console.log('Step 1: Performing safety analysis');
     const safetyPrompt = ChainOfThoughtPrompts.createSafetyAnalysisPrompt(structuredData);
