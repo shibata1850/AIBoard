@@ -64,7 +64,7 @@ export function DocumentCreationModal({
             },
             extractedText: typeof (parsedContent.text || analysisContent) === 'string' ? (parsedContent.text || analysisContent) : JSON.stringify(parsedContent.text || analysisContent)
           };
-        } else if (parsedContent.financial_statements) {
+        } else if (parsedContent.financial_statements && Array.isArray(parsedContent.financial_statements)) {
           const balanceSheetAssets = parsedContent.financial_statements.find((item: any) => item.tableName === "貸借対照表 - 資産の部");
           const balanceSheetLiabilities = parsedContent.financial_statements.find((item: any) => item.tableName === "貸借対照表 - 負債・純資産の部");
           const incomeStatement = parsedContent.financial_statements.find((item: any) => item.tableName === "損益計算書");
@@ -134,8 +134,19 @@ export function DocumentCreationModal({
             },
             extractedText: typeof (parsedContent.text || analysisContent) === 'string' ? (parsedContent.text || analysisContent) : JSON.stringify(parsedContent.text || analysisContent)
           };
-        } else if (parsedContent.text) {
-          throw new Error('Text-only analysis, use fallback');
+        } else if (parsedContent.text && typeof parsedContent.text === 'string') {
+          console.log('Using text-only analysis data');
+          reportData = {
+            companyName: '国立大学法人',
+            fiscalYear: '2023年度',
+            statements: {},
+            ratios: {},
+            analysis: {
+              summary: 'テキスト形式の分析データ',
+              recommendations: ['データ構造の改善', '分析精度の向上']
+            },
+            extractedText: parsedContent.text
+          };
         } else {
           throw new Error('Unknown data format');
         }
@@ -178,6 +189,10 @@ export function DocumentCreationModal({
           const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
           console.log('Blob created successfully, size:', blob.size);
           
+          if (!blob || blob.size === 0) {
+            throw new Error('Failed to create blob or blob is empty');
+          }
+          
           const url = URL.createObjectURL(blob);
           console.log('Object URL created:', url);
           
@@ -185,6 +200,8 @@ export function DocumentCreationModal({
           link.href = url;
           link.download = fileName;
           link.style.display = 'none';
+          link.setAttribute('target', '_blank');
+          link.setAttribute('rel', 'noopener noreferrer');
           
           console.log('Download link created with filename:', fileName);
           
@@ -192,11 +209,8 @@ export function DocumentCreationModal({
           console.log('Link appended to document body');
           
           console.log('Triggering download via link.click()');
-          
-          setTimeout(() => {
-            link.click();
-            console.log('Download triggered');
-          }, 100);
+          link.click();
+          console.log('Download triggered');
           
           setTimeout(() => {
             console.log('Cleaning up download link and URL');
@@ -206,25 +220,58 @@ export function DocumentCreationModal({
             URL.revokeObjectURL(url);
             
             console.log('Showing success alert and closing modal');
-            if (Platform.OS === 'web') {
-              Alert.alert('成功', 'HTMLレポートのダウンロードが開始されました');
-              setTimeout(() => {
-                onClose();
-              }, 100);
-            } else {
-              Alert.alert(
-                '成功',
-                'HTMLレポートのダウンロードが開始されました',
-                [{ text: 'OK', onPress: onClose }]
-              );
-            }
-          }, 1000);
+            Alert.alert('成功', 'HTMLレポートのダウンロードが開始されました');
+            setTimeout(() => {
+              onClose();
+            }, 100);
+          }, 500);
         } catch (downloadError) {
           console.error('Download error:', downloadError);
-          Alert.alert(
-            'エラー',
-            'ダウンロード中にエラーが発生しました。ブラウザの設定を確認してください。'
-          );
+          
+          try {
+            console.log('Attempting fallback download method...');
+            const fallbackBlob = new Blob([htmlContent], { type: 'application/octet-stream' });
+            const fallbackUrl = URL.createObjectURL(fallbackBlob);
+            
+            const fallbackLink = document.createElement('a');
+            fallbackLink.href = fallbackUrl;
+            fallbackLink.download = fileName;
+            fallbackLink.style.display = 'none';
+            fallbackLink.setAttribute('target', '_blank');
+            
+            document.body.appendChild(fallbackLink);
+            fallbackLink.click();
+            document.body.removeChild(fallbackLink);
+            
+            setTimeout(() => URL.revokeObjectURL(fallbackUrl), 1000);
+            
+            Alert.alert('成功', 'HTMLレポートのダウンロードが開始されました（フォールバック方式）');
+            setTimeout(() => onClose(), 100);
+          } catch (fallbackError) {
+            console.error('Fallback download also failed:', fallbackError);
+            
+            try {
+              console.log('Attempting manual save method...');
+              const dataUri = 'data:text/html;charset=utf-8,' + encodeURIComponent(htmlContent);
+              const manualLink = document.createElement('a');
+              manualLink.href = dataUri;
+              manualLink.download = fileName;
+              manualLink.style.display = 'none';
+              
+              document.body.appendChild(manualLink);
+              manualLink.click();
+              document.body.removeChild(manualLink);
+              
+              Alert.alert('成功', 'HTMLレポートのダウンロードが開始されました（手動保存方式）');
+              setTimeout(() => onClose(), 100);
+            } catch (manualError) {
+              console.error('All download methods failed:', manualError);
+              Alert.alert(
+                'エラー',
+                'ダウンロード中にエラーが発生しました。ブラウザの設定を確認してください。'
+              );
+            }
+          }
         }
       }
     } catch (error) {
