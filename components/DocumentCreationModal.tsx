@@ -154,13 +154,16 @@ export function DocumentCreationModal({
           if (totalLiabilitiesMatch) numbers.totalLiabilities = parseInt(totalLiabilitiesMatch[1].replace(/,/g, ''), 10) * 1000;
           
           const totalAssetsMatch = text.match(/([0-9,]+)\[引用: data\.totalNetAssets\]/);
-          if (totalAssetsMatch) numbers.totalAssets = parseInt(totalAssetsMatch[1].replace(/,/g, ''), 10) * 1000;
+          if (totalAssetsMatch) numbers.totalNetAssets = parseInt(totalAssetsMatch[1].replace(/,/g, ''), 10) * 1000;
           
           const currentAssetsMatch = text.match(/([0-9,]+)\[引用: data\.currentAssets\]/);
           if (currentAssetsMatch) numbers.currentAssets = parseInt(currentAssetsMatch[1].replace(/,/g, ''), 10) * 1000;
           
           const currentLiabilitiesMatch = text.match(/([0-9,]+)\[引用: data\.currentLiabilities\]/);
           if (currentLiabilitiesMatch) numbers.currentLiabilities = parseInt(currentLiabilitiesMatch[1].replace(/,/g, ''), 10) * 1000;
+          
+          const investingCashFlowMatch = text.match(/([0-9,]+)\[引用: data\.investingCashFlow\]/);
+          if (investingCashFlowMatch) numbers.investingCashFlow = parseInt(investingCashFlowMatch[1].replace(/,/g, ''), 10) * 1000;
           
           const operatingLossMatch = text.match(/経常損失.*?(-?[0-9億万千,]+円)/);
           if (operatingLossMatch) {
@@ -172,6 +175,26 @@ export function DocumentCreationModal({
           if (hospitalLossMatch) {
             const amount = hospitalLossMatch[1];
             numbers.hospitalSegmentLoss = parseJapaneseCurrency(amount);
+          }
+          
+          const revenueMatch = text.match(/経常収益.*?([0-9億万千,]+円)/);
+          if (revenueMatch) {
+            numbers.totalRevenue = parseJapaneseCurrency(revenueMatch[1]);
+          }
+          
+          const expenseMatch = text.match(/経常費用.*?([0-9億万千,]+円)/);
+          if (expenseMatch) {
+            numbers.totalExpenses = parseJapaneseCurrency(expenseMatch[1]);
+          }
+          
+          const operatingCashFlowMatch = text.match(/営業活動.*?([0-9,]+,000千円)/);
+          if (operatingCashFlowMatch) {
+            numbers.operatingCashFlow = parseInt(operatingCashFlowMatch[1].replace(/[,千円]/g, ''), 10) * 1000;
+          }
+          
+          const financingCashFlowMatch = text.match(/財務活動.*?([0-9,]+,000千円)/);
+          if (financingCashFlowMatch) {
+            numbers.financingCashFlow = parseInt(financingCashFlowMatch[1].replace(/[,千円]/g, ''), 10) * 1000;
           }
           
           return numbers;
@@ -207,19 +230,19 @@ export function DocumentCreationModal({
                 }
               },
               純資産の部: {
-                純資産合計: (extractedNumbers.totalAssets || 71892603000) - (extractedNumbers.totalLiabilities || 27947258000)
+                純資産合計: extractedNumbers.totalNetAssets || 43945344000
               }
             },
             損益計算書: {
               経常収益: {
-                経常収益合計: 34069533000,
+                経常収益合計: extractedNumbers.totalRevenue || 34069533000,
                 附属病院収益: 15000000000,
                 運営費交付金収益: 12000000000,
                 学生納付金等収益: 3000000000,
                 受託研究等収益: 2000000000
               },
               経常費用: {
-                経常費用合計: 34723539000,
+                経常費用合計: extractedNumbers.totalExpenses || 34723539000,
                 人件費: 20000000000,
                 診療経費: 8000000000,
                 教育経費: 3000000000,
@@ -230,13 +253,13 @@ export function DocumentCreationModal({
             },
             キャッシュフロー計算書: {
               営業活動によるキャッシュフロー: {
-                営業活動によるキャッシュフロー合計: 1470000000
+                営業活動によるキャッシュフロー合計: extractedNumbers.operatingCashFlow || 1470000000
               },
               投資活動によるキャッシュフロー: {
-                投資活動によるキャッシュフロー合計: -10489748000
+                投資活動によるキャッシュフロー合計: extractedNumbers.investingCashFlow || -10489748000
               },
               財務活動によるキャッシュフロー: {
-                財務活動によるキャッシュフロー合計: 4340000000
+                財務活動によるキャッシュフロー合計: extractedNumbers.financingCashFlow || 4340000000
               }
             },
             セグメント情報: {
