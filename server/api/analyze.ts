@@ -201,20 +201,32 @@ export async function analyzeDocument(content: string) {
 
     if (/^[A-Za-z0-9+/=]+$/.test(content) && content.length > 1000) {
       console.log('Attempting to extract structured data from PDF...');
-      const structuredData = await extractStructuredDataFromPdf(content);
       
-      if (structuredData && structuredData.statements) {
-        console.log('Using Chain of Thought analysis for extracted structured financial data');
-        const analysisResult = await performChainOfThoughtAnalysis(structuredData, genAI);
-        return { text: analysisResult, statements: structuredData.statements, ratios: structuredData.ratios };
-      } else {
-        console.log('Structured data extraction failed, falling back to enhanced PDF processing');
+      if (typeof process !== 'undefined' && typeof process.cwd === 'function') {
+        const structuredData = await extractStructuredDataFromPdf(content);
+        
+        if (structuredData && structuredData.statements) {
+          console.log('Using Chain of Thought analysis for extracted structured financial data');
+          const analysisResult = await performChainOfThoughtAnalysis(structuredData, genAI);
+          return { text: analysisResult, statements: structuredData.statements, ratios: structuredData.ratios };
+        }
+        
         const enhancedData = await enhanceWithUnifiedExtractor(content);
         if (enhancedData && enhancedData.statements) {
           console.log('Using Chain of Thought analysis with UnifiedFinancialExtractor data');
           const analysisResult = await performChainOfThoughtAnalysis(enhancedData, genAI);
           return { text: analysisResult, statements: enhancedData.statements, ratios: enhancedData.ratios };
         }
+      } else {
+        console.log('Browser environment detected, skipping server-side PDF extraction');
+      }
+      
+      console.log('Structured data extraction failed, falling back to enhanced PDF processing');
+      const enhancedData = await enhanceWithUnifiedExtractor(content);
+      if (enhancedData && enhancedData.statements) {
+        console.log('Using Chain of Thought analysis with UnifiedFinancialExtractor data');
+        const analysisResult = await performChainOfThoughtAnalysis(enhancedData, genAI);
+        return { text: analysisResult, statements: enhancedData.statements, ratios: enhancedData.ratios };
       }
     }
 

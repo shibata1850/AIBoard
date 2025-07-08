@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system';
+import { downloadHTMLReport } from './downloadUtils';
 
 export interface VisualReportOptions {
   title: string;
@@ -55,7 +56,7 @@ export function parseFinancialData(analysisContent: string): ParsedFinancialData
     trend: 'positive' | 'negative' | 'neutral';
   }> = [];
 
-  const lines = analysisContent.split('\n');
+  const lines = String(analysisContent || '').split('\n');
   let revenue: number | undefined, profit: number | undefined, expenses: number | undefined;
   let assets: number | undefined, liabilities: number | undefined, equity: number | undefined;
 
@@ -82,7 +83,8 @@ export function parseFinancialData(analysisContent: string): ParsedFinancialData
       if (percentMatch) {
         const value = parseFloat(percentMatch[1]);
         const trend = value > 0 ? 'positive' : value < 0 ? 'negative' : 'neutral';
-        const rawLabel = line.split(':')[0] || line.split('：')[0] || '指標';
+        const lineStr = String(line || '');
+        const rawLabel = lineStr.split(':')[0] || lineStr.split('：')[0] || '指標';
         const cleanLabel = rawLabel
           .replace(/^\*+\s*/, '')
           .replace(/\*\*/g, '')
@@ -212,7 +214,7 @@ export function parseEnhancedFinancialData(analysisContent: string): EnhancedFin
   const riskFactors: string[] = [];
   const recommendations: string[] = [];
   
-  const lines = analysisContent.split('\n');
+  const lines = String(analysisContent || '').split('\n');
   
   lines.forEach(line => {
     const lowerLine = line.toLowerCase();
@@ -951,20 +953,11 @@ export async function generateVisualReport(options: VisualReportOptions): Promis
   const htmlContent = generateVisualReportHTML(options);
   const fileName = `${options.title.replace(/[^a-zA-Z0-9]/g, '_')}_visual_report.html`;
   
-  if (Platform.OS === 'web') {
-    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = fileName;
-    link.click();
-    URL.revokeObjectURL(url);
-    return url;
-  } else {
-    const fileUri = `${FileSystem.documentDirectory}${fileName}`;
-    await FileSystem.writeAsStringAsync(fileUri, htmlContent, {
-      encoding: FileSystem.EncodingType.UTF8,
-    });
-    return fileUri;
+  try {
+    await downloadHTMLReport(htmlContent, fileName);
+    return fileName;
+  } catch (error) {
+    console.error('Visual report generation error:', error);
+    throw new Error('ビジュアルレポートの生成中にエラーが発生しました');
   }
 }

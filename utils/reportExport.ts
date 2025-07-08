@@ -1,4 +1,5 @@
 import jsPDF from 'jspdf';
+import { downloadPDFReport } from './downloadUtils';
 
 import { FinancialData } from './structuredAnalysis';
 
@@ -11,25 +12,25 @@ export async function exportReportAsPDF(
     
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(20);
-    pdf.text('財務分析レポート', 20, 30);
+    pdf.text('Financial Analysis Report', 20, 30);
     
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(14);
-    pdf.text(`文書名: ${document.title}`, 20, 50);
-    pdf.text(`作成日: ${new Date().toLocaleDateString('ja-JP')}`, 20, 65);
+    pdf.text(`Document: ${document.title || 'Financial Analysis'}`, 20, 50);
+    pdf.text(`Date: ${new Date().toLocaleDateString()}`, 20, 65);
     
     let yPosition = 90;
     
     if (financialData.revenue.length > 0) {
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(16);
-      pdf.text('収益構成', 20, yPosition);
+      pdf.text('Revenue Composition', 20, yPosition);
       yPosition += 15;
       
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(12);
       financialData.revenue.forEach((item) => {
-        pdf.text(`${item.label}: ${item.value.toLocaleString()}円`, 25, yPosition);
+        pdf.text(`${item.label}: ${item.value.toLocaleString()} yen`, 25, yPosition);
         yPosition += 10;
       });
       yPosition += 10;
@@ -38,13 +39,13 @@ export async function exportReportAsPDF(
     if (financialData.expenses.length > 0) {
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(16);
-      pdf.text('費用構成', 20, yPosition);
+      pdf.text('Expense Composition', 20, yPosition);
       yPosition += 15;
       
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(12);
       financialData.expenses.forEach((item) => {
-        pdf.text(`${item.label}: ${item.value.toLocaleString()}円`, 25, yPosition);
+        pdf.text(`${item.label}: ${item.value.toLocaleString()} yen`, 25, yPosition);
         yPosition += 10;
       });
       yPosition += 10;
@@ -53,7 +54,7 @@ export async function exportReportAsPDF(
     if (financialData.keyMetrics.length > 0) {
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(16);
-      pdf.text('主要指標', 20, yPosition);
+      pdf.text('Key Metrics', 20, yPosition);
       yPosition += 15;
       
       pdf.setFont('helvetica', 'normal');
@@ -64,8 +65,10 @@ export async function exportReportAsPDF(
       });
     }
     
-    const fileName = `financial_report_${document.title.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.pdf`;
-    pdf.save(fileName);
+    const fileName = `financial_report_${(document.title || 'analysis').replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.pdf`;
+    const pdfOutput = pdf.output('datauristring');
+    
+    await downloadPDFReport(pdfOutput.split(',')[1], fileName);
     
     console.log(`PDF exported: ${fileName}`);
   } catch (error) {
