@@ -212,12 +212,12 @@ export function DocumentCreationModal({
           statements: {
             貸借対照表: {
               資産の部: {
-                資産合計: extractedNumbers.totalAssets || extractedNumbers.totalLiabilities + extractedNumbers.totalAssets || 71892603000,
+                資産合計: totalAssets,
                 流動資産: {
                   流動資産合計: extractedNumbers.currentAssets || 8838001000
                 },
                 固定資産: {
-                  固定資産合計: (extractedNumbers.totalAssets || 71892603000) - (extractedNumbers.currentAssets || 8838001000)
+                  固定資産合計: totalAssets - (extractedNumbers.currentAssets || 8838001000)
                 }
               },
               負債の部: {
