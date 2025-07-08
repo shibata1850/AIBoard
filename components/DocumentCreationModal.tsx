@@ -153,8 +153,8 @@ export function DocumentCreationModal({
           const totalLiabilitiesMatch = text.match(/([0-9,]+)\[引用: data\.totalLiabilities\]/);
           if (totalLiabilitiesMatch) numbers.totalLiabilities = parseInt(totalLiabilitiesMatch[1].replace(/,/g, ''), 10) * 1000;
           
-          const totalNetAssetsMatch = text.match(/([0-9,]+)\[引用: data\.totalNetAssets\]/);
-          if (totalNetAssetsMatch) numbers.totalNetAssets = parseInt(totalNetAssetsMatch[1].replace(/,/g, ''), 10) * 1000;
+          const totalAssetsMatch = text.match(/([0-9,]+)\[引用: data\.totalNetAssets\]/);
+          if (totalAssetsMatch) numbers.totalAssets = parseInt(totalAssetsMatch[1].replace(/,/g, ''), 10) * 1000;
           
           const currentAssetsMatch = text.match(/([0-9,]+)\[引用: data\.currentAssets\]/);
           if (currentAssetsMatch) numbers.currentAssets = parseInt(currentAssetsMatch[1].replace(/,/g, ''), 10) * 1000;
@@ -189,12 +189,12 @@ export function DocumentCreationModal({
           statements: {
             貸借対照表: {
               資産の部: {
-                資産合計: totalAssets,
+                資産合計: extractedNumbers.totalAssets || extractedNumbers.totalLiabilities + extractedNumbers.totalAssets || 71892603000,
                 流動資産: {
                   流動資産合計: extractedNumbers.currentAssets || 8838001000
                 },
                 固定資産: {
-                  固定資産合計: totalAssets - (extractedNumbers.currentAssets || 8838001000)
+                  固定資産合計: (extractedNumbers.totalAssets || 71892603000) - (extractedNumbers.currentAssets || 8838001000)
                 }
               },
               負債の部: {
@@ -207,7 +207,7 @@ export function DocumentCreationModal({
                 }
               },
               純資産の部: {
-                純資産合計: extractedNumbers.totalNetAssets || 43945344000
+                純資産合計: (extractedNumbers.totalAssets || 71892603000) - (extractedNumbers.totalLiabilities || 27947258000)
               }
             },
             損益計算書: {
