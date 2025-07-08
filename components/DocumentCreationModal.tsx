@@ -147,7 +147,7 @@ export function DocumentCreationModal({
           const debtRatioMatch = text.match(/負債比率.*?=\s*([0-9.]+)\s*\(([0-9.]+)%\)/);
           if (debtRatioMatch) numbers.debtRatio = parseFloat(debtRatioMatch[2]);
           
-          const currentRatioMatch = text.match(/流動比率.*?=\s*([0-9.]+)/);
+          const currentRatioMatch = text.match(/流動比率.*?=\s*([0-9.]+)(?:\s|$)/);
           if (currentRatioMatch) numbers.currentRatio = parseFloat(currentRatioMatch[1]);
           
           const totalLiabilitiesMatch = text.match(/([0-9,]+)\[引用: data\.totalLiabilities\]/);
