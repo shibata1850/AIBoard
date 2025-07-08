@@ -162,9 +162,6 @@ export function DocumentCreationModal({
           const currentLiabilitiesMatch = text.match(/([0-9,]+)\[引用: data\.currentLiabilities\]/);
           if (currentLiabilitiesMatch) numbers.currentLiabilities = parseInt(currentLiabilitiesMatch[1].replace(/,/g, ''), 10) * 1000;
           
-          const investingCashFlowMatch = text.match(/([0-9,]+)\[引用: data\.investingCashFlow\]/);
-          if (investingCashFlowMatch) numbers.investingCashFlow = parseInt(investingCashFlowMatch[1].replace(/,/g, ''), 10) * 1000;
-          
           const operatingLossMatch = text.match(/経常損失.*?(-?[0-9億万千,]+円)/);
           if (operatingLossMatch) {
             const amount = operatingLossMatch[1];
@@ -190,6 +187,12 @@ export function DocumentCreationModal({
           const operatingCashFlowMatch = text.match(/営業活動.*?([0-9,]+,000千円)/);
           if (operatingCashFlowMatch) {
             numbers.operatingCashFlow = parseInt(operatingCashFlowMatch[1].replace(/[,千円]/g, ''), 10) * 1000;
+          }
+          
+          const investingCashFlowMatch = text.match(/投資活動.*?(-?[0-9,]+,000千円)/);
+          if (investingCashFlowMatch) {
+            numbers.investingCashFlow = parseInt(investingCashFlowMatch[1].replace(/[,-千円]/g, ''), 10) * 1000;
+            if (investingCashFlowMatch[1].includes('-')) numbers.investingCashFlow = -numbers.investingCashFlow;
           }
           
           const financingCashFlowMatch = text.match(/財務活動.*?([0-9,]+,000千円)/);
