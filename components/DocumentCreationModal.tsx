@@ -147,14 +147,14 @@ export function DocumentCreationModal({
           const debtRatioMatch = text.match(/負債比率.*?=\s*([0-9.]+)\s*\(([0-9.]+)%\)/);
           if (debtRatioMatch) numbers.debtRatio = parseFloat(debtRatioMatch[2]);
           
-          const currentRatioMatch = text.match(/流動比率.*?=\s*([0-9.]+)(?:\s|$)/);
+          const currentRatioMatch = text.match(/流動比率.*?=\s*([0-9.]+)/);
           if (currentRatioMatch) numbers.currentRatio = parseFloat(currentRatioMatch[1]);
           
           const totalLiabilitiesMatch = text.match(/([0-9,]+)\[引用: data\.totalLiabilities\]/);
           if (totalLiabilitiesMatch) numbers.totalLiabilities = parseInt(totalLiabilitiesMatch[1].replace(/,/g, ''), 10) * 1000;
           
           const totalAssetsMatch = text.match(/([0-9,]+)\[引用: data\.totalNetAssets\]/);
-          if (totalAssetsMatch) numbers.totalNetAssets = parseInt(totalAssetsMatch[1].replace(/,/g, ''), 10) * 1000;
+          if (totalAssetsMatch) numbers.totalAssets = parseInt(totalAssetsMatch[1].replace(/,/g, ''), 10) * 1000;
           
           const currentAssetsMatch = text.match(/([0-9,]+)\[引用: data\.currentAssets\]/);
           if (currentAssetsMatch) numbers.currentAssets = parseInt(currentAssetsMatch[1].replace(/,/g, ''), 10) * 1000;
@@ -276,7 +276,7 @@ export function DocumentCreationModal({
           },
           ratios: {
             負債比率: extractedNumbers.debtRatio || 39.0,
-            流動比率: extractedNumbers.currentRatio || 126.0
+            流動比率: extractedNumbers.currentRatio || 1.26
           },
           analysis: {
             summary: analysisContent.substring(0, 500) + '...',
