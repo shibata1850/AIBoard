@@ -208,7 +208,14 @@ export async function analyzeDocument(content: string) {
         if (structuredData && structuredData.statements) {
           console.log('Using Chain of Thought analysis for extracted structured financial data');
           const analysisResult = await performChainOfThoughtAnalysis(structuredData, genAI);
-          return { text: analysisResult };
+          return { text: analysisResult, statements: structuredData.statements, ratios: structuredData.ratios };
+        }
+        
+        const enhancedData = await enhanceWithUnifiedExtractor(content);
+        if (enhancedData && enhancedData.statements) {
+          console.log('Using Chain of Thought analysis with UnifiedFinancialExtractor data');
+          const analysisResult = await performChainOfThoughtAnalysis(enhancedData, genAI);
+          return { text: analysisResult, statements: enhancedData.statements, ratios: enhancedData.ratios };
         }
       } else {
         console.log('Browser environment detected, skipping server-side PDF extraction');
@@ -219,7 +226,7 @@ export async function analyzeDocument(content: string) {
       if (enhancedData && enhancedData.statements) {
         console.log('Using Chain of Thought analysis with UnifiedFinancialExtractor data');
         const analysisResult = await performChainOfThoughtAnalysis(enhancedData, genAI);
-        return { text: analysisResult };
+        return { text: analysisResult, statements: enhancedData.statements, ratios: enhancedData.ratios };
       }
     }
 
@@ -233,14 +240,14 @@ export async function analyzeDocument(content: string) {
         if (structuredData && structuredData.statements) {
           console.log('Using Chain of Thought analysis for transformed financial data');
           const analysisResult = await performChainOfThoughtAnalysis(structuredData, genAI);
-          return { text: analysisResult };
+          return { text: analysisResult, statements: structuredData.statements, ratios: structuredData.ratios };
         }
       }
       
       if (rawData.statements && rawData.ratios) {
         console.log('Using Chain of Thought analysis for structured financial data');
         const analysisResult = await performChainOfThoughtAnalysis(rawData, genAI);
-        return { text: analysisResult };
+        return { text: analysisResult, statements: rawData.statements, ratios: rawData.ratios };
       }
     } catch (parseError) {
       console.log('Content is not structured data, using traditional analysis');
@@ -421,7 +428,7 @@ export async function analyzeDocument(content: string) {
   }
 }
 
-async function extractStructuredDataFromPdf(base64Content: string): Promise<ExtractedFinancialData | null> {
+export async function extractStructuredDataFromPdf(base64Content: string): Promise<ExtractedFinancialData | null> {
   try {
     const tempDir = path.join(process.cwd(), 'temp');
     if (!fs.existsSync(tempDir)) {
@@ -481,7 +488,7 @@ async function extractStructuredDataFromPdf(base64Content: string): Promise<Extr
   }
 }
 
-async function enhanceWithUnifiedExtractor(base64Content: string): Promise<ExtractedFinancialData | null> {
+export async function enhanceWithUnifiedExtractor(base64Content: string): Promise<ExtractedFinancialData | null> {
   try {
     const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
     if (!apiKey) {
@@ -569,7 +576,7 @@ async function enhanceWithUnifiedExtractor(base64Content: string): Promise<Extra
   }
 }
 
-function getAccurateFallbackData(): ExtractedFinancialData {
+export function getAccurateFallbackData(): ExtractedFinancialData {
   return {
     statements: {
       貸借対照表: {
@@ -615,7 +622,7 @@ function getAccurateFallbackData(): ExtractedFinancialData {
   };
 }
 
-async function callSpecialistAI(prompt: string, genAI: GoogleGenerativeAI): Promise<string> {
+export async function callSpecialistAI(prompt: string, genAI: GoogleGenerativeAI): Promise<string> {
   try {
     const model = genAI.getGenerativeModel({ 
       model: MODELS.PRIMARY,
@@ -634,7 +641,7 @@ async function callSpecialistAI(prompt: string, genAI: GoogleGenerativeAI): Prom
   }
 }
 
-function addCitationsToText(text: string, structuredData: ExtractedFinancialData): string {
+export function addCitationsToText(text: string, structuredData: ExtractedFinancialData): string {
   let citedText = text;
 
   const citationMap = [
@@ -666,7 +673,7 @@ function addCitationsToText(text: string, structuredData: ExtractedFinancialData
   return citedText;
 }
 
-async function performChainOfThoughtAnalysis(structuredData: ExtractedFinancialData, genAI: GoogleGenerativeAI): Promise<string> {
+export async function performChainOfThoughtAnalysis(structuredData: ExtractedFinancialData, genAI: GoogleGenerativeAI): Promise<string> {
   try {
     console.log('Step 1: Performing safety analysis');
     const safetyPrompt = ChainOfThoughtPrompts.createSafetyAnalysisPrompt(structuredData);

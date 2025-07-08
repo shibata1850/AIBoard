@@ -48,94 +48,106 @@ export function DocumentCreationModal({
       try {
         const parsedContent = JSON.parse(analysisContent);
         if (parsedContent.financial_statements) {
-          const balanceSheetAssets = parsedContent.financial_statements.find((item: any) => item.tableName === "貸借対照表 - 資産の部");
-          const balanceSheetLiabilities = parsedContent.financial_statements.find((item: any) => item.tableName === "貸借対照表 - 負債・純資産の部");
-          const incomeStatement = parsedContent.financial_statements.find((item: any) => item.tableName === "損益計算書");
-          const cashFlow = parsedContent.financial_statements.find((item: any) => item.tableName === "キャッシュ・フロー計算書");
-          
-          const totalAssets = balanceSheetAssets?.data?.totalAssets || 71892603000;
-          const totalLiabilities = balanceSheetLiabilities?.data?.liabilities?.total || 27947258000;
-          const totalEquity = balanceSheetLiabilities?.data?.netAssets?.total || 43945344000;
-          const totalRevenue = incomeStatement?.data?.ordinaryRevenues?.total || 34069533000;
-          const totalExpenses = incomeStatement?.data?.ordinaryExpenses?.total || 34723539000;
-          const netLoss = incomeStatement?.data?.netLoss || -598995000;
-          
+          console.log('Using structured financial_statements data');
           reportData = {
             companyName: '国立大学法人',
             fiscalYear: '2023年度',
-            statements: {
-              貸借対照表: {
-                資産の部: {
-                  資産合計: totalAssets,
-                  流動資産: {
-                    流動資産合計: balanceSheetAssets?.data?.currentAssets?.total || 8838001000
-                  },
-                  固定資産: {
-                    固定資産合計: balanceSheetAssets?.data?.fixedAssets?.total || 63054601000
-                  }
-                },
-                負債の部: {
-                  負債合計: totalLiabilities
-                },
-                純資産の部: {
-                  純資産合計: totalEquity
-                }
-              },
-              損益計算書: {
-                経常収益: {
-                  経常収益合計: totalRevenue
-                },
-                経常費用: {
-                  経常費用合計: totalExpenses
-                },
-                経常損失: incomeStatement?.data?.ordinaryLoss || -654006000,
-                当期純損失: netLoss
-              },
-              キャッシュフロー計算書: {
-                営業活動によるキャッシュフロー: {
-                  営業活動によるキャッシュフロー合計: cashFlow?.data?.operatingActivities || 0
-                },
-                投資活動によるキャッシュフロー: {
-                  投資活動によるキャッシュフロー合計: cashFlow?.data?.investingActivities || 0
-                },
-                財務活動によるキャッシュフロー: {
-                  財務活動によるキャッシュフロー合計: cashFlow?.data?.financingActivities || 0
-                }
-              }
-            },
-            ratios: {
-              負債比率: Math.round((totalLiabilities / totalAssets) * 100 * 10) / 10,
-              流動比率: Math.round((totalEquity / totalAssets) * 100 * 10) / 10
-            },
+            statements: parsedContent.financial_statements,
+            ratios: parsedContent.ratios || {},
             analysis: {
-              summary: '附属病院事業の収益性改善が急務',
-              recommendations: [
+              summary: parsedContent.summary || '財務分析結果',
+              recommendations: parsedContent.recommendations || []
+            },
+            extractedText: parsedContent.text || analysisContent
+          };
+        } else if (parsedContent.statements && parsedContent.ratios) {
+          console.log('Using structured statements and ratios data');
+          reportData = {
+            companyName: '国立大学法人',
+            fiscalYear: '2023年度',
+            statements: parsedContent.statements,
+            ratios: parsedContent.ratios,
+            analysis: {
+              summary: parsedContent.analysis?.summary || '財務分析結果',
+              recommendations: parsedContent.analysis?.recommendations || []
+            },
+            extractedText: parsedContent.text || analysisContent
+          };
+        } else if (parsedContent.analysis && parsedContent.analysis.summary) {
+          console.log('Using analysis object data');
+          reportData = {
+            companyName: '国立大学法人',
+            fiscalYear: '2023年度',
+            statements: parsedContent.statements || {},
+            ratios: parsedContent.ratios || {},
+            analysis: {
+              summary: parsedContent.analysis.summary,
+              recommendations: Array.isArray(parsedContent.analysis.recommendations) ? 
+                parsedContent.analysis.recommendations : [
+                '財務健全性の向上',
+                '収益性の改善',
+                '効率性の向上',
+                'リスク管理の強化',
+                '成長戦略の策定',
+                '資金調達の最適化',
+                'コスト管理の徹底',
+                '業務プロセスの改善',
+                '人材育成の推進',
+                'デジタル化の促進',
+                '持続可能性の確保',
+                'ガバナンス体制の強化',
                 '附属病院事業の効率化と収益向上',
                 '運営費交付金以外の収益源多様化',
                 '経営管理システムの高度化'
               ].filter(rec => typeof rec === 'string' && rec.length > 0)
             },
-            extractedText: analysisContent
+            extractedText: typeof (parsedContent.text || analysisContent) === 'string' ? (parsedContent.text || analysisContent) : JSON.stringify(parsedContent.text || analysisContent)
+          };
+        } else if (parsedContent.text && typeof parsedContent.text === 'string') {
+          console.log('Using text-only analysis data');
+          reportData = {
+            companyName: '国立大学法人',
+            fiscalYear: '2023年度',
+            statements: {},
+            ratios: {},
+            analysis: {
+              summary: 'テキスト形式の分析データ',
+              recommendations: ['データ構造の改善', '分析精度の向上']
+            },
+            extractedText: parsedContent.text
           };
         } else {
-          throw new Error('Not structured data');
+          throw new Error('Unknown data format');
         }
       } catch (parseError) {
-        const { parseFinancialData } = require('../utils/visualReportGenerator');
-        const parsedData = parseFinancialData(analysisContent);
-        
-        const parseJapaneseCurrency = (amount: string): number => {
+        console.log('Using fallback data due to parse error:', parseError);
+        reportData = {
+          companyName: '国立大学法人',
+          fiscalYear: '2023年度',
+          statements: {},
+          ratios: {},
+          analysis: {
+            summary: 'テキスト形式の分析データ',
+            recommendations: ['データ構造の改善', '分析精度の向上'].filter(rec => typeof rec === 'string' && rec.length > 0)
+          },
+          extractedText: analysisContent
+        };
+      }
+
+      if (analysisContent.includes('負債比率') || analysisContent.includes('流動比率')) {
+        const parseJapaneseCurrency = (currencyStr: string): number => {
+          let cleanStr = currencyStr.replace(/[円,\s]/g, '');
           let value = 0;
-          const isNegative = amount.includes('-');
-          const cleanAmount = amount.replace(/[-円,]/g, '');
+          let isNegative = cleanStr.includes('-') || cleanStr.includes('△');
+          cleanStr = cleanStr.replace(/[-△]/g, '');
           
-          const okuMatch = cleanAmount.match(/([0-9]+)億/);
+          const okuMatch = cleanStr.match(/(\d+)億/);
           if (okuMatch) value += parseInt(okuMatch[1]) * 100000000;
           
-          const manMatch = cleanAmount.match(/([0-9]+)万/);
+          const manMatch = cleanStr.match(/(\d+)万/);
           if (manMatch) value += parseInt(manMatch[1]) * 10000;
           
-          const senMatch = cleanAmount.match(/([0-9]+)千/);
+          const senMatch = cleanStr.match(/(\d+)千/);
           if (senMatch) value += parseInt(senMatch[1]) * 1000;
           
           return isNegative ? -value : value;
@@ -171,43 +183,13 @@ export function DocumentCreationModal({
           const hospitalLossMatch = text.match(/附属病院セグメント.*?(-?[0-9億万千,]+円)/);
           if (hospitalLossMatch) {
             const amount = hospitalLossMatch[1];
-            numbers.hospitalSegmentLoss = parseJapaneseCurrency(amount);
-          }
-          
-          const revenueMatch = text.match(/経常収益.*?([0-9億万千,]+円)/);
-          if (revenueMatch) {
-            numbers.totalRevenue = parseJapaneseCurrency(revenueMatch[1]);
-          }
-          
-          const expenseMatch = text.match(/経常費用.*?([0-9億万千,]+円)/);
-          if (expenseMatch) {
-            numbers.totalExpenses = parseJapaneseCurrency(expenseMatch[1]);
-          }
-          
-          const operatingCashFlowMatch = text.match(/営業活動.*?([0-9,]+,000千円)/);
-          if (operatingCashFlowMatch) {
-            numbers.operatingCashFlow = parseInt(operatingCashFlowMatch[1].replace(/[,千円]/g, ''), 10) * 1000;
-          }
-          
-          const investingCashFlowMatch = text.match(/投資活動.*?(-?[0-9,]+,000千円)/);
-          if (investingCashFlowMatch) {
-            numbers.investingCashFlow = parseInt(investingCashFlowMatch[1].replace(/[,-千円]/g, ''), 10) * 1000;
-            if (investingCashFlowMatch[1].includes('-')) numbers.investingCashFlow = -numbers.investingCashFlow;
-          }
-          
-          const financingCashFlowMatch = text.match(/財務活動.*?([0-9,]+,000千円)/);
-          if (financingCashFlowMatch) {
-            numbers.financingCashFlow = parseInt(financingCashFlowMatch[1].replace(/[,千円]/g, ''), 10) * 1000;
+            numbers.hospitalLoss = parseJapaneseCurrency(amount);
           }
           
           return numbers;
         };
         
         const extractedNumbers = extractFinancialNumbers(analysisContent);
-        console.log('Extracted numbers:', extractedNumbers);
-        
-        const totalAssets = (extractedNumbers.totalLiabilities || 27947258000) + (extractedNumbers.totalNetAssets || 43945344000);
-        console.log('Calculated total assets:', totalAssets);
         
         reportData = {
           companyName: '国立大学法人',
@@ -215,79 +197,32 @@ export function DocumentCreationModal({
           statements: {
             貸借対照表: {
               資産の部: {
-                資産合計: totalAssets,
-                流動資産: {
-                  流動資産合計: extractedNumbers.currentAssets || 8838001000
-                },
-                固定資産: {
-                  固定資産合計: totalAssets - (extractedNumbers.currentAssets || 8838001000)
-                }
+                資産合計: extractedNumbers.totalAssets || 0
               },
               負債の部: {
-                負債合計: extractedNumbers.totalLiabilities || 27947258000,
-                流動負債: {
-                  流動負債合計: extractedNumbers.currentLiabilities || 7020870000
-                },
-                固定負債: {
-                  固定負債合計: (extractedNumbers.totalLiabilities || 27947258000) - (extractedNumbers.currentLiabilities || 7020870000)
-                }
-              },
-              純資産の部: {
-                純資産合計: extractedNumbers.totalNetAssets || 43945344000
+                負債合計: extractedNumbers.totalLiabilities || 0,
+                流動負債合計: extractedNumbers.currentLiabilities || 0
               }
             },
             損益計算書: {
-              経常収益: {
-                経常収益合計: extractedNumbers.totalRevenue || 34069533000,
-                附属病院収益: 15000000000,
-                運営費交付金収益: 12000000000,
-                学生納付金等収益: 3000000000,
-                受託研究等収益: 2000000000
-              },
-              経常費用: {
-                経常費用合計: extractedNumbers.totalExpenses || 34723539000,
-                人件費: 20000000000,
-                診療経費: 8000000000,
-                教育経費: 3000000000,
-                研究経費: 2000000000
-              },
-              経常損失: extractedNumbers.operatingLoss || -654006000,
-              当期純損失: extractedNumbers.operatingLoss || -325961000
-            },
-            キャッシュフロー計算書: {
-              営業活動によるキャッシュフロー: {
-                営業活動によるキャッシュフロー合計: extractedNumbers.operatingCashFlow || 1470000000
-              },
-              投資活動によるキャッシュフロー: {
-                投資活動によるキャッシュフロー合計: extractedNumbers.investingCashFlow || -10489748000
-              },
-              財務活動によるキャッシュフロー: {
-                財務活動によるキャッシュフロー合計: extractedNumbers.financingCashFlow || 4340000000
-              }
+              経常損失: extractedNumbers.operatingLoss || 0
             },
             セグメント情報: {
               附属病院: {
-                業務損益: extractedNumbers.hospitalSegmentLoss || -410984000
-              },
-              '学部・研究科等': {
-                業務損益: 200000000
-              },
-              附属学校: {
-                業務損益: -50000000
+                業務損益: extractedNumbers.hospitalLoss || 0
               }
             }
           },
           ratios: {
-            負債比率: extractedNumbers.debtRatio || 39.0,
-            流動比率: extractedNumbers.currentRatio || 1.26
+            負債比率: extractedNumbers.debtRatio || 0,
+            流動比率: extractedNumbers.currentRatio || 0
           },
           analysis: {
-            summary: analysisContent.substring(0, 500) + '...',
+            summary: '財務分析結果',
             recommendations: [
-              '附属病院事業の効率化と収益向上',
-              '運営費交付金以外の収益源多様化',
-              '経営管理システムの高度化',
-              'コスト削減策の実施',
+              '負債比率の改善',
+              '流動性の向上',
+              'セグメント収益性の改善',
               'リスク管理体制の強化'
             ].filter(rec => typeof rec === 'string' && rec.length > 0)
           },
@@ -313,7 +248,7 @@ export function DocumentCreationModal({
         );
       } else {
         try {
-          await downloadHTMLReport(htmlContent, fileName);
+          await downloadHTMLReport(htmlContent, `${title.trim().replace(/[^a-zA-Z0-9]/g, '_')}_report.html`);
           Alert.alert('成功', 'HTMLレポートのダウンロードが開始されました');
           onClose();
         } catch (downloadError) {
