@@ -41,6 +41,17 @@ app.post('/api/extract-financial-item', async (req, res) => {
   }
 });
 
+app.post('/api/verify', async (req, res) => {
+  try {
+    require('ts-node/register');
+    const { default: handler } = require('./server/api/verify.ts');
+    await handler(req, res);
+  } catch (error) {
+    console.error('Verification API error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
