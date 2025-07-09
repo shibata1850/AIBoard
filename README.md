@@ -91,3 +91,5 @@ eas submit --platform all
 ## ライセンス
 
 このプロジェクトはMITライセンスの下で公開されています。
+
+<!-- Verification test by Devin - January 9, 2025 -->
