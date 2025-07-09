@@ -317,7 +317,13 @@ function generateHTMLReport(data) {
                 labels: processLabels(['附属病院収益', '運営費交付金収益', '学生納付金等収益', '受託研究等収益', 'その他']),
                 datasets: [{
                     label: '経常収益 (億円)',
-                    data: [${totalRevenue > 0 ? (totalRevenue * 0.5).toFixed(1) : '171.0'}, ${totalRevenue > 0 ? (totalRevenue * 0.28).toFixed(1) : '96.7'}, ${totalRevenue > 0 ? (totalRevenue * 0.08).toFixed(1) : '28.7'}, ${totalRevenue > 0 ? (totalRevenue * 0.05).toFixed(1) : '15.4'}, ${totalRevenue > 0 ? (totalRevenue * 0.09).toFixed(1) : '28.9'}],
+                    data: [
+                        totalRevenue > 0 ? (totalRevenue * 0.5).toFixed(1) : ((safeStatements.損益計算書?.経常収益?.附属病院収益 || 17100000000) / 100000000).toFixed(1),
+                        totalRevenue > 0 ? (totalRevenue * 0.28).toFixed(1) : ((safeStatements.損益計算書?.経常収益?.運営費交付金収益 || 9670000000) / 100000000).toFixed(1),
+                        totalRevenue > 0 ? (totalRevenue * 0.08).toFixed(1) : ((safeStatements.損益計算書?.経常収益?.学生納付金等収益 || 2870000000) / 100000000).toFixed(1),
+                        totalRevenue > 0 ? (totalRevenue * 0.05).toFixed(1) : ((safeStatements.損益計算書?.経常収益?.受託研究等収益 || 1540000000) / 100000000).toFixed(1),
+                        totalRevenue > 0 ? (totalRevenue * 0.09).toFixed(1) : ((safeStatements.損益計算書?.経常収益?.その他収益 || 2890000000) / 100000000).toFixed(1)
+                    ],
                     backgroundColor: [brilliantBlues[0], brilliantBlues[1], '#5DA9E9', '#84C0EF', brilliantBlues[4]],
                     borderColor: '#FFFFFF',
                     borderWidth: 2
@@ -332,7 +338,13 @@ function generateHTMLReport(data) {
                 labels: processLabels(['人件費', '診療経費', '教育経費', '研究経費', 'その他']),
                 datasets: [{
                     label: '経常費用 (億円)',
-                    data: [${totalExpenses > 0 ? (totalExpenses * 0.47).toFixed(1) : '163.6'}, ${totalExpenses > 0 ? (totalExpenses * 0.36).toFixed(1) : '125.1'}, ${totalExpenses > 0 ? (totalExpenses * 0.045).toFixed(1) : '15.6'}, ${totalExpenses > 0 ? (totalExpenses * 0.045).toFixed(1) : '15.7'}, ${totalExpenses > 0 ? (totalExpenses * 0.08).toFixed(1) : '27.2'}],
+                    data: [
+                        totalExpenses > 0 ? (totalExpenses * 0.47).toFixed(1) : ((safeStatements.損益計算書?.経常費用?.人件費 || 16360000000) / 100000000).toFixed(1),
+                        totalExpenses > 0 ? (totalExpenses * 0.36).toFixed(1) : ((safeStatements.損益計算書?.経常費用?.診療経費 || 12510000000) / 100000000).toFixed(1),
+                        totalExpenses > 0 ? (totalExpenses * 0.045).toFixed(1) : ((safeStatements.損益計算書?.経常費用?.教育経費 || 1560000000) / 100000000).toFixed(1),
+                        totalExpenses > 0 ? (totalExpenses * 0.045).toFixed(1) : ((safeStatements.損益計算書?.経常費用?.研究経費 || 1570000000) / 100000000).toFixed(1),
+                        totalExpenses > 0 ? (totalExpenses * 0.08).toFixed(1) : ((safeStatements.損益計算書?.経常費用?.その他費用 || 2720000000) / 100000000).toFixed(1)
+                    ],
                     backgroundColor: [brilliantBlues[0], brilliantBlues[1], brilliantBlues[2], brilliantBlues[3], brilliantBlues[4]],
                     borderColor: [brilliantBlues[0], brilliantBlues[1], brilliantBlues[2], brilliantBlues[3], brilliantBlues[4]],
                     borderWidth: 1

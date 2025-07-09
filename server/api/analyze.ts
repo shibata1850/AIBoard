@@ -722,6 +722,13 @@ ${riskResult}
 上記の分析結果に基づき、財務状況の改善と持続可能な経営の実現に向けた取り組みが必要です。
 `;
 
+    finalReport = finalReport
+      .replace(/#{1,6}\s*/g, '')
+      .replace(/\n{3,}/g, '\n\n')
+      .replace(/\*{1,2}([^*]+)\*{1,2}/g, '$1')
+      .replace(/^\s*[-*+]\s+/gm, '')
+      .trim();
+
     console.log('Before citations:', finalReport.substring(0, 300) + '...');
     finalReport = addCitationsToText(finalReport, structuredData);
     console.log('After citations:', finalReport.substring(0, 300) + '...');
