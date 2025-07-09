@@ -63,7 +63,7 @@ export async function analyzeDocument(content: string): Promise<string> {
     content = content.substring(0, 50000);
   }
   
-  const contentHash = require('crypto').createHash('md5').update(content).digest('hex');
+  const contentHash = btoa(content).replace(/[^a-zA-Z0-9]/g, '').substring(0, 32);
   
   try {
     const { supabase } = require('../utils/supabase');
@@ -97,7 +97,7 @@ export async function analyzeDocument(content: string): Promise<string> {
         await supabase
           .from('document_analyses')
           .insert({
-            id: require('uuid').v4(),
+            id: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
             content_hash: contentHash,
             content: result.text,
             created_at: new Date().toISOString()
