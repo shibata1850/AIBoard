@@ -688,18 +688,24 @@ export async function performChainOfThoughtAnalysis(structuredData: ExtractedFin
     console.log('Safety prompt preview:', safetyPrompt.substring(0, 300) + '...');
     const safetyResult = await callSpecialistAI(safetyPrompt, genAI);
     console.log('Safety analysis result:', safetyResult.substring(0, 200) + '...');
+    console.log('Safety result contains \\n\\n**: ', safetyResult.includes('\\n\\n**'));
+    console.log('Safety result contains \\n**: ', safetyResult.includes('\\n**'));
 
     console.log('Step 2: Performing profitability analysis');
     const profitabilityPrompt = ChainOfThoughtPrompts.createProfitabilityAnalysisPrompt(structuredData);
     console.log('Profitability prompt preview:', profitabilityPrompt.substring(0, 300) + '...');
     const profitabilityResult = await callSpecialistAI(profitabilityPrompt, genAI);
     console.log('Profitability analysis result:', profitabilityResult.substring(0, 200) + '...');
+    console.log('Profitability result contains \\n\\n**: ', profitabilityResult.includes('\\n\\n**'));
+    console.log('Profitability result contains \\n**: ', profitabilityResult.includes('\\n**'));
 
     console.log('Step 3: Performing cash flow analysis');
     const cashFlowPrompt = ChainOfThoughtPrompts.createCashFlowAnalysisPrompt(structuredData);
     console.log('Cash flow prompt preview:', cashFlowPrompt.substring(0, 300) + '...');
     const cashFlowResult = await callSpecialistAI(cashFlowPrompt, genAI);
     console.log('Cash flow analysis result:', cashFlowResult.substring(0, 200) + '...');
+    console.log('Cash flow result contains \\n\\n**: ', cashFlowResult.includes('\\n\\n**'));
+    console.log('Cash flow result contains \\n**: ', cashFlowResult.includes('\\n**'));
 
     console.log('Step 4: Performing risk analysis and recommendations');
     const context = {
@@ -711,6 +717,8 @@ export async function performChainOfThoughtAnalysis(structuredData: ExtractedFin
     console.log('Risk prompt preview:', riskPrompt.substring(0, 300) + '...');
     const riskResult = await callSpecialistAI(riskPrompt, genAI);
     console.log('Risk analysis result:', riskResult.substring(0, 200) + '...');
+    console.log('Risk result contains \\n\\n**: ', riskResult.includes('\\n\\n**'));
+    console.log('Risk result contains \\n**: ', riskResult.includes('\\n**'));
 
     console.log('Step 5: Assembling final report');
     let finalReport = `# 財務分析レポート
@@ -735,8 +743,12 @@ ${riskResult}
 `;
 
     console.log('Before citations:', finalReport.substring(0, 300) + '...');
+    console.log('Final report before citations contains \\n\\n**: ', finalReport.includes('\\n\\n**'));
+    console.log('Final report before citations contains \\n**: ', finalReport.includes('\\n**'));
     finalReport = addCitationsToText(finalReport, structuredData);
     console.log('After citations:', finalReport.substring(0, 300) + '...');
+    console.log('Final report after citations contains \\n\\n**: ', finalReport.includes('\\n\\n**'));
+    console.log('Final report after citations contains \\n**: ', finalReport.includes('\\n**'));
 
     return finalReport;
   } catch (error) {
