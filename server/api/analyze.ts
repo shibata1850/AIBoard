@@ -634,25 +634,12 @@ export async function callSpecialistAI(prompt: string, genAI: GoogleGenerativeAI
     });
 
     const result = await model.generateContent(prompt);
-    let responseText = result.response.text();
+    const responseText = result.response.text();
     
     if (responseText.includes('\\n\\n**') || responseText.includes('\n\n**')) {
       console.log('WARNING: Found problematic artifacts in AI response:');
       console.log('Raw response:', responseText.substring(0, 500));
       console.log('Artifacts found:', responseText.match(/\\n\\n\*\*\d*/g) || responseText.match(/\n\n\*\*\d*/g));
-      
-      responseText = responseText
-        .replace(/\\n\\n\*\*\d*/g, '')
-        .replace(/\\n\\n\*\*/g, '')
-        .replace(/\\n\*/g, '')
-        .replace(/\\n/g, '\n')
-        .replace(/\\\*/g, '*')
-        .replace(/\\#/g, '#')
-        .replace(/\*\*\*+/g, '**')
-        .replace(/\n{3,}/g, '\n\n')
-        .trim();
-      
-      console.log('Cleaned response:', responseText.substring(0, 500));
     }
     
     return responseText;
