@@ -1,7 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { ChainOfThoughtPrompts } from '../../utils/chainOfThoughtPrompts';
 import { ExtractedFinancialData } from '../../types/financialStatements';
-import { cleanAnalysisText } from '../../utils/textCleaning';
 import { spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -635,7 +634,15 @@ export async function callSpecialistAI(prompt: string, genAI: GoogleGenerativeAI
     });
 
     const result = await model.generateContent(prompt);
-    return result.response.text();
+    const responseText = result.response.text();
+    
+    if (responseText.includes('\\n\\n**') || responseText.includes('\n\n**')) {
+      console.log('WARNING: Found problematic artifacts in AI response:');
+      console.log('Raw response:', responseText.substring(0, 500));
+      console.log('Artifacts found:', responseText.match(/\\n\\n\*\*\d*/g) || responseText.match(/\n\n\*\*\d*/g));
+    }
+    
+    return responseText;
   } catch (error) {
     console.error('Specialist AI call failed:', error);
     throw error;
@@ -678,16 +685,19 @@ export async function performChainOfThoughtAnalysis(structuredData: ExtractedFin
   try {
     console.log('Step 1: Performing safety analysis');
     const safetyPrompt = ChainOfThoughtPrompts.createSafetyAnalysisPrompt(structuredData);
+    console.log('Safety prompt preview:', safetyPrompt.substring(0, 300) + '...');
     const safetyResult = await callSpecialistAI(safetyPrompt, genAI);
     console.log('Safety analysis result:', safetyResult.substring(0, 200) + '...');
 
     console.log('Step 2: Performing profitability analysis');
     const profitabilityPrompt = ChainOfThoughtPrompts.createProfitabilityAnalysisPrompt(structuredData);
+    console.log('Profitability prompt preview:', profitabilityPrompt.substring(0, 300) + '...');
     const profitabilityResult = await callSpecialistAI(profitabilityPrompt, genAI);
     console.log('Profitability analysis result:', profitabilityResult.substring(0, 200) + '...');
 
     console.log('Step 3: Performing cash flow analysis');
     const cashFlowPrompt = ChainOfThoughtPrompts.createCashFlowAnalysisPrompt(structuredData);
+    console.log('Cash flow prompt preview:', cashFlowPrompt.substring(0, 300) + '...');
     const cashFlowResult = await callSpecialistAI(cashFlowPrompt, genAI);
     console.log('Cash flow analysis result:', cashFlowResult.substring(0, 200) + '...');
 
@@ -698,6 +708,7 @@ export async function performChainOfThoughtAnalysis(structuredData: ExtractedFin
       cashFlowAnalysis: cashFlowResult
     };
     const riskPrompt = ChainOfThoughtPrompts.createRiskAndRecommendationPrompt(context);
+    console.log('Risk prompt preview:', riskPrompt.substring(0, 300) + '...');
     const riskResult = await callSpecialistAI(riskPrompt, genAI);
     console.log('Risk analysis result:', riskResult.substring(0, 200) + '...');
 
@@ -725,8 +736,7 @@ ${riskResult}
 
     console.log('Before citations:', finalReport.substring(0, 300) + '...');
     finalReport = addCitationsToText(finalReport, structuredData);
-    finalReport = cleanAnalysisText(finalReport);
-    console.log('After citations and cleaning:', finalReport.substring(0, 300) + '...');
+    console.log('After citations:', finalReport.substring(0, 300) + '...');
 
     return finalReport;
   } catch (error) {

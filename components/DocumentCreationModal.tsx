@@ -13,7 +13,6 @@ import {
 import { useTheme } from './ThemeProvider';
 import { generateHTMLReport } from '../utils/htmlReportGenerator';
 import { downloadHTMLReport } from '../utils/downloadUtils';
-import { cleanAnalysisText, sanitizeForJSON } from '../utils/textCleaning';
 import { FileText } from 'lucide-react-native';
 
 interface DocumentCreationModalProps {
@@ -47,8 +46,7 @@ export function DocumentCreationModal({
       let reportData;
       
       try {
-        const cleanedContent = cleanAnalysisText(analysisContent);
-        const parsedContent = JSON.parse(cleanedContent);
+        const parsedContent = JSON.parse(analysisContent);
         
         if (parsedContent.financial_statements) {
           console.log('Using structured financial_statements data');
@@ -61,7 +59,7 @@ export function DocumentCreationModal({
               summary: parsedContent.summary || '財務分析結果',
               recommendations: parsedContent.recommendations || []
             },
-            extractedText: cleanAnalysisText(parsedContent.text || analysisContent)
+            extractedText: parsedContent.text || analysisContent
           };
         } else if (parsedContent.statements && parsedContent.ratios) {
           reportData = {
@@ -73,7 +71,7 @@ export function DocumentCreationModal({
               summary: parsedContent.analysis?.summary || parsedContent.text || '財務分析結果',
               recommendations: parsedContent.analysis?.recommendations || []
             },
-            extractedText: cleanAnalysisText(parsedContent.text || analysisContent)
+            extractedText: parsedContent.text || analysisContent
           };
         } else if (parsedContent.analysis && parsedContent.analysis.summary) {
           console.log('Using analysis object data');
@@ -131,7 +129,7 @@ export function DocumentCreationModal({
             summary: 'テキスト形式の分析データ',
             recommendations: ['データ構造の改善', '分析精度の向上'].filter(rec => typeof rec === 'string' && rec.length > 0)
           },
-          extractedText: cleanAnalysisText(analysisContent)
+          extractedText: analysisContent
         };
       }
 
@@ -227,7 +225,7 @@ export function DocumentCreationModal({
               'リスク管理体制の強化'
             ].filter(rec => typeof rec === 'string' && rec.length > 0)
           },
-          extractedText: cleanAnalysisText(analysisContent)
+          extractedText: analysisContent
         };
       }
 

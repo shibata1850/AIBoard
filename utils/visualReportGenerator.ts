@@ -1,7 +1,6 @@
 import { Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import { downloadHTMLReport } from './downloadUtils';
-import { cleanAnalysisText, cleanMarkdownArtifacts } from './textCleaning';
 
 export interface VisualReportOptions {
   title: string;
@@ -215,11 +214,10 @@ export function parseEnhancedFinancialData(analysisContent: string): EnhancedFin
   const riskFactors: string[] = [];
   const recommendations: string[] = [];
   
-  const lines = cleanAnalysisText(String(analysisContent || '')).split('\n');
+  const lines = String(analysisContent || '').split('\n');
 
   lines.forEach((line: string) => {
-    const cleanedLine = cleanMarkdownArtifacts(line);
-    const lowerLine = cleanedLine.toLowerCase();
+    const lowerLine = line.toLowerCase();
     
     if (lowerLine.includes('負債比率') && line.includes('%')) {
       const match = line.match(/([\d.]+)%/);
