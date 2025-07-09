@@ -290,6 +290,13 @@ export async function analyzeDocument(content: string) {
       const response = await result.response;
       const text = response.text();
       console.log('Primary model analysis successful');
+      console.log('Raw AI response contains \\n\\n**: ', text.includes('\\n\\n**'));
+      console.log('Raw AI response contains \\n**: ', text.includes('\\n**'));
+      console.log('Raw AI response preview:', text.substring(0, 300) + '...');
+      if (text.includes('\\n\\n**') || text.includes('\n\n**')) {
+        console.log('WARNING: Found problematic artifacts in primary model response');
+        console.log('Artifacts found:', text.match(/\\n\\n\*\*\d*/g) || text.match(/\n\n\*\*\d*/g));
+      }
       return { text };
     } catch (primaryError: any) {
       console.warn(`Primary model (${MODELS.PRIMARY}) error:`, primaryError);
