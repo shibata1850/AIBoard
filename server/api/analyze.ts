@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { ChainOfThoughtPrompts } from '../../utils/chainOfThoughtPrompts';
 import { ExtractedFinancialData } from '../../types/financialStatements';
+import { cleanAnalysisText } from '../../utils/textCleaning';
 import { spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -724,7 +725,8 @@ ${riskResult}
 
     console.log('Before citations:', finalReport.substring(0, 300) + '...');
     finalReport = addCitationsToText(finalReport, structuredData);
-    console.log('After citations:', finalReport.substring(0, 300) + '...');
+    finalReport = cleanAnalysisText(finalReport);
+    console.log('After citations and cleaning:', finalReport.substring(0, 300) + '...');
 
     return finalReport;
   } catch (error) {
