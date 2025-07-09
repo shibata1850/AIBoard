@@ -290,6 +290,13 @@ export async function analyzeDocument(content: string) {
       const response = await result.response;
       const text = response.text();
       console.log('Primary model analysis successful');
+      console.log('Raw AI response contains \\n\\n**: ', text.includes('\\n\\n**'));
+      console.log('Raw AI response contains \\n**: ', text.includes('\\n**'));
+      console.log('Raw AI response preview:', text.substring(0, 300) + '...');
+      if (text.includes('\\n\\n**') || text.includes('\n\n**')) {
+        console.log('WARNING: Found problematic artifacts in primary model response');
+        console.log('Artifacts found:', text.match(/\\n\\n\*\*\d*/g) || text.match(/\n\n\*\*\d*/g));
+      }
       return { text };
     } catch (primaryError: any) {
       console.warn(`Primary model (${MODELS.PRIMARY}) error:`, primaryError);
@@ -634,7 +641,15 @@ export async function callSpecialistAI(prompt: string, genAI: GoogleGenerativeAI
     });
 
     const result = await model.generateContent(prompt);
-    return result.response.text();
+    const responseText = result.response.text();
+    
+    if (responseText.includes('\\n\\n**') || responseText.includes('\n\n**')) {
+      console.log('WARNING: Found problematic artifacts in AI response:');
+      console.log('Raw response:', responseText.substring(0, 500));
+      console.log('Artifacts found:', responseText.match(/\\n\\n\*\*\d*/g) || responseText.match(/\n\n\*\*\d*/g));
+    }
+    
+    return responseText;
   } catch (error) {
     console.error('Specialist AI call failed:', error);
     throw error;
@@ -677,18 +692,27 @@ export async function performChainOfThoughtAnalysis(structuredData: ExtractedFin
   try {
     console.log('Step 1: Performing safety analysis');
     const safetyPrompt = ChainOfThoughtPrompts.createSafetyAnalysisPrompt(structuredData);
+    console.log('Safety prompt preview:', safetyPrompt.substring(0, 300) + '...');
     const safetyResult = await callSpecialistAI(safetyPrompt, genAI);
     console.log('Safety analysis result:', safetyResult.substring(0, 200) + '...');
+    console.log('Safety result contains \\n\\n**: ', safetyResult.includes('\\n\\n**'));
+    console.log('Safety result contains \\n**: ', safetyResult.includes('\\n**'));
 
     console.log('Step 2: Performing profitability analysis');
     const profitabilityPrompt = ChainOfThoughtPrompts.createProfitabilityAnalysisPrompt(structuredData);
+    console.log('Profitability prompt preview:', profitabilityPrompt.substring(0, 300) + '...');
     const profitabilityResult = await callSpecialistAI(profitabilityPrompt, genAI);
     console.log('Profitability analysis result:', profitabilityResult.substring(0, 200) + '...');
+    console.log('Profitability result contains \\n\\n**: ', profitabilityResult.includes('\\n\\n**'));
+    console.log('Profitability result contains \\n**: ', profitabilityResult.includes('\\n**'));
 
     console.log('Step 3: Performing cash flow analysis');
     const cashFlowPrompt = ChainOfThoughtPrompts.createCashFlowAnalysisPrompt(structuredData);
+    console.log('Cash flow prompt preview:', cashFlowPrompt.substring(0, 300) + '...');
     const cashFlowResult = await callSpecialistAI(cashFlowPrompt, genAI);
     console.log('Cash flow analysis result:', cashFlowResult.substring(0, 200) + '...');
+    console.log('Cash flow result contains \\n\\n**: ', cashFlowResult.includes('\\n\\n**'));
+    console.log('Cash flow result contains \\n**: ', cashFlowResult.includes('\\n**'));
 
     console.log('Step 4: Performing risk analysis and recommendations');
     const context = {
@@ -697,8 +721,11 @@ export async function performChainOfThoughtAnalysis(structuredData: ExtractedFin
       cashFlowAnalysis: cashFlowResult
     };
     const riskPrompt = ChainOfThoughtPrompts.createRiskAndRecommendationPrompt(context);
+    console.log('Risk prompt preview:', riskPrompt.substring(0, 300) + '...');
     const riskResult = await callSpecialistAI(riskPrompt, genAI);
     console.log('Risk analysis result:', riskResult.substring(0, 200) + '...');
+    console.log('Risk result contains \\n\\n**: ', riskResult.includes('\\n\\n**'));
+    console.log('Risk result contains \\n**: ', riskResult.includes('\\n**'));
 
     console.log('Step 5: Assembling final report');
     let finalReport = `# 財務分析レポート
@@ -724,7 +751,21 @@ ${riskResult}
 
     console.log('Before citations:', finalReport.substring(0, 300) + '...');
     finalReport = addCitationsToText(finalReport, structuredData);
-    console.log('After citations:', finalReport.substring(0, 300) + '...');
+    
+    finalReport = finalReport
+      .replace(/\\n\\n\*\*\d*/g, '') // Remove \n\n**3 type artifacts
+      .replace(/\\n\\n\*\*/g, '') // Remove \n\n** artifacts
+      .replace(/\\n\*/g, '') // Remove \n* artifacts
+      .replace(/\\n/g, '\n') // Convert escaped newlines to actual newlines
+      .replace(/\\\*/g, '*') // Convert escaped asterisks to actual asterisks
+      .replace(/\\\#/g, '#') // Convert escaped hashes to actual hashes
+      .replace(/\\"/g, '"') // Convert escaped quotes to actual quotes
+      .replace(/\n{3,}/g, '\n\n') // Limit consecutive newlines to 2
+      .replace(/\s+\n/g, '\n') // Remove trailing spaces before newlines
+      .replace(/\n\s+/g, '\n') // Remove leading spaces after newlines
+      .trim();
+    
+    console.log('After citations and cleaning:', finalReport.substring(0, 300) + '...');
 
     return finalReport;
   } catch (error) {

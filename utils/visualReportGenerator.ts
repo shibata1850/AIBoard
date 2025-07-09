@@ -215,8 +215,8 @@ export function parseEnhancedFinancialData(analysisContent: string): EnhancedFin
   const recommendations: string[] = [];
   
   const lines = String(analysisContent || '').split('\n');
-  
-  lines.forEach(line => {
+
+  lines.forEach((line: string) => {
     const lowerLine = line.toLowerCase();
     
     if (lowerLine.includes('負債比率') && line.includes('%')) {

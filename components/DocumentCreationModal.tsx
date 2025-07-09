@@ -61,14 +61,13 @@ export function DocumentCreationModal({
             extractedText: parsedContent.text || analysisContent
           };
         } else if (parsedContent.statements && parsedContent.ratios) {
-          console.log('Using structured statements and ratios data');
           reportData = {
             companyName: '国立大学法人',
             fiscalYear: '2023年度',
             statements: parsedContent.statements,
             ratios: parsedContent.ratios,
             analysis: {
-              summary: parsedContent.analysis?.summary || '財務分析結果',
+              summary: parsedContent.analysis?.summary || parsedContent.text || '財務分析結果',
               recommendations: parsedContent.analysis?.recommendations || []
             },
             extractedText: parsedContent.text || analysisContent
@@ -120,7 +119,6 @@ export function DocumentCreationModal({
           throw new Error('Unknown data format');
         }
       } catch (parseError) {
-        console.log('Using fallback data due to parse error:', parseError);
         reportData = {
           companyName: '国立大学法人',
           fiscalYear: '2023年度',
