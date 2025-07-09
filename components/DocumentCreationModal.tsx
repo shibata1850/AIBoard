@@ -47,7 +47,6 @@ export function DocumentCreationModal({
       
       try {
         const parsedContent = JSON.parse(analysisContent);
-        
         if (parsedContent.financial_statements) {
           console.log('Using structured financial_statements data');
           reportData = {
