@@ -750,12 +750,19 @@ ${riskResult}
 `;
 
     console.log('Before citations:', finalReport.substring(0, 300) + '...');
-    console.log('Final report before citations contains \\n\\n**: ', finalReport.includes('\\n\\n**'));
-    console.log('Final report before citations contains \\n**: ', finalReport.includes('\\n**'));
     finalReport = addCitationsToText(finalReport, structuredData);
-    console.log('After citations:', finalReport.substring(0, 300) + '...');
-    console.log('Final report after citations contains \\n\\n**: ', finalReport.includes('\\n\\n**'));
-    console.log('Final report after citations contains \\n**: ', finalReport.includes('\\n**'));
+    
+    finalReport = finalReport
+      .replace(/\\n\\n\*\*\d*/g, '') // Remove \n\n**3 type artifacts
+      .replace(/\\n\\n\*\*/g, '') // Remove \n\n** artifacts
+      .replace(/\\n\*/g, '') // Remove \n* artifacts
+      .replace(/\\n/g, '\n') // Convert escaped newlines to actual newlines
+      .replace(/\\\*/g, '*') // Convert escaped asterisks to actual asterisks
+      .replace(/\\\#/g, '#') // Convert escaped hashes to actual hashes
+      .replace(/\n{3,}/g, '\n\n') // Limit consecutive newlines to 2
+      .trim();
+    
+    console.log('After citations and cleaning:', finalReport.substring(0, 300) + '...');
 
     return finalReport;
   } catch (error) {
