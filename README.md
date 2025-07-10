@@ -102,6 +102,8 @@ eas submit --platform all
 
 このプロジェクトはMITライセンスの下で公開されています。
 
+<!-- Verification: Repository access, lint, and PR capabilities confirmed by Devin -->
+
 <!-- Dummy change for PR test -->
 
 ## 検証済み
