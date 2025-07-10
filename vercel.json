@@ -10,30 +10,11 @@
     "autoAlias": true
   },
   "routes": [
-    {
-      "src": "/_expo/static/(.*)",
-      "dest": "/_expo/static/$1",
-      "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable"
-      }
-    },
-    {
-      "src": "/assets/(.*)",
-      "dest": "/assets/$1",
-      "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable"
-      }
-    },
-    {
-      "src": "/favicon.ico",
-      "dest": "/favicon.ico"
-    },
-    {
-      "src": "/api/(.*)",
-      "dest": "/server/api/$1"
-    },
-    {
-      "src": "/(.*)",
+    { "handle": "filesystem" },
+    { "src": "/_expo/(.*)", "dest": "/_expo/$1" },
+    { "src": "/api/(.*)", "dest": "/server/api/$1" },
+    { 
+      "src": "/(.*)", 
       "dest": "/index.html",
       "headers": {
         "Access-Control-Allow-Origin": "*",

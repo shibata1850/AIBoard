@@ -30,6 +30,7 @@ export default function AnalysisPage() {
   const [documentType, setDocumentType] = useState<DocumentType>('財務諸表');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<string | null>(null);
+  const [structuredData, setStructuredData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [showDocumentModal, setShowDocumentModal] = useState(false);
@@ -94,11 +95,8 @@ export default function AnalysisPage() {
 
           if (verificationResult.success && verificationResult.verifiedData) {
             console.log('Verification successful, storing structured data');
-            setAnalysisResult(JSON.stringify({
-              statements: verificationResult.verifiedData.statements,
-              ratios: verificationResult.verifiedData.ratios,
-              text: verificationResult.verifiedData.analysis || 'Structured financial data extracted successfully'
-            }));
+            setStructuredData(verificationResult.verifiedData);
+            setAnalysisResult(verificationResult.verifiedData.analysis || 'Structured financial data extracted successfully');
             setError(null);
             
             if (user) {
@@ -143,7 +141,8 @@ export default function AnalysisPage() {
       }
 
       const result = await analyzeDocument(contentToAnalyze);
-      setAnalysisResult(JSON.stringify(result));
+      setStructuredData(result);
+      setAnalysisResult(result.text || JSON.stringify(result));
       setError(null); // 成功したらエラーをクリア
       
       if (user) {
@@ -194,6 +193,7 @@ export default function AnalysisPage() {
 
   function resetAnalysis() {
     setAnalysisResult(null);
+    setStructuredData(null);
     setFileName(null);
   }
 
@@ -352,6 +352,7 @@ export default function AnalysisPage() {
           visible={showDocumentModal}
           onClose={() => setShowDocumentModal(false)}
           analysisContent={analysisResult || ''}
+          structuredData={structuredData}
           fileName={fileName || undefined}
           documentType={documentType}
         />

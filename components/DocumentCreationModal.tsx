@@ -19,6 +19,7 @@ interface DocumentCreationModalProps {
   visible: boolean;
   onClose: () => void;
   analysisContent: string;
+  structuredData?: any;
   fileName?: string;
   documentType?: string;
 }
@@ -27,6 +28,7 @@ export function DocumentCreationModal({
   visible,
   onClose,
   analysisContent,
+  structuredData,
   fileName,
   documentType,
 }: DocumentCreationModalProps) {
@@ -45,91 +47,110 @@ export function DocumentCreationModal({
     try {
       let reportData;
       
-      try {
-        const parsedContent = JSON.parse(analysisContent);
-        if (parsedContent.financial_statements) {
-          console.log('Using structured financial_statements data');
-          reportData = {
-            companyName: '国立大学法人',
-            fiscalYear: '2023年度',
-            statements: parsedContent.financial_statements,
-            ratios: parsedContent.ratios || {},
-            analysis: {
-              summary: parsedContent.summary || '財務分析結果',
-              recommendations: parsedContent.recommendations || []
-            },
-            extractedText: parsedContent.text || analysisContent
-          };
-        } else if (parsedContent.statements && parsedContent.ratios) {
-          reportData = {
-            companyName: '国立大学法人',
-            fiscalYear: '2023年度',
-            statements: parsedContent.statements,
-            ratios: parsedContent.ratios,
-            analysis: {
-              summary: parsedContent.analysis?.summary || parsedContent.text || '財務分析結果',
-              recommendations: parsedContent.analysis?.recommendations || []
-            },
-            extractedText: parsedContent.text || analysisContent
-          };
-        } else if (parsedContent.analysis && parsedContent.analysis.summary) {
-          console.log('Using analysis object data');
-          reportData = {
-            companyName: '国立大学法人',
-            fiscalYear: '2023年度',
-            statements: parsedContent.statements || {},
-            ratios: parsedContent.ratios || {},
-            analysis: {
-              summary: parsedContent.analysis.summary,
-              recommendations: Array.isArray(parsedContent.analysis.recommendations) ? 
-                parsedContent.analysis.recommendations : [
-                '財務健全性の向上',
-                '収益性の改善',
-                '効率性の向上',
-                'リスク管理の強化',
-                '成長戦略の策定',
-                '資金調達の最適化',
-                'コスト管理の徹底',
-                '業務プロセスの改善',
-                '人材育成の推進',
-                'デジタル化の促進',
-                '持続可能性の確保',
-                'ガバナンス体制の強化',
-                '附属病院事業の効率化と収益向上',
-                '運営費交付金以外の収益源多様化',
-                '経営管理システムの高度化'
-              ].filter(rec => typeof rec === 'string' && rec.length > 0)
-            },
-            extractedText: typeof (parsedContent.text || analysisContent) === 'string' ? (parsedContent.text || analysisContent) : JSON.stringify(parsedContent.text || analysisContent)
-          };
-        } else if (parsedContent.text && typeof parsedContent.text === 'string') {
-          console.log('Using text-only analysis data');
-          reportData = {
-            companyName: '国立大学法人',
-            fiscalYear: '2023年度',
-            statements: {},
-            ratios: {},
-            analysis: {
-              summary: 'テキスト形式の分析データ',
-              recommendations: ['データ構造の改善', '分析精度の向上']
-            },
-            extractedText: parsedContent.text
-          };
-        } else {
-          throw new Error('Unknown data format');
-        }
-      } catch (parseError) {
-        reportData = {
+      const createFallbackReportData = (analysisContent: string) => {
+        const parseJapaneseCurrency = (currencyStr: string): number => {
+          let cleanStr = currencyStr.replace(/[円,\s]/g, '');
+          let value = 0;
+          let isNegative = cleanStr.includes('-') || cleanStr.includes('△');
+          
+          if (cleanStr.includes('億')) {
+            const billionMatch = cleanStr.match(/([0-9.]+)億/);
+            if (billionMatch) value += parseFloat(billionMatch[1]) * 100000000;
+          }
+          if (cleanStr.includes('万')) {
+            const millionMatch = cleanStr.match(/([0-9.]+)万/);
+            if (millionMatch) value += parseFloat(millionMatch[1]) * 10000;
+          }
+          if (cleanStr.includes('千')) {
+            const thousandMatch = cleanStr.match(/([0-9.]+)千/);
+            if (thousandMatch) value += parseFloat(thousandMatch[1]) * 1000;
+          }
+          
+          return isNegative ? -value : value;
+        };
+
+        const extractFinancialNumbers = (text: string) => {
+          const numbers: { [key: string]: number } = {};
+          
+          const debtRatioMatch = text.match(/負債比率.*?([0-9.]+)%/);
+          if (debtRatioMatch) numbers.debtRatio = parseFloat(debtRatioMatch[1]);
+          
+          const currentRatioMatch = text.match(/流動比率.*?([0-9.]+)/);
+          if (currentRatioMatch) numbers.currentRatio = parseFloat(currentRatioMatch[1]);
+          
+          const operatingLossMatch = text.match(/経常損失.*?(-?[0-9億万千,]+円)/);
+          if (operatingLossMatch) {
+            numbers.operatingLoss = parseJapaneseCurrency(operatingLossMatch[1]);
+          }
+          
+          const hospitalLossMatch = text.match(/附属病院.*?(-?[0-9億万千,]+円)/);
+          if (hospitalLossMatch) {
+            numbers.hospitalLoss = parseJapaneseCurrency(hospitalLossMatch[1]);
+          }
+          
+          return numbers;
+        };
+
+        const extractedNumbers = extractFinancialNumbers(analysisContent);
+        
+        return {
           companyName: '国立大学法人',
           fiscalYear: '2023年度',
-          statements: {},
-          ratios: {},
+          statements: {
+            貸借対照表: {
+              資産の部: { 資産合計: extractedNumbers.totalAssets || 0 },
+              負債の部: { 負債合計: extractedNumbers.totalLiabilities || 0 }
+            },
+            損益計算書: { 経常損失: extractedNumbers.operatingLoss || 0 },
+            セグメント情報: { 附属病院: { 業務損益: extractedNumbers.hospitalLoss || 0 } }
+          },
+          ratios: {
+            負債比率: extractedNumbers.debtRatio || 0,
+            流動比率: extractedNumbers.currentRatio || 0
+          },
           analysis: {
-            summary: 'テキスト形式の分析データ',
-            recommendations: ['データ構造の改善', '分析精度の向上'].filter(rec => typeof rec === 'string' && rec.length > 0)
+            summary: '財務分析結果',
+            recommendations: ['負債比率の改善', '流動性の向上', 'セグメント収益性の改善']
           },
           extractedText: analysisContent
         };
+      };
+      
+      if (structuredData && structuredData.statements) {
+        console.log('Using provided structured data');
+        reportData = {
+          companyName: '国立大学法人',
+          fiscalYear: '2023年度',
+          statements: structuredData.statements,
+          ratios: structuredData.ratios || {},
+          analysis: {
+            summary: structuredData.analysis?.summary || analysisContent || '財務分析結果',
+            recommendations: structuredData.analysis?.recommendations || []
+          },
+          extractedText: analysisContent
+        };
+      } else {
+        try {
+          const parsedContent = JSON.parse(analysisContent);
+          if (parsedContent.statements && parsedContent.ratios) {
+            reportData = {
+              companyName: '国立大学法人',
+              fiscalYear: '2023年度',
+              statements: parsedContent.statements,
+              ratios: parsedContent.ratios,
+              analysis: {
+                summary: parsedContent.text || '財務分析結果',
+                recommendations: []
+              },
+              extractedText: parsedContent.text || analysisContent
+            };
+          } else {
+            throw new Error('No structured data available');
+          }
+        } catch (parseError) {
+          console.log('No structured data available, using fallback extraction');
+          reportData = createFallbackReportData(analysisContent);
+        }
       }
 
       if (analysisContent.includes('負債比率') || analysisContent.includes('流動比率')) {
