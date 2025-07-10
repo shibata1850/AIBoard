@@ -63,7 +63,17 @@ export async function analyzeDocument(content: string): Promise<string> {
     content = content.substring(0, 50000);
   }
   
-  const contentHash = btoa(content).replace(/[^a-zA-Z0-9]/g, '').substring(0, 32);
+  const encoder = new TextEncoder();
+  const data = encoder.encode(content);
+  
+  let hash = 0;
+  for (let i = 0; i < data.length; i++) {
+    const char = data[i];
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  
+  const contentHash = Math.abs(hash).toString(36).substring(0, 32);
   
   try {
     const { supabase } = require('../utils/supabase');
