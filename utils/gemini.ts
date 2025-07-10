@@ -2,7 +2,7 @@ import { Message } from '../types/chat';
 import { generateChatResponse } from '../server/api/chat';
 import { analyzeDocument as analyzeDocumentAPI } from '../server/api/analyze';
 
-const MAX_RETRIES = 3;
+const MAX_RETRIES = 2;
 const RETRY_DELAY_MS = 1500;
 
 /**
@@ -58,9 +58,37 @@ export async function generateFreeChatResponse(messages: Message[]): Promise<str
 export async function analyzeDocument(content: string): Promise<string> {
   let lastError: any = null;
   
-  if (content.length > 100000) {
-    console.warn(`Content too large (${content.length} chars), truncating to 100000 chars`);
-    content = content.substring(0, 100000);
+  if (content.length > 50000) {
+    console.warn(`Content too large (${content.length} chars), truncating to 50000 chars`);
+    content = content.substring(0, 50000);
+  }
+  
+  const encoder = new TextEncoder();
+  const data = encoder.encode(content);
+  
+  let hash = 0;
+  for (let i = 0; i < data.length; i++) {
+    const char = data[i];
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  
+  const contentHash = Math.abs(hash).toString(36).substring(0, 32);
+  
+  try {
+    const { supabase } = require('../utils/supabase');
+    const { data: cachedResult } = await supabase
+      .from('document_analyses')
+      .select('content')
+      .eq('content_hash', contentHash)
+      .single();
+    
+    if (cachedResult) {
+      console.log('Using cached analysis result');
+      return cachedResult.content;
+    }
+  } catch (cacheError) {
+    console.log('Cache check failed, proceeding with fresh analysis:', cacheError);
   }
   
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
@@ -72,6 +100,21 @@ export async function analyzeDocument(content: string): Promise<string> {
       if (!result.text) {
         console.error('Invalid API response:', result);
         throw new Error('無効な応答フォーマット: テキストフィールドがありません');
+      }
+
+      try {
+        const { supabase } = require('../utils/supabase');
+        await supabase
+          .from('document_analyses')
+          .insert({
+            id: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
+            content_hash: contentHash,
+            content: result.text,
+            created_at: new Date().toISOString()
+          });
+        console.log('Analysis result cached successfully');
+      } catch (cacheInsertError) {
+        console.warn('Failed to cache result:', cacheInsertError);
       }
 
       return result.text;

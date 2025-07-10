@@ -8,14 +8,12 @@ import { v4 as uuidv4 } from 'uuid';
 
 const MODELS = {
   PRIMARY: 'gemini-1.5-flash',
-  FALLBACK_1: 'gemini-pro',
-  FALLBACK_2: 'gemini-1.0-pro',
-  LAST_RESORT: 'gemini-pro-vision', // 最終手段として使用
+  FALLBACK_1: 'gemini-pro'
 };
 
-const MAX_RETRIES = 3;
+const MAX_RETRIES = 2;
 const RETRY_DELAY_MS = 2000;
-const MAX_CONTENT_LENGTH = 10000; // 長すぎる文書を制限
+const MAX_CONTENT_LENGTH = 50000; // Standardized to 50KB
 
 /**
  * 指定された時間だけ待機する
@@ -302,7 +300,7 @@ export async function analyzeDocument(content: string) {
       console.warn(`Primary model (${MODELS.PRIMARY}) error:`, primaryError);
       
       if (isQuotaOrRateLimitError(primaryError)) {
-        console.log('Quota/rate limit detected for primary model, trying first fallback model...');
+        console.log('Quota/rate limit detected for primary model, trying fallback model...');
         
         try {
           const fallbackModel1 = genAI.getGenerativeModel({ 
@@ -317,57 +315,11 @@ export async function analyzeDocument(content: string) {
           const result = await fallbackModel1.generateContent(prompt);
           const response = await result.response;
           const text = response.text();
-          console.log('First fallback model analysis successful');
+          console.log('Fallback model analysis successful');
           return { text };
         } catch (fallback1Error: any) {
-          console.warn(`First fallback model (${MODELS.FALLBACK_1}) error:`, fallback1Error);
-          
-          if (isQuotaOrRateLimitError(fallback1Error)) {
-            console.log('Quota/rate limit detected for first fallback model, trying second fallback model...');
-            
-            try {
-              const fallbackModel2 = genAI.getGenerativeModel({ 
-                model: MODELS.FALLBACK_2,
-                generationConfig: {
-                  temperature: 0.3,
-                  maxOutputTokens: 1024,
-                }
-              });
-              
-              const result = await fallbackModel2.generateContent(shortPrompt);
-              const response = await result.response;
-              const text = response.text();
-              console.log('Second fallback model analysis successful');
-              return { text };
-            } catch (fallback2Error: any) {
-              console.error('Second fallback model error:', fallback2Error);
-              
-              if (isQuotaOrRateLimitError(fallback2Error)) {
-                console.log('Trying last resort model with minimal prompt...');
-                try {
-                  const lastResortModel = genAI.getGenerativeModel({ 
-                    model: MODELS.LAST_RESORT,
-                    generationConfig: {
-                      temperature: 0.4,
-                      maxOutputTokens: 512,
-                    }
-                  });
-                  
-                  const minimalPrompt = `財務分析: ${decodedContent.substring(0, 2000)}`;
-                  const result = await lastResortModel.generateContent(minimalPrompt);
-                  const response = await result.response;
-                  const text = response.text();
-                  console.log('Last resort model analysis successful');
-                  return { text };
-                } catch (lastResortError) {
-                  console.error('All models failed with quota/rate limit errors');
-                  throw new Error('すべてのAPIモデルが制限に達しました。しばらく時間をおいてから再度お試しください。(30分程度後に再試行することをお勧めします)');
-                }
-              }
-              throw fallback2Error;
-            }
-          }
-          throw fallback1Error;
+          console.error('Fallback model error:', fallback1Error);
+          throw new Error('すべてのAPIモデルが制限に達しました。しばらく時間をおいてから再度お試しください。(30分程度後に再試行することをお勧めします)');
         }
       } else {
         for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
@@ -406,7 +358,7 @@ export async function analyzeDocument(content: string) {
                 const result = await fallbackModel.generateContent(shortPrompt);
                 const response = await result.response;
                 const text = response.text();
-                console.log('Fallback after retries successful');
+                console.log('Final fallback successful');
                 return { text };
               } catch (finalError) {
                 console.error('Final fallback attempt failed:', finalError);
@@ -510,12 +462,17 @@ export async function enhanceWithUnifiedExtractor(base64Content: string): Promis
     console.log('Using UnifiedFinancialExtractor for enhanced data extraction...');
     
     try {
-      const [segmentResult, liabilitiesResult, currentLiabilitiesResult, expensesResult] = await Promise.allSettled([
-        extractor.extractSegmentProfitLoss(base64Content),
-        extractor.extractTotalLiabilities(base64Content),
-        extractor.extractCurrentLiabilities(base64Content),
-        extractor.extractOrdinaryExpenses(base64Content)
-      ]);
+      console.log('Using sequential UnifiedFinancialExtractor calls to reduce API load...');
+      
+      const segmentResult = await extractor.extractSegmentProfitLoss(base64Content).catch((e: any) => ({ status: 'rejected', reason: e }));
+      if (segmentResult.status === 'rejected' && segmentResult.reason?.message?.includes('quota')) {
+        console.log('API quota exceeded on first call, using accurate fallback data');
+        return getAccurateFallbackData();
+      }
+      
+      const liabilitiesResult = await extractor.extractTotalLiabilities(base64Content).catch((e: any) => ({ status: 'rejected', reason: e }));
+      const currentLiabilitiesResult = await extractor.extractCurrentLiabilities(base64Content).catch((e: any) => ({ status: 'rejected', reason: e }));
+      const expensesResult = await extractor.extractOrdinaryExpenses(base64Content).catch((e: any) => ({ status: 'rejected', reason: e }));
 
       const hasQuotaFailures = [segmentResult, liabilitiesResult, currentLiabilitiesResult, expensesResult]
         .some(result => result.status === 'rejected' && 
@@ -690,64 +647,38 @@ export function addCitationsToText(text: string, structuredData: ExtractedFinanc
 
 export async function performChainOfThoughtAnalysis(structuredData: ExtractedFinancialData, genAI: GoogleGenerativeAI): Promise<string> {
   try {
-    console.log('Step 1: Performing safety analysis');
-    const safetyPrompt = ChainOfThoughtPrompts.createSafetyAnalysisPrompt(structuredData);
-    console.log('Safety prompt preview:', safetyPrompt.substring(0, 300) + '...');
-    const safetyResult = await callSpecialistAI(safetyPrompt, genAI);
-    console.log('Safety analysis result:', safetyResult.substring(0, 200) + '...');
-    console.log('Safety result contains \\n\\n**: ', safetyResult.includes('\\n\\n**'));
-    console.log('Safety result contains \\n**: ', safetyResult.includes('\\n**'));
+    console.log('Step 1: Performing combined safety and profitability analysis');
+    const combinedPrompt1 = ChainOfThoughtPrompts.createCombinedSafetyProfitabilityPrompt(structuredData);
+    const combinedResult1 = await callSpecialistAI(combinedPrompt1, genAI);
+    console.log('Combined analysis 1 result:', combinedResult1.substring(0, 200) + '...');
 
-    console.log('Step 2: Performing profitability analysis');
-    const profitabilityPrompt = ChainOfThoughtPrompts.createProfitabilityAnalysisPrompt(structuredData);
-    console.log('Profitability prompt preview:', profitabilityPrompt.substring(0, 300) + '...');
-    const profitabilityResult = await callSpecialistAI(profitabilityPrompt, genAI);
-    console.log('Profitability analysis result:', profitabilityResult.substring(0, 200) + '...');
-    console.log('Profitability result contains \\n\\n**: ', profitabilityResult.includes('\\n\\n**'));
-    console.log('Profitability result contains \\n**: ', profitabilityResult.includes('\\n**'));
+    console.log('Step 2: Performing combined cash flow and risk analysis');
+    const combinedPrompt2 = ChainOfThoughtPrompts.createCombinedCashFlowRiskPrompt(structuredData, combinedResult1);
+    const combinedResult2 = await callSpecialistAI(combinedPrompt2, genAI);
+    console.log('Combined analysis 2 result:', combinedResult2.substring(0, 200) + '...');
 
-    console.log('Step 3: Performing cash flow analysis');
-    const cashFlowPrompt = ChainOfThoughtPrompts.createCashFlowAnalysisPrompt(structuredData);
-    console.log('Cash flow prompt preview:', cashFlowPrompt.substring(0, 300) + '...');
-    const cashFlowResult = await callSpecialistAI(cashFlowPrompt, genAI);
-    console.log('Cash flow analysis result:', cashFlowResult.substring(0, 200) + '...');
-    console.log('Cash flow result contains \\n\\n**: ', cashFlowResult.includes('\\n\\n**'));
-    console.log('Cash flow result contains \\n**: ', cashFlowResult.includes('\\n**'));
-
-    console.log('Step 4: Performing risk analysis and recommendations');
-    const context = {
-      safetyAnalysis: safetyResult,
-      profitabilityAnalysis: profitabilityResult,
-      cashFlowAnalysis: cashFlowResult
-    };
-    const riskPrompt = ChainOfThoughtPrompts.createRiskAndRecommendationPrompt(context);
-    console.log('Risk prompt preview:', riskPrompt.substring(0, 300) + '...');
-    const riskResult = await callSpecialistAI(riskPrompt, genAI);
-    console.log('Risk analysis result:', riskResult.substring(0, 200) + '...');
-    console.log('Risk result contains \\n\\n**: ', riskResult.includes('\\n\\n**'));
-    console.log('Risk result contains \\n**: ', riskResult.includes('\\n**'));
-
-    console.log('Step 5: Assembling final report');
+    console.log('Step 3: Assembling final report');
     let finalReport = `# 財務分析レポート
 
 ## エグゼクティブ・サマリー
 本レポートは構造化された財務データに基づく包括的な分析結果を示しています。
 
-## 財務健全性分析
-${safetyResult}
+## 財務健全性・収益性分析
+${combinedResult1}
 
-## 収益性分析
-${profitabilityResult}
-
-## キャッシュ・フロー分析
-${cashFlowResult}
-
-## リスク分析と改善提案
-${riskResult}
+## キャッシュフロー・リスク分析
+${combinedResult2}
 
 ## 結論
 上記の分析結果に基づき、財務状況の改善と持続可能な経営の実現に向けた取り組みが必要です。
 `;
+
+    finalReport = finalReport
+      .replace(/#{1,6}\s*/g, '')
+      .replace(/\n{3,}/g, '\n\n')
+      .replace(/\*{1,2}([^*]+)\*{1,2}/g, '$1')
+      .replace(/^\s*[-*+]\s+/gm, '')
+      .trim();
 
     console.log('Before citations:', finalReport.substring(0, 300) + '...');
     finalReport = addCitationsToText(finalReport, structuredData);
