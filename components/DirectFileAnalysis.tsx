@@ -9,12 +9,13 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-import { FileUp } from 'lucide-react-native';
+import { FileUp, FileText } from 'lucide-react-native';
 import { useTheme } from './ThemeProvider';
 import { analyzeDocument } from '../utils/gemini';
 import { readFileAsBase64, getMimeTypeFromFileName } from '../utils/fileUpload';
 import * as DocumentPicker from 'expo-document-picker';
 import { v4 as uuidv4 } from 'uuid';
+import { DocumentCreationModal } from './DocumentCreationModal';
 
 export function DirectFileAnalysis() {
   const { isDark } = useTheme();
@@ -22,6 +23,7 @@ export function DirectFileAnalysis() {
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showDocumentModal, setShowDocumentModal] = useState(false);
 
   async function handleFileUpload() {
     try {
@@ -149,8 +151,26 @@ export function DirectFileAnalysis() {
                 {analysis}
               </Text>
             </ScrollView>
+            
+            <TouchableOpacity
+              style={[
+                styles.documentButton,
+                { backgroundColor: isDark ? '#0A84FF' : '#007AFF' }
+              ]}
+              onPress={() => setShowDocumentModal(true)}
+            >
+              <FileText size={20} color="#FFFFFF" style={styles.documentButtonIcon} />
+              <Text style={styles.documentButtonText}>ビジュアルレポート作成</Text>
+            </TouchableOpacity>
           </View>
         ) : null}
+
+        <DocumentCreationModal
+          visible={showDocumentModal}
+          onClose={() => setShowDocumentModal(false)}
+          analysisContent={analysis || ''}
+          fileName={fileName || undefined}
+        />
       </View>
     </View>
   );
@@ -251,5 +271,21 @@ const styles = StyleSheet.create({
   analysisText: {
     fontSize: 16,
     lineHeight: 24,
+  },
+  documentButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 16,
+  },
+  documentButtonIcon: {
+    marginRight: 8,
+  },
+  documentButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
