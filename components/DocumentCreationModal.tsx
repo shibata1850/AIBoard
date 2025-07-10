@@ -151,35 +151,52 @@ export function DocumentCreationModal({
           return isNegative ? -value : value;
         };
 
-        const extractFinancialNumbers = (text: string) => {
+        const extractFinancialNumbers = (text: string, structuredData?: any) => {
           const numbers: { [key: string]: number } = {};
           
+          if (structuredData && structuredData.statements) {
+            const statements = structuredData.statements;
+            numbers.totalAssets = statements.貸借対照表?.資産の部?.資産合計 || 0;
+            numbers.totalLiabilities = statements.貸借対照表?.負債の部?.負債合計 || 0;
+            numbers.currentAssets = statements.貸借対照表?.資産の部?.流動資産?.流動資産合計 || 0;
+            numbers.currentLiabilities = statements.貸借対照表?.負債の部?.流動負債?.流動負債合計 || 0;
+            numbers.operatingLoss = Math.abs(statements.損益計算書?.経常損失 || statements.損益計算書?.経常利益 || 0);
+            numbers.hospitalLoss = Math.abs(statements.セグメント情報?.附属病院?.業務損益 || 0);
+            
+            if (numbers.totalLiabilities && numbers.totalAssets) {
+              numbers.debtRatio = (numbers.totalLiabilities / numbers.totalAssets) * 100;
+            }
+            if (numbers.currentAssets && numbers.currentLiabilities) {
+              numbers.currentRatio = numbers.currentAssets / numbers.currentLiabilities;
+            }
+          }
+          
           const debtRatioMatch = text.match(/負債比率.*?=\s*([0-9.]+)\s*\(([0-9.]+)%\)/);
-          if (debtRatioMatch) numbers.debtRatio = parseFloat(debtRatioMatch[2]);
+          if (debtRatioMatch && !numbers.debtRatio) numbers.debtRatio = parseFloat(debtRatioMatch[2]);
           
           const currentRatioMatch = text.match(/流動比率.*?=\s*([0-9.]+)/);
-          if (currentRatioMatch) numbers.currentRatio = parseFloat(currentRatioMatch[1]);
+          if (currentRatioMatch && !numbers.currentRatio) numbers.currentRatio = parseFloat(currentRatioMatch[1]);
           
           const totalLiabilitiesMatch = text.match(/([0-9,]+)\[引用: data\.totalLiabilities\]/);
-          if (totalLiabilitiesMatch) numbers.totalLiabilities = parseInt(totalLiabilitiesMatch[1].replace(/,/g, ''), 10) * 1000;
+          if (totalLiabilitiesMatch && !numbers.totalLiabilities) numbers.totalLiabilities = parseInt(totalLiabilitiesMatch[1].replace(/,/g, ''), 10) * 1000;
           
           const totalAssetsMatch = text.match(/([0-9,]+)\[引用: data\.totalNetAssets\]/);
-          if (totalAssetsMatch) numbers.totalAssets = parseInt(totalAssetsMatch[1].replace(/,/g, ''), 10) * 1000;
+          if (totalAssetsMatch && !numbers.totalAssets) numbers.totalAssets = parseInt(totalAssetsMatch[1].replace(/,/g, ''), 10) * 1000;
           
           const currentAssetsMatch = text.match(/([0-9,]+)\[引用: data\.currentAssets\]/);
-          if (currentAssetsMatch) numbers.currentAssets = parseInt(currentAssetsMatch[1].replace(/,/g, ''), 10) * 1000;
+          if (currentAssetsMatch && !numbers.currentAssets) numbers.currentAssets = parseInt(currentAssetsMatch[1].replace(/,/g, ''), 10) * 1000;
           
           const currentLiabilitiesMatch = text.match(/([0-9,]+)\[引用: data\.currentLiabilities\]/);
-          if (currentLiabilitiesMatch) numbers.currentLiabilities = parseInt(currentLiabilitiesMatch[1].replace(/,/g, ''), 10) * 1000;
+          if (currentLiabilitiesMatch && !numbers.currentLiabilities) numbers.currentLiabilities = parseInt(currentLiabilitiesMatch[1].replace(/,/g, ''), 10) * 1000;
           
           const operatingLossMatch = text.match(/経常損失.*?(-?[0-9億万千,]+円)/);
-          if (operatingLossMatch) {
+          if (operatingLossMatch && !numbers.operatingLoss) {
             const amount = operatingLossMatch[1];
             numbers.operatingLoss = parseJapaneseCurrency(amount);
           }
           
           const hospitalLossMatch = text.match(/附属病院セグメント.*?(-?[0-9億万千,]+円)/);
-          if (hospitalLossMatch) {
+          if (hospitalLossMatch && !numbers.hospitalLoss) {
             const amount = hospitalLossMatch[1];
             numbers.hospitalLoss = parseJapaneseCurrency(amount);
           }
@@ -187,7 +204,7 @@ export function DocumentCreationModal({
           return numbers;
         };
         
-        const extractedNumbers = extractFinancialNumbers(analysisContent);
+        const extractedNumbers = extractFinancialNumbers(analysisContent, reportData);
         
         reportData = {
           companyName: '国立大学法人',
