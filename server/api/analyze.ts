@@ -684,19 +684,12 @@ ${combinedResult2}
     finalReport = addCitationsToText(finalReport, structuredData);
     
     finalReport = finalReport
-      .replace(/\\n\\n\*\*\d*/g, '') // Remove \n\n**3 type artifacts
-      .replace(/\\n\\n\*\*/g, '') // Remove \n\n** artifacts
-      .replace(/\\n\*/g, '') // Remove \n* artifacts
       .replace(/\\n/g, '\n') // Convert escaped newlines to actual newlines
       .replace(/\\\*/g, '*') // Convert escaped asterisks to actual asterisks
-      .replace(/\\#/g, '#') // Convert escaped hashes to actual hashes
       .replace(/\\"/g, '"') // Convert escaped quotes to actual quotes
       .replace(/\n{3,}/g, '\n\n') // Limit consecutive newlines to 2
       .replace(/\s+\n/g, '\n') // Remove trailing spaces before newlines
       .replace(/\n\s+/g, '\n') // Remove leading spaces after newlines
-      .replace(/^\s*\*\s*/gm, '') // Remove bullet points at start of lines
-      .replace(/^\s*-\s*/gm, '') // Remove dashes at start of lines
-      .replace(/^\s*\d+\.\s*/gm, '') // Remove numbered lists
       .trim();
     
     console.log('After citations and cleaning:', finalReport.substring(0, 300) + '...');
