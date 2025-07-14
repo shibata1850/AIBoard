@@ -25,6 +25,5 @@
   ],
   "env": {
     "VERCEL_PROJECT_PROTECTION": "false"
-  },
-  "ignoreCommand": "echo 'Skipping checks'"
+  }
 }
