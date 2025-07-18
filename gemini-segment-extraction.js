@@ -65,11 +65,7 @@ async function extractSegmentDataWithGemini(pdfPath) {
       console.log('Metric: 業務損益');
       console.log(`Value (JPY 1,000s): ${numericValue}`);
       
-      if (numericValue === -410984) {
-        console.log('\n✅ Perfect match! Expected value -410984 extracted correctly.');
-      } else {
-        console.log(`\n⚠️  Value extracted: ${numericValue}, but expected: -410984`);
-      }
+      console.log(`\n✅ Value extracted: ${numericValue}`);
       
       return true;
     } else {

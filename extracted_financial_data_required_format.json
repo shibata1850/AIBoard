@@ -22,7 +22,7 @@
       {
         "category": "負債の部",
         "account": "流動負債合計",
-        "amount": 7020870000
+        "amount": 0
       },
       {
         "category": "負債の部",
@@ -32,7 +32,7 @@
       {
         "category": "負債の部",
         "account": "負債合計",
-        "amount": 27947258000
+        "amount": 0
       },
       {
         "category": "純資産の部",
@@ -89,7 +89,7 @@
       {
         "category": "経常費用",
         "account": "経常費用合計",
-        "amount": 34723539000
+        "amount": 0
       },
       {
         "category": "経常費用",
@@ -173,7 +173,7 @@
       {
         "category": "附属病院",
         "account": "業務損益",
-        "amount": -410984000
+        "amount": 0
       },
       {
         "category": "附属学校",

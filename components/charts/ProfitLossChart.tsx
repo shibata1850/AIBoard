@@ -11,9 +11,9 @@ interface ProfitLossChartProps {
 const screenWidth = Dimensions.get('window').width;
 
 export const ProfitLossChart: React.FC<ProfitLossChartProps> = ({
-  revenue = 598995,
-  expenses = 598995,
-  profit = -325961
+  revenue = 0,
+  expenses = 0,
+  profit = 0
 }) => {
   const data = {
     labels: ['売上高', '総費用', '純利益'],
