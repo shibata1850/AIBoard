@@ -55,7 +55,7 @@ export async function generateFreeChatResponse(messages: Message[]): Promise<str
   }
 }
 
-export async function analyzeDocument(content: string): Promise<string> {
+export async function analyzeDocument(content: string): Promise<{ text: string; statements?: any; ratios?: any }> {
   let lastError: any = null;
   
   if (content.length > 50000) {
@@ -85,7 +85,15 @@ export async function analyzeDocument(content: string): Promise<string> {
     
     if (cachedResult) {
       console.log('Using cached analysis result');
-      return cachedResult.content;
+      try {
+        const parsedResult = JSON.parse(cachedResult.content);
+        if (parsedResult.text) {
+          return parsedResult;
+        }
+      } catch (parseError) {
+        console.log('Cached result is plain text, returning as text-only result');
+      }
+      return { text: cachedResult.content };
     }
   } catch (cacheError) {
     console.log('Cache check failed, proceeding with fresh analysis:', cacheError);
@@ -109,7 +117,7 @@ export async function analyzeDocument(content: string): Promise<string> {
           .insert({
             id: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
             content_hash: contentHash,
-            content: result.text,
+            content: JSON.stringify(result),
             created_at: new Date().toISOString()
           });
         console.log('Analysis result cached successfully');
@@ -117,7 +125,7 @@ export async function analyzeDocument(content: string): Promise<string> {
         console.warn('Failed to cache result:', cacheInsertError);
       }
 
-      return result.text;
+      return result;
     } catch (error) {
       lastError = error;
       console.error(`Error analyzing document (attempt ${attempt + 1}):`, error);

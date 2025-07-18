@@ -184,10 +184,15 @@ export function DocumentCreationModal({
             numbers.operatingLoss = Math.abs(statements.損益計算書?.経常損失 || statements.損益計算書?.経常利益 || 0);
             numbers.hospitalLoss = Math.abs(statements.セグメント情報?.附属病院?.業務損益 || 0);
             
-            if (numbers.totalLiabilities && numbers.totalAssets) {
+            if (structuredData.ratios) {
+              numbers.debtRatio = structuredData.ratios.負債比率 || 0;
+              numbers.currentRatio = structuredData.ratios.流動比率 || 0;
+            }
+            
+            if (!numbers.debtRatio && numbers.totalLiabilities && numbers.totalAssets) {
               numbers.debtRatio = (numbers.totalLiabilities / numbers.totalAssets) * 100;
             }
-            if (numbers.currentAssets && numbers.currentLiabilities) {
+            if (!numbers.currentRatio && numbers.currentAssets && numbers.currentLiabilities) {
               numbers.currentRatio = numbers.currentAssets / numbers.currentLiabilities;
             }
             
