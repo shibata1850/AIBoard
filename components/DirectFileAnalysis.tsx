@@ -49,7 +49,8 @@ export function DirectFileAnalysis() {
       const fileContent = await readFileAsBase64(file.uri);
       
       const analysisResult = await analyzeDocument(fileContent);
-      setAnalysis(analysisResult);
+      const analysisText = typeof analysisResult === 'string' ? analysisResult : analysisResult.text;
+      setAnalysis(analysisText);
       
       setCurrentDocument({
         id: uuidv4(),
@@ -57,6 +58,7 @@ export function DirectFileAnalysis() {
         content: fileContent,
         type: getMimeTypeFromFileName(file.name),
         createdAt: Date.now(),
+        structuredData: analysisResult,
       });
     } catch (error) {
       console.error('Error analyzing file:', error);

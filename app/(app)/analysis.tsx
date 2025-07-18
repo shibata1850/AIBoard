@@ -142,7 +142,8 @@ export default function AnalysisPage() {
 
       const result = await analyzeDocument(contentToAnalyze);
       setStructuredData(result);
-      setAnalysisResult(result.text || JSON.stringify(result));
+      const analysisText = typeof result === 'string' ? result : result.text;
+      setAnalysisResult(analysisText);
       setError(null); // 成功したらエラーをクリア
       
       if (user) {
@@ -173,8 +174,8 @@ export default function AnalysisPage() {
               id: analysisId,
               document_id: documentId,
               analysis_type: 'financial',
-              content: result,
-              summary: result.substring(0, 200) + '...',
+              content: analysisText,
+              summary: analysisText.substring(0, 200) + '...',
               user_id: user.id,
             });
         } catch (dbError) {

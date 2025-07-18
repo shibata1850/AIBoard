@@ -43,9 +43,10 @@ ${originalAnalysis}
 `;
 
     const result = await analyzeDocument(structuredPrompt);
+    const resultText = typeof result === 'string' ? result : result.text;
     
     try {
-      const jsonMatch = result.match(/\{[\s\S]*\}/);
+      const jsonMatch = resultText.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
         throw new Error('JSON形式のデータが見つかりませんでした');
       }

@@ -46,9 +46,9 @@ class HighPrecisionFinancialExtractor(FinancialDataExtractor):
   "unit": "千円",
   "data": {
     "fixedAssets": {
-      "total": 63054601,
+      "total": 0,
       "tangible": {
-        "total": 62227851,
+        "total": 0,
         "items": [
           {"account": "土地", "amount": 23779853},
           {"account": "建物", "amount": 24132543},
@@ -63,14 +63,14 @@ class HighPrecisionFinancialExtractor(FinancialDataExtractor):
       "investmentsAndOther": {"total": 599959}
     },
     "currentAssets": {
-      "total": 8838001,
+      "total": 0,
       "items": [
         {"account": "現金及び預金", "amount": 4346107},
         {"account": "未収附属病院収入", "amount": 3259484},
         {"account": "その他未収入金", "amount": 855865}
       ]
     },
-    "totalAssets": 71892603
+    "totalAssets": 0
   }
 }
 
@@ -112,7 +112,7 @@ class HighPrecisionFinancialExtractor(FinancialDataExtractor):
   "unit": "千円",
   "data": {
     "liabilities": {
-      "total": 27947258,
+      "total": 0,
       "fixedLiabilities": {
         "total": 20926388,
         "items": [
@@ -123,7 +123,7 @@ class HighPrecisionFinancialExtractor(FinancialDataExtractor):
         ]
       },
       "currentLiabilities": {
-        "total": 7020870,
+        "total": 0,
         "items": [
           {"account": "寄附金債務", "amount": 1991176},
           {"account": "前受受託研究費等", "amount": 517520},
@@ -132,7 +132,7 @@ class HighPrecisionFinancialExtractor(FinancialDataExtractor):
       }
     },
     "netAssets": {
-      "total": 43945344,
+      "total": 0,
       "capitalStock": {"total": 34280637},
       "capitalSurplus": {"total": 1050059},
       "retainedEarnings": {"total": 8614648}
@@ -180,7 +180,7 @@ class HighPrecisionFinancialExtractor(FinancialDataExtractor):
   "unit": "千円",
   "data": {
     "ordinaryExpenses": {
-      "total": 34723539,
+      "total": 0,
       "operatingExpenses": {
         "total": 33773313,
         "items": [
@@ -195,7 +195,7 @@ class HighPrecisionFinancialExtractor(FinancialDataExtractor):
       "financialExpenses": 120300
     },
     "ordinaryRevenues": {
-      "total": 34069533,
+      "total": 0,
       "items": [
         {"account": "運営費交付金収益", "amount": 9665735},
         {"account": "授業料収益", "amount": 2443766},
@@ -206,7 +206,7 @@ class HighPrecisionFinancialExtractor(FinancialDataExtractor):
     "ordinaryLoss": -654006,
     "extraordinaryLosses": 22927,
     "extraordinaryGains": 77938,
-    "netLoss": -598995,
+    "netLoss": 0,
     "totalLoss": -325961
   }
 }
@@ -232,9 +232,9 @@ class HighPrecisionFinancialExtractor(FinancialDataExtractor):
   "sourcePage": 6,
   "unit": "千円",
   "data": {
-    "operatingActivities": 1469768,
-    "investingActivities": -10489748,
-    "financingActivities": 4340879,
+    "operatingActivities": 0,
+    "investingActivities": 0,
+    "financingActivities": 0,
     "netDecreaseInCash": -4679100,
     "cashBeginningBalance": 7825207,
     "cashEndingBalance": 3146107
@@ -277,7 +277,7 @@ class HighPrecisionFinancialExtractor(FinancialDataExtractor):
   "data": {
     "operatingProfitLoss": [
       {"segment": "学部研究科等", "amount": 354270},
-      {"segment": "附属病院", "amount": -410984},
+      {"segment": "附属病院", "amount": 0},
       {"segment": "附属学校", "amount": 93455},
       {"segment": "法人共通", "amount": -503837},
       {"segment": "合計", "amount": -654006}

@@ -214,6 +214,12 @@ export async function analyzeDocument(content: string) {
           console.log('Using Chain of Thought analysis with UnifiedFinancialExtractor data');
           const analysisResult = await performChainOfThoughtAnalysis(enhancedData, genAI);
           return { text: analysisResult, statements: enhancedData.statements, ratios: enhancedData.ratios };
+        } else {
+          console.error('All extraction methods failed - returning text-only result');
+          return {
+            text: 'Financial data extraction failed - API key may be missing or quota exceeded',
+            error: 'Structured data extraction failed - API key may be missing or quota exceeded'
+          };
         }
       } else {
         console.log('Browser environment detected, skipping server-side PDF extraction');
@@ -225,6 +231,12 @@ export async function analyzeDocument(content: string) {
         console.log('Using Chain of Thought analysis with UnifiedFinancialExtractor data');
         const analysisResult = await performChainOfThoughtAnalysis(enhancedData, genAI);
         return { text: analysisResult, statements: enhancedData.statements, ratios: enhancedData.ratios };
+      } else {
+        console.error('All extraction methods failed - returning text-only result');
+        return {
+          text: 'Financial data extraction failed - API key may be missing or quota exceeded',
+          error: 'Structured data extraction failed - API key may be missing or quota exceeded'
+        };
       }
     }
 
@@ -435,8 +447,8 @@ export async function extractStructuredDataFromPdf(base64Content: string): Promi
           }
         } else {
           console.error('Python extractor failed:', errorOutput);
-          console.log('Using accurate fallback data for consistent results');
-          const enhancedData = getAccurateFallbackData();
+          console.log('Python extraction failed - attempting UnifiedFinancialExtractor as fallback');
+          const enhancedData = await enhanceWithUnifiedExtractor(base64Content);
           resolve(enhancedData);
         }
       });
@@ -451,8 +463,8 @@ export async function enhanceWithUnifiedExtractor(base64Content: string): Promis
   try {
     const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
     if (!apiKey) {
-      console.warn('Gemini API key not available, using accurate fallback data');
-      return getAccurateFallbackData();
+      console.error('Gemini API key not available - cannot extract financial data');
+      return null;
     }
 
     const extractionService = require('../../utils/extractionService');
@@ -466,8 +478,8 @@ export async function enhanceWithUnifiedExtractor(base64Content: string): Promis
       
       const segmentResult = await extractor.extractSegmentProfitLoss(base64Content).catch((e: any) => ({ status: 'rejected', reason: e }));
       if (segmentResult.status === 'rejected' && segmentResult.reason?.message?.includes('quota')) {
-        console.log('API quota exceeded on first call, using accurate fallback data');
-        return getAccurateFallbackData();
+        console.error('API quota exceeded - cannot extract financial data');
+        return null;
       }
       
       const liabilitiesResult = await extractor.extractTotalLiabilities(base64Content).catch((e: any) => ({ status: 'rejected', reason: e }));
@@ -479,45 +491,45 @@ export async function enhanceWithUnifiedExtractor(base64Content: string): Promis
               result.reason?.message?.includes('quota'));
 
       if (hasQuotaFailures) {
-        console.log('API quota exceeded, using accurate fallback data');
-        return getAccurateFallbackData();
+        console.error('API quota exceeded - cannot extract financial data');
+        return null;
       }
 
       const statements = {
         貸借対照表: {
           資産の部: { 
-            資産合計: 71892602000, 
-            流動資産: { 流動資産合計: 8838001000 }, 
-            固定資産: { 固定資産合計: 63054601000 } 
+            資産合計: 0,
+            流動資産: { 流動資産合計: 0 }, 
+            固定資産: { 固定資産合計: 0 } 
           },
           負債の部: { 
-            負債合計: liabilitiesResult.status === 'fulfilled' ? liabilitiesResult.value.numericValue || 27947258000 : 27947258000,
-            流動負債: { 流動負債合計: currentLiabilitiesResult.status === 'fulfilled' ? currentLiabilitiesResult.value.numericValue || 7020870000 : 7020870000 },
-            固定負債: { 固定負債合計: 20926388000 }
+            負債合計: liabilitiesResult.status === 'fulfilled' ? liabilitiesResult.value.numericValue || 0 : 0,
+            流動負債: { 流動負債合計: currentLiabilitiesResult.status === 'fulfilled' ? currentLiabilitiesResult.value.numericValue || 0 : 0 },
+            固定負債: { 固定負債合計: 0 }
           },
-          純資産の部: { 純資産合計: 43945344000 }
+          純資産の部: { 純資産合計: 0 }
         },
         損益計算書: {
-          経常収益: { 経常収益合計: 34069533000 },
-          経常費用: { 経常費用合計: expensesResult.status === 'fulfilled' ? expensesResult.value.numericValue || 34723539000 : 34723539000 },
-          経常利益: -654006000
+          経常収益: { 経常収益合計: 0 },
+          経常費用: { 経常費用合計: expensesResult.status === 'fulfilled' ? expensesResult.value.numericValue || 0 : 0 },
+          経常利益: 0
         },
         キャッシュフロー計算書: {
-          営業活動によるキャッシュフロー: { 営業活動によるキャッシュフロー合計: 1470000000 },
-          投資活動によるキャッシュフロー: { 投資活動によるキャッシュフロー合計: -10489748000 },
-          財務活動によるキャッシュフロー: { 財務活動によるキャッシュフロー合計: 4340000000 },
-          現金及び現金同等物の増減額: -4679748000
+          営業活動によるキャッシュフロー: { 営業活動によるキャッシュフロー合計: 0 },
+          投資活動によるキャッシュフロー: { 投資活動によるキャッシュフロー合計: 0 },
+          財務活動によるキャッシュフロー: { 財務活動によるキャッシュフロー合計: 0 },
+          現金及び現金同等物の増減額: 0
         },
         セグメント情報: {
-          附属病院: { 業務損益: segmentResult.status === 'fulfilled' ? segmentResult.value.numericValue || -410984000 : -410984000 }
+          附属病院: { 業務損益: segmentResult.status === 'fulfilled' ? segmentResult.value.numericValue || 0 : 0 }
         }
       };
 
       const ratios = {
-        負債比率: 63.60,
-        流動比率: 1.2588,
-        固定比率: 143.5,
-        自己資本比率: 61.1
+        負債比率: 0,
+        流動比率: 0,
+        固定比率: 0,
+        自己資本比率: 0
       };
 
       return {
@@ -525,18 +537,18 @@ export async function enhanceWithUnifiedExtractor(base64Content: string): Promis
         ratios,
         extractionMetadata: {
           extractedAt: new Date().toISOString(),
-          tablesFound: 5,
-          confidence: 'high',
-          warnings: ['Using accurate reference data for consistent results']
+          tablesFound: 0,
+          confidence: 'low',
+          warnings: ['Extraction failed - only extracted values from API calls are used, no fallback data']
         }
       };
     } catch (error) {
-      console.error('UnifiedFinancialExtractor failed, using accurate fallback data:', error);
-      return getAccurateFallbackData();
+      console.error('UnifiedFinancialExtractor failed:', error);
+      return null;
     }
   } catch (error) {
-    console.error('Enhanced extraction failed, using accurate fallback data:', error);
-    return getAccurateFallbackData();
+    console.error('Enhanced extraction failed:', error);
+    return null;
   }
 }
 
@@ -545,30 +557,30 @@ export function getAccurateFallbackData(): ExtractedFinancialData {
     statements: {
       貸借対照表: {
         資産の部: {
-          流動資産: { 流動資産合計: 8838001000 },
-          固定資産: { 固定資産合計: 63054601000 },
-          資産合計: 71892602000
+          流動資産: { 流動資産合計: 0 },
+          固定資産: { 固定資産合計: 0 },
+          資産合計: 0
         },
         負債の部: {
-          流動負債: { 流動負債合計: 7020870000 },
-          固定負債: { 固定負債合計: 20926388000 },
-          負債合計: 27947258000
+          流動負債: { 流動負債合計: 0 },
+          固定負債: { 固定負債合計: 0 },
+          負債合計: 0
         },
-        純資産の部: { 純資産合計: 43945344000 }
+        純資産の部: { 純資産合計: 0 }
       },
       損益計算書: {
-        経常収益: { 経常収益合計: 34069533000 },
-        経常費用: { 経常費用合計: 34723539000 },
-        経常利益: -654006000
+        経常収益: { 経常収益合計: 0 },
+        経常費用: { 経常費用合計: 0 },
+        経常利益: 0
       },
       キャッシュフロー計算書: {
-        営業活動によるキャッシュフロー: { 営業活動によるキャッシュフロー合計: 1470000000 },
-        投資活動によるキャッシュフロー: { 投資活動によるキャッシュフロー合計: -10489748000 },
-        財務活動によるキャッシュフロー: { 財務活動によるキャッシュフロー合計: 4340000000 },
-        現金及び現金同等物の増減額: -4679748000
+        営業活動によるキャッシュフロー: { 営業活動によるキャッシュフロー合計: 0 },
+        投資活動によるキャッシュフロー: { 投資活動によるキャッシュフロー合計: 0 },
+        財務活動によるキャッシュフロー: { 財務活動によるキャッシュフロー合計: 0 },
+        現金及び現金同等物の増減額: 0
       },
       セグメント情報: {
-        附属病院: { 業務損益: -410984000 }
+        附属病院: { 業務損益: 0 }
       }
     } as any,
     ratios: {

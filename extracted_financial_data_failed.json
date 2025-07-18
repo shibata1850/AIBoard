@@ -6,7 +6,7 @@
       "unit": "千円",
       "data": {
         "fixedAssets": {
-          "total": 63054601,
+          "total": 0,
           "tangible": {
             "total": 62227851,
             "items": [
@@ -48,7 +48,7 @@
           }
         },
         "currentAssets": {
-          "total": 8838001,
+          "total": 0,
           "items": [
             {
               "account": "現金及び預金",
@@ -64,7 +64,7 @@
             }
           ]
         },
-        "totalAssets": 71892603
+        "totalAssets": 0
       }
     },
     {
@@ -73,7 +73,7 @@
       "unit": "千円",
       "data": {
         "liabilities": {
-          "total": 27947258,
+          "total": 0,
           "fixedLiabilities": {
             "total": 20926388,
             "items": [
@@ -96,7 +96,7 @@
             ]
           },
           "currentLiabilities": {
-            "total": 7020870,
+            "total": 0,
             "items": [
               {
                 "account": "寄附金債務",
@@ -114,7 +114,7 @@
           }
         },
         "netAssets": {
-          "total": 43945344,
+          "total": 0,
           "capitalStock": {
             "total": 34280637
           },
@@ -125,7 +125,7 @@
             "total": 8614648
           }
         },
-        "totalLiabilitiesAndNetAssets": 71892603
+        "totalLiabilitiesAndNetAssets": 0
       }
     },
     {
@@ -134,7 +134,7 @@
       "unit": "千円",
       "data": {
         "ordinaryExpenses": {
-          "total": 34723539,
+          "total": 0,
           "operatingExpenses": {
             "total": 33773313,
             "items": [
@@ -164,7 +164,7 @@
           "financialExpenses": 120300
         },
         "ordinaryRevenues": {
-          "total": 34069533,
+          "total": 0,
           "items": [
             {
               "account": "運営費交付金収益",
@@ -187,7 +187,7 @@
         "ordinaryLoss": -654006,
         "extraordinaryLosses": 22927,
         "extraordinaryGains": 77938,
-        "netLoss": -598995,
+        "netLoss": 0,
         "totalLoss": -325961
       }
     },
@@ -196,9 +196,9 @@
       "sourcePage": 6,
       "unit": "千円",
       "data": {
-        "operatingActivities": 1469768,
-        "investingActivities": -10489748,
-        "financingActivities": 4340879,
+        "operatingActivities": 0,
+        "investingActivities": 0,
+        "financingActivities": 0,
         "netDecreaseInCash": -4679100,
         "cashBeginningBalance": 7825207,
         "cashEndingBalance": 3146107
@@ -216,7 +216,7 @@
           },
           {
             "segment": "附属病院",
-            "amount": -410984
+            "amount": 0
           },
           {
             "segment": "附属学校",
@@ -250,7 +250,7 @@
           },
           {
             "segment": "合計",
-            "amount": 71892603
+            "amount": 0
           }
         ]
       }
