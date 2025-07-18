@@ -4,6 +4,16 @@ function generateHTMLReport(data) {
   const safeStatements = statements || {};
   const safeRatios = ratios || { 負債比率: 0, 流動比率: 0 };
 
+  const formatValue = (value, unit = '億円', fallback = 'データなし') => {
+    if (!value || value === 0) return fallback;
+    return `${value.toFixed(1)}${unit}`;
+  };
+
+  const formatPercentage = (value, fallback = 'データなし') => {
+    if (!value || value === 0) return fallback;
+    return `${value.toFixed(1)}%`;
+  };
+
   const totalAssets = (safeStatements.貸借対照表?.資産の部?.資産合計 || 0) / 100000000;
   const currentAssets = (safeStatements.貸借対照表?.資産の部?.流動資産?.流動資産合計 || 0) / 100000000;
   const fixedAssets = (safeStatements.貸借対照表?.資産の部?.固定資産?.固定資産合計 || 0) / 100000000;
@@ -85,15 +95,15 @@ function generateHTMLReport(data) {
         <section id="kpi" class="mb-12">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="kpi-card">
-                    <div class="kpi-value">${totalAssets.toFixed(0)}<span class="text-xl">億円</span></div>
+                    <div class="kpi-value">${formatValue(totalAssets, '億円')}</div>
                     <div class="kpi-label">総資産</div>
                 </div>
                 <div class="kpi-card">
-                    <div class="kpi-value">${(safeRatios.自己資本比率 || ((totalEquity/(totalAssets || 1))*100)).toFixed(1)}<span class="text-xl">%</span></div>
+                    <div class="kpi-value">${formatPercentage(safeRatios.自己資本比率 || ((totalEquity/(totalAssets || 1))*100))}</div>
                     <div class="kpi-label">自己資本比率</div>
                 </div>
                 <div class="kpi-card">
-                    <div class="kpi-value text-red-600">-${operatingLoss.toFixed(1)}<span class="text-xl">億円</span></div>
+                    <div class="kpi-value text-red-600">${operatingLoss > 0 ? `-${formatValue(operatingLoss, '億円')}` : formatValue(0, '億円', '損失なし')}</div>
                     <div class="kpi-label">経常損失</div>
                 </div>
             </div>

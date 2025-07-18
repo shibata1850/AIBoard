@@ -190,36 +190,54 @@ export function DocumentCreationModal({
             if (numbers.currentAssets && numbers.currentLiabilities) {
               numbers.currentRatio = numbers.currentAssets / numbers.currentLiabilities;
             }
+            
+            if (numbers.totalAssets && numbers.totalLiabilities && numbers.currentAssets && numbers.currentLiabilities) {
+              return numbers;
+            }
           }
           
-          const debtRatioMatch = text.match(/負債比率.*?=\s*([0-9.]+)\s*\(([0-9.]+)%\)/);
-          if (debtRatioMatch && !numbers.debtRatio) numbers.debtRatio = parseFloat(debtRatioMatch[2]);
+          const citationPatterns = [
+            { pattern: /([0-9,]+)\[引用: data\.totalLiabilities\]/, key: 'totalLiabilities', multiplier: 1000 },
+            { pattern: /([0-9,]+)\[引用: data\.totalNetAssets\]/, key: 'totalAssets', multiplier: 1000 },
+            { pattern: /([0-9,]+)\[引用: data\.currentAssets\]/, key: 'currentAssets', multiplier: 1000 },
+            { pattern: /([0-9,]+)\[引用: data\.currentLiabilities\]/, key: 'currentLiabilities', multiplier: 1000 },
+            { pattern: /([0-9,]+)\[引用: data\.ordinaryLoss\]/, key: 'operatingLoss', multiplier: 1000 },
+            { pattern: /([0-9,]+)\[引用: data\.hospitalSegmentLoss\]/, key: 'hospitalLoss', multiplier: 1000 }
+          ];
           
-          const currentRatioMatch = text.match(/流動比率.*?=\s*([0-9.]+)/);
-          if (currentRatioMatch && !numbers.currentRatio) numbers.currentRatio = parseFloat(currentRatioMatch[1]);
+          citationPatterns.forEach(({ pattern, key, multiplier }) => {
+            if (!numbers[key]) {
+              const match = text.match(pattern);
+              if (match) {
+                numbers[key] = parseInt(match[1].replace(/,/g, ''), 10) * multiplier;
+              }
+            }
+          });
           
-          const totalLiabilitiesMatch = text.match(/([0-9,]+)\[引用: data\.totalLiabilities\]/);
-          if (totalLiabilitiesMatch && !numbers.totalLiabilities) numbers.totalLiabilities = parseInt(totalLiabilitiesMatch[1].replace(/,/g, ''), 10) * 1000;
-          
-          const totalAssetsMatch = text.match(/([0-9,]+)\[引用: data\.totalNetAssets\]/);
-          if (totalAssetsMatch && !numbers.totalAssets) numbers.totalAssets = parseInt(totalAssetsMatch[1].replace(/,/g, ''), 10) * 1000;
-          
-          const currentAssetsMatch = text.match(/([0-9,]+)\[引用: data\.currentAssets\]/);
-          if (currentAssetsMatch && !numbers.currentAssets) numbers.currentAssets = parseInt(currentAssetsMatch[1].replace(/,/g, ''), 10) * 1000;
-          
-          const currentLiabilitiesMatch = text.match(/([0-9,]+)\[引用: data\.currentLiabilities\]/);
-          if (currentLiabilitiesMatch && !numbers.currentLiabilities) numbers.currentLiabilities = parseInt(currentLiabilitiesMatch[1].replace(/,/g, ''), 10) * 1000;
-          
-          const operatingLossMatch = text.match(/経常損失.*?(-?[0-9億万千,]+円)/);
-          if (operatingLossMatch && !numbers.operatingLoss) {
-            const amount = operatingLossMatch[1];
-            numbers.operatingLoss = parseJapaneseCurrency(amount);
+          if (!numbers.debtRatio) {
+            const debtRatioMatch = text.match(/負債比率.*?[=:]?\s*([0-9.]+)\s*[(%]?/);
+            if (debtRatioMatch) numbers.debtRatio = parseFloat(debtRatioMatch[1]);
           }
           
-          const hospitalLossMatch = text.match(/附属病院セグメント.*?(-?[0-9億万千,]+円)/);
-          if (hospitalLossMatch && !numbers.hospitalLoss) {
-            const amount = hospitalLossMatch[1];
-            numbers.hospitalLoss = parseJapaneseCurrency(amount);
+          if (!numbers.currentRatio) {
+            const currentRatioMatch = text.match(/流動比率.*?[=:]?\s*([0-9.]+)/);
+            if (currentRatioMatch) numbers.currentRatio = parseFloat(currentRatioMatch[1]);
+          }
+          
+          if (!numbers.operatingLoss) {
+            const operatingLossMatch = text.match(/経常損失.*?(-?[0-9億万千,]+円)/);
+            if (operatingLossMatch) {
+              const amount = operatingLossMatch[1];
+              numbers.operatingLoss = parseJapaneseCurrency(amount);
+            }
+          }
+          
+          if (!numbers.hospitalLoss) {
+            const hospitalLossMatch = text.match(/附属病院セグメント.*?(-?[0-9億万千,]+円)/);
+            if (hospitalLossMatch) {
+              const amount = hospitalLossMatch[1];
+              numbers.hospitalLoss = parseJapaneseCurrency(amount);
+            }
           }
           
           return numbers;
