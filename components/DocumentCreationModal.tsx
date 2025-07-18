@@ -250,6 +250,12 @@ export function DocumentCreationModal({
         
         const extractedNumbers = extractFinancialNumbers(analysisContent, reportData);
         
+        if (Object.keys(extractedNumbers).length === 0 || 
+            (extractedNumbers.totalLiabilities === 0 && extractedNumbers.totalAssets === 0 && extractedNumbers.totalRevenue === 0)) {
+          Alert.alert('エラー', '財務データの抽出に失敗しました。PDFから有効な財務データを取得できませんでした。APIキーが設定されているか確認してください。');
+          return;
+        }
+        
         reportData = {
           companyName: '国立大学法人',
           fiscalYear: '2023年度',

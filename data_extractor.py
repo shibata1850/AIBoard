@@ -4,6 +4,7 @@ import os
 import sys
 import time
 import json
+from datetime import datetime
 import google.generativeai as genai
 from typing import Dict, Any, Optional
 
@@ -521,31 +522,15 @@ def extract_financial_data(pdf_path: str = './b67155c2806c76359d1b3637d7ff2ac7.p
     print()
     
     if not api_key:
-        print("⚠️  EXPO_PUBLIC_GEMINI_API_KEY not set - using fallback values")
-        segment_result = {'raw_string': '△410,984', 'numeric_value': -410984, 'success': True}
-        total_liabilities_result = {'raw_string': '27,947,258', 'numeric_value': 27947258, 'success': True}
-        current_liabilities_result = {'raw_string': '7,020,870', 'numeric_value': 7020870, 'success': True}
-        ordinary_expenses_result = {'raw_string': '34,723,539', 'numeric_value': 34723539, 'success': True}
-        total_assets_result = {'raw_string': '71,892,603', 'numeric_value': 71892603, 'success': True}
-        current_assets_result = {'raw_string': '8,838,001', 'numeric_value': 8838001, 'success': True}
-        fixed_assets_result = {'raw_string': '63,054,601', 'numeric_value': 63054601, 'success': True}
-        total_revenue_result = {'raw_string': '34,069,533', 'numeric_value': 34069533, 'success': True}
-        total_equity_result = {'raw_string': '43,945,344', 'numeric_value': 43945344, 'success': True}
-        hospital_revenue_result = {'raw_string': '17,100,614', 'numeric_value': 17100614, 'success': True}
-        operating_grant_revenue_result = {'raw_string': '9,665,735', 'numeric_value': 9665735, 'success': True}
-        tuition_revenue_result = {'raw_string': '2,870,000', 'numeric_value': 2870000, 'success': True}
-        research_revenue_result = {'raw_string': '1,540,000', 'numeric_value': 1540000, 'success': True}
-        personnel_costs_result = {'raw_string': '16,320,000', 'numeric_value': 16320000, 'success': True}
-        medical_costs_result = {'raw_string': '12,500,000', 'numeric_value': 12500000, 'success': True}
-        education_costs_result = {'raw_string': '1,560,000', 'numeric_value': 1560000, 'success': True}
-        research_costs_result = {'raw_string': '1,560,000', 'numeric_value': 1560000, 'success': True}
-        operating_loss_result = {'raw_string': '△411,000', 'numeric_value': -411000, 'success': True}
-        net_loss_result = {'raw_string': '△598,995', 'numeric_value': -598995, 'success': True}
-        operating_cf_result = {'raw_string': '1,470,000', 'numeric_value': 1470000, 'success': True}
-        investing_cf_result = {'raw_string': '△10,640,000', 'numeric_value': -10640000, 'success': True}
-        financing_cf_result = {'raw_string': '4,360,000', 'numeric_value': 4360000, 'success': True}
-        academic_segment_result = {'raw_string': '350,000', 'numeric_value': 350000, 'success': True}
-        school_segment_result = {'raw_string': '△90,000', 'numeric_value': -90000, 'success': True}
+        print("❌ EXPO_PUBLIC_GEMINI_API_KEY not set - cannot extract financial data")
+        return {
+            'error': 'API key not configured - cannot extract financial data from PDF',
+            'extraction_metadata': {
+                'extracted_at': datetime.now().isoformat(),
+                'confidence': 'failed',
+                'warnings': ['API key not configured - no fallback data provided to ensure data integrity']
+            }
+        }
     else:
         extractor = ComprehensiveFinancialExtractor(api_key)
         
@@ -605,32 +590,7 @@ def extract_financial_data(pdf_path: str = './b67155c2806c76359d1b3637d7ff2ac7.p
         'school_segment': school_segment_result
     }
     
-    fallback_values = {
-        'current_liabilities': {'raw_string': '7,020,870', 'numeric_value': 7020870, 'success': True},
-        'ordinary_expenses': {'raw_string': '34,723,539', 'numeric_value': 34723539, 'success': True},
-        'total_liabilities': {'raw_string': '27,947,258', 'numeric_value': 27947258, 'success': True},
-        'total_assets': {'raw_string': '71,892,603', 'numeric_value': 71892603, 'success': True},
-        'current_assets': {'raw_string': '8,838,001', 'numeric_value': 8838001, 'success': True},
-        'fixed_assets': {'raw_string': '63,054,601', 'numeric_value': 63054601, 'success': True},
-        'total_revenue': {'raw_string': '34,069,533', 'numeric_value': 34069533, 'success': True},
-        'total_equity': {'raw_string': '43,945,344', 'numeric_value': 43945344, 'success': True},
-        'segment_profit_loss': {'raw_string': '△410,984', 'numeric_value': -410984, 'success': True},
-        'hospital_revenue': {'raw_string': '17,100,614', 'numeric_value': 17100614, 'success': True},
-        'operating_grant_revenue': {'raw_string': '9,665,735', 'numeric_value': 9665735, 'success': True},
-        'tuition_revenue': {'raw_string': '2,870,000', 'numeric_value': 2870000, 'success': True},
-        'research_revenue': {'raw_string': '1,540,000', 'numeric_value': 1540000, 'success': True},
-        'personnel_costs': {'raw_string': '16,320,000', 'numeric_value': 16320000, 'success': True},
-        'medical_costs': {'raw_string': '12,500,000', 'numeric_value': 12500000, 'success': True},
-        'education_costs': {'raw_string': '1,560,000', 'numeric_value': 1560000, 'success': True},
-        'research_costs': {'raw_string': '1,560,000', 'numeric_value': 1560000, 'success': True},
-        'operating_loss': {'raw_string': '△411,000', 'numeric_value': -411000, 'success': True},
-        'net_loss': {'raw_string': '△598,995', 'numeric_value': -598995, 'success': True},
-        'operating_cf': {'raw_string': '1,470,000', 'numeric_value': 1470000, 'success': True},
-        'investing_cf': {'raw_string': '△10,640,000', 'numeric_value': -10640000, 'success': True},
-        'financing_cf': {'raw_string': '4,360,000', 'numeric_value': 4360000, 'success': True},
-        'academic_segment': {'raw_string': '350,000', 'numeric_value': 350000, 'success': True},
-        'school_segment': {'raw_string': '△90,000', 'numeric_value': -90000, 'success': True}
-    }
+    fallback_values = {}
     
     failed_extractions = [name for name, result in all_results.items() if not result['success']]
     if failed_extractions:
@@ -921,12 +881,12 @@ def get_fallback_structured_tables() -> list:
             "tableName": "貸借対照表",
             "unit": "千円", 
             "data": [
-                {"category": "資産の部", "account": "流動資産合計", "amount": 8838001},
-                {"category": "資産の部", "account": "固定資産合計", "amount": 63054601},
-                {"category": "資産の部", "account": "資産合計", "amount": 71892603},
-                {"category": "負債の部", "account": "流動負債合計", "amount": 7020870},
-                {"category": "負債の部", "account": "負債合計", "amount": 27947258},
-                {"category": "純資産の部", "account": "純資産合計", "amount": 43945344}
+                {"category": "資産の部", "account": "流動資産合計", "amount": 0},
+                {"category": "資産の部", "account": "固定資産合計", "amount": 0},
+                {"category": "資産の部", "account": "資産合計", "amount": 0},
+                {"category": "負債の部", "account": "流動負債合計", "amount": 0},
+                {"category": "負債の部", "account": "負債合計", "amount": 0},
+                {"category": "純資産の部", "account": "純資産合計", "amount": 0}
             ]
         },
         {
