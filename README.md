@@ -4,6 +4,8 @@
 
 AIボードは中小企業向けの財務分析・アドバイスツールです。財務諸表などを詳しく分析して、的確なアドバイスを提供します。
 
+> **Note**: This is a verification test change by Devin AI to confirm repository access and PR creation functionality.
+
 <!-- Test comment added for PR verification -->
 
 ## 機能
