@@ -195,6 +195,7 @@ export function DirectFileAnalysis() {
           onClose={() => setShowDocumentModal(false)}
           analysisContent={analysis || ''}
           fileName={fileName || undefined}
+          structuredData={currentDocument?.structuredData}
         />
       </View>
       
