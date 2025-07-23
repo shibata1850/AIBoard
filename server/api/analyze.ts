@@ -687,21 +687,21 @@ ${combinedResult2}
 
     finalReport = finalReport
       .replace(/#{1,6}\s*/g, '')
-      .replace(/\n{3,}/g, '\n\n')
       .replace(/\*{1,2}([^*]+)\*{1,2}/g, '$1')
       .replace(/^\s*[-*+]\s+/gm, '')
+      .replace(/\n{3,}/g, '\n\n')
       .trim();
 
     console.log('Before citations:', finalReport.substring(0, 300) + '...');
     finalReport = addCitationsToText(finalReport, structuredData);
     
     finalReport = finalReport
-      .replace(/\\n/g, '\n') // Convert escaped newlines to actual newlines
-      .replace(/\\\*/g, '*') // Convert escaped asterisks to actual asterisks
-      .replace(/\\"/g, '"') // Convert escaped quotes to actual quotes
-      .replace(/\n{3,}/g, '\n\n') // Limit consecutive newlines to 2
-      .replace(/\s+\n/g, '\n') // Remove trailing spaces before newlines
-      .replace(/\n\s+/g, '\n') // Remove leading spaces after newlines
+      .replace(/\\n/g, '\n')
+      .replace(/\\\*/g, '*')
+      .replace(/\\"/g, '"')
+      .replace(/\n{3,}/g, '\n\n')
+      .replace(/\s+\n/g, '\n')
+      .replace(/\n\s+/g, '\n')
       .trim();
     
     console.log('After citations and cleaning:', finalReport.substring(0, 300) + '...');
