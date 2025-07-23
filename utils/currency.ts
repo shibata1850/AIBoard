@@ -8,7 +8,7 @@
  * @param value 解析対象の文字列
  * @returns 数値または null（解析できない場合）
  */
-export function parseJapaneseCurrency(value) {
+export function parseJapaneseCurrency(value: string | null | undefined): number | null {
   if (!value || typeof value !== 'string') {
     return null;
   }
@@ -25,30 +25,59 @@ export function parseJapaneseCurrency(value) {
 
   let multiplier = 1;
 
-  if (normalized.includes('億')) {
-    multiplier *= 100000000;
-    normalized = normalized.replace(/億/g, '');
-  }
-  
-  if (normalized.includes('万')) {
-    multiplier *= 10000;
-    normalized = normalized.replace(/万/g, '');
-  }
-  
-  if (normalized.includes('千')) {
-    multiplier *= 1000;
-    normalized = normalized.replace(/千/g, '');
+  let okuValue = 0;
+  let manValue = 0;
+  let senValue = 0;
+  let baseValue = 0;
+
+  const complexMatch = normalized.match(/([0-9.]+)億([0-9.]+)千?万?/);
+  if (complexMatch) {
+    okuValue = parseFloat(complexMatch[1]) * 100000000;
+    const remainder = parseFloat(complexMatch[2]);
+    if (normalized.includes('千万')) {
+      manValue = remainder * 10000000; // 千万 = 10,000,000
+    } else if (normalized.includes('万')) {
+      manValue = remainder * 10000;
+    } else if (normalized.includes('千')) {
+      senValue = remainder * 1000;
+    }
+    normalized = normalized.replace(/[0-9.]+億[0-9.]+千?万?/g, '');
+  } else {
+    if (normalized.includes('億')) {
+      const okuMatch = normalized.match(/([0-9.]+)億/);
+      if (okuMatch) {
+        okuValue = parseFloat(okuMatch[1]) * 100000000;
+      }
+      normalized = normalized.replace(/[0-9.]+億/g, '');
+    }
+    
+    if (normalized.includes('万')) {
+      const manMatch = normalized.match(/([0-9.]+)万/);
+      if (manMatch) {
+        manValue = parseFloat(manMatch[1]) * 10000;
+      }
+      normalized = normalized.replace(/[0-9.]+万/g, '');
+    }
+    
+    if (normalized.includes('千')) {
+      const senMatch = normalized.match(/([0-9.]+)千/);
+      if (senMatch) {
+        senValue = parseFloat(senMatch[1]) * 1000;
+      }
+      normalized = normalized.replace(/[0-9.]+千/g, '');
+    }
   }
 
   normalized = normalized.replace(/,/g, '');
 
-  const numericValue = parseFloat(normalized);
-  
-  if (isNaN(numericValue)) {
-    return null;
+  if (normalized.trim()) {
+    baseValue = parseFloat(normalized);
+    if (isNaN(baseValue)) {
+      baseValue = 0;
+    }
   }
 
-  let result = numericValue * multiplier;
+  let result = okuValue + manValue + senValue + baseValue;
   
   if (isNegative) {
     result = -result;
@@ -63,7 +92,7 @@ export function parseJapaneseCurrency(value) {
  * @param showUnit 単位を表示するかどうか
  * @returns フォーマットされた文字列
  */
-export function formatJapaneseCurrency(value, showUnit = true) {
+export function formatJapaneseCurrency(value: number | null | undefined, showUnit: boolean = true): string {
   if (value === null || value === undefined || isNaN(value)) {
     return 'データなし';
   }
@@ -116,7 +145,7 @@ export function formatJapaneseCurrency(value, showUnit = true) {
  * @param text 対象テキスト
  * @returns 抽出された数値の配列
  */
-export function extractNumbers(text) {
+export function extractNumbers(text: string | null | undefined): number[] {
   if (!text) return [];
 
   const numbers = [];
@@ -149,7 +178,7 @@ export function extractNumbers(text) {
  * @param itemName 項目名
  * @returns 正規化された項目名
  */
-export function normalizeFinancialItemName(itemName) {
+export function normalizeFinancialItemName(itemName: string | null | undefined): string {
   if (!itemName) return '';
 
   return itemName
