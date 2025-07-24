@@ -1,0 +1,151 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
+import { v4 as uuidv4 } from 'uuid';
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  let tempFilePath: string | null = null;
+  
+  try {
+    const { base64Content } = req.body;
+    
+    if (!base64Content) {
+      return res.status(400).json({ error: 'Base64 PDF content is required' });
+    }
+
+    const pdfData = base64Content.startsWith('data:application/pdf;base64,')
+      ? base64Content.substring('data:application/pdf;base64,'.length)
+      : base64Content;
+
+    const tempDir = os.tmpdir();
+    const fileName = `pdf_${uuidv4()}.pdf`;
+    tempFilePath = path.join(tempDir, fileName);
+
+    const buffer = Buffer.from(pdfData, 'base64');
+    fs.writeFileSync(tempFilePath, buffer);
+
+    console.log(`Extracting tables from PDF: ${tempFilePath}`);
+
+    try {
+      const { extractTables } = require('@krakz999/tabula-node');
+      
+      const tables = await extractTables(tempFilePath, {
+        pages: 'all',
+        area: [],
+        columns: [],
+        guess: true,
+        lattice: true,
+        stream: false,
+        silent: true
+      });
+
+      const extractionResults: any[] = [];
+
+      if (tables && Array.isArray(tables)) {
+        tables.forEach((table: any[][], index: number) => {
+          if (table && table.length > 0) {
+            extractionResults.push({
+              tables: table,
+              metadata: {
+                pageNumber: 1,
+                tableIndex: index,
+                confidence: 0.8
+              }
+            });
+          }
+        });
+      }
+
+      if (extractionResults.length === 0) {
+        console.log('No tables found with lattice method, trying stream method...');
+        
+        const streamTables = await extractTables(tempFilePath, {
+          pages: 'all',
+          area: [],
+          columns: [],
+          guess: true,
+          lattice: false,
+          stream: true,
+          silent: true
+        });
+
+        if (streamTables && Array.isArray(streamTables)) {
+          streamTables.forEach((table: any[][], index: number) => {
+            if (table && table.length > 0) {
+              extractionResults.push({
+                tables: table,
+                metadata: {
+                  pageNumber: 1,
+                  tableIndex: index,
+                  confidence: 0.6
+                }
+              });
+            }
+          });
+        }
+      }
+
+      if (extractionResults.length === 0) {
+        return res.status(200).json({
+          success: false,
+          message: 'No tables found in PDF',
+          tables: [],
+          metadata: {
+            tablesFound: 0,
+            extractionMethod: 'tabula-node',
+            confidence: 'low'
+          }
+        });
+      }
+
+      console.log(`Successfully extracted ${extractionResults.length} tables from PDF`);
+
+      res.json({
+        success: true,
+        tables: extractionResults,
+        metadata: {
+          tablesFound: extractionResults.length,
+          extractionMethod: 'tabula-node',
+          confidence: extractionResults.length > 0 ? 'high' : 'low'
+        }
+      });
+
+    } catch (tabulaError) {
+      console.error('Tabula extraction error:', tabulaError);
+      console.log('Tabula-node failed, returning graceful fallback response');
+      
+      return res.status(200).json({
+        success: false,
+        message: 'Table extraction not available - tabula-node dependency issue',
+        tables: [],
+        metadata: {
+          tablesFound: 0,
+          extractionMethod: 'fallback',
+          confidence: 'low',
+          reason: 'tabula-node dependency failure'
+        }
+      });
+    }
+
+  } catch (error) {
+    console.error('PDF table extraction error:', error);
+    res.status(500).json({
+      error: 'Failed to extract tables from PDF',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  } finally {
+    if (tempFilePath && fs.existsSync(tempFilePath)) {
+      try {
+        fs.unlinkSync(tempFilePath);
+        console.log(`Cleaned up temporary file: ${tempFilePath}`);
+      } catch (cleanupError) {
+        console.warn(`Failed to cleanup temporary file: ${tempFilePath}`, cleanupError);
+      }
+    }
+  }
+}
