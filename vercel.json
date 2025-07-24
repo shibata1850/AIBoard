@@ -26,10 +26,5 @@
   "env": {
     "VERCEL_PROJECT_PROTECTION": "false",
     "PYTHON_VERSION": "3.9"
-  },
-  "functions": {
-    "server/api/*.ts": {
-      "runtime": "nodejs18.x"
-    }
   }
 }
