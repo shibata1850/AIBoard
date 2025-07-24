@@ -64,6 +64,17 @@ app.post('/api/analyze', async (req, res) => {
   }
 });
 
+app.post('/api/extract-pdf-tables', async (req, res) => {
+  try {
+    require('ts-node/register');
+    const handler = require('./server/api/extract-pdf-tables.ts').default;
+    await handler(req, res);
+  } catch (error) {
+    console.error('Extract PDF tables API error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });

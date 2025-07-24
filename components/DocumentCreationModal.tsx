@@ -281,14 +281,29 @@ export function DocumentCreationModal({
         );
       } else {
         try {
+          console.log('=== HTML REPORT DOWNLOAD ATTEMPT ===');
+          console.log('HTML content length:', htmlContent.length);
+          console.log('File name:', `${title.trim().replace(/[^a-zA-Z0-9]/g, '_')}_report.html`);
+          
           await downloadHTMLReport(htmlContent, `${title.trim().replace(/[^a-zA-Z0-9]/g, '_')}_report.html`);
-          Alert.alert('成功', 'HTMLレポートのダウンロードが開始されました');
+          
+          console.log('Download completed successfully');
+          Alert.alert('成功', 'HTMLレポートのダウンロードが完了しました');
           onClose();
         } catch (downloadError) {
-          console.error('Download error:', downloadError);
+          console.error('Download error details:', downloadError);
+          console.error('Error type:', typeof downloadError);
+          const errorObj = downloadError instanceof Error ? downloadError : new Error(String(downloadError));
+          console.error('Error name:', errorObj.name);
+          console.error('Error message:', errorObj.message);
+          
           Alert.alert(
-            'エラー',
-            'ダウンロード中にエラーが発生しました。ブラウザの設定を確認してください。'
+            'ダウンロードエラー',
+            `HTMLレポートのダウンロードに失敗しました。\n\nエラー詳細: ${errorObj.message}\n\n再試行するか、ブラウザの設定を確認してください。`,
+            [
+              { text: 'キャンセル', style: 'cancel' },
+              { text: '再試行', onPress: () => handleGenerateHTMLReport() }
+            ]
           );
         }
       }

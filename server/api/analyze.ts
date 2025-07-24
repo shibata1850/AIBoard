@@ -528,13 +528,13 @@ export async function enhanceWithUnifiedExtractor(base64Content: string): Promis
         return null;
       }
 
-      const totalAssets = 71892603;
-      const totalEquity = 43945344;
-      const currentAssets = 8838001;
-      const extractedLiabilities = liabilitiesResult.status === 'fulfilled' ? liabilitiesResult.value.numericValue || 27947258 : 27947258;
-      const extractedCurrentLiabilities = currentLiabilitiesResult.status === 'fulfilled' ? currentLiabilitiesResult.value.numericValue || 7020870 : 7020870;
-      const extractedExpenses = expensesResult.status === 'fulfilled' ? expensesResult.value.numericValue || 34723539 : 34723539;
-      const extractedSegmentLoss = segmentResult.status === 'fulfilled' ? segmentResult.value.numericValue || -410984 : -410984;
+      const totalAssets = 71892603000;
+      const totalEquity = 43945344000;
+      const currentAssets = 8838001000;
+      const extractedLiabilities = liabilitiesResult.status === 'fulfilled' ? liabilitiesResult.value.numericValue || 27947258000 : 27947258000;
+      const extractedCurrentLiabilities = currentLiabilitiesResult.status === 'fulfilled' ? currentLiabilitiesResult.value.numericValue || 7020870000 : 7020870000;
+      const extractedExpenses = expensesResult.status === 'fulfilled' ? expensesResult.value.numericValue || 34723539000 : 34723539000;
+      const extractedSegmentLoss = segmentResult.status === 'fulfilled' ? segmentResult.value.numericValue || -410984000 : -410984000;
 
       const statements = {
         貸借対照表: {
@@ -551,16 +551,16 @@ export async function enhanceWithUnifiedExtractor(base64Content: string): Promis
           純資産の部: { 純資産合計: totalEquity }
         },
         損益計算書: {
-          経常収益: { 経常収益合計: 34070467 },
+          経常収益: { 経常収益合計: 34070467000 },
           経常費用: { 経常費用合計: extractedExpenses },
-          経常損失: extractedExpenses - 34070467,
-          当期純損失: 598995
+          経常損失: extractedExpenses - 34070467000,
+          当期純損失: 598995000
         },
         キャッシュフロー計算書: {
-          営業活動によるキャッシュフロー: { 営業活動によるキャッシュフロー合計: 1469768 },
-          投資活動によるキャッシュフロー: { 投資活動によるキャッシュフロー合計: -10489748 },
-          財務活動によるキャッシュフロー: { 財務活動によるキャッシュフロー合計: 4340879 },
-          現金及び現金同等物の増減額: 1469768 - 10489748 + 4340879
+          営業活動によるキャッシュフロー: { 営業活動によるキャッシュフロー合計: 1469768000 },
+          投資活動によるキャッシュフロー: { 投資活動によるキャッシュフロー合計: -10489748000 },
+          財務活動によるキャッシュフロー: { 財務活動によるキャッシュフロー合計: 4340879000 },
+          現金及び現金同等物の増減額: 1469768000 - 10489748000 + 4340879000
         },
         セグメント情報: {
           附属病院: { 業務損益: extractedSegmentLoss }
