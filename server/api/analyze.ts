@@ -422,14 +422,20 @@ export async function extractStructuredDataFromPdf(base64Content: string): Promi
     });
     
     let checkOutput = '';
+    let checkError = '';
     pythonCheck.stdout.on('data', (data) => { checkOutput += data.toString(); });
+    pythonCheck.stderr.on('data', (data) => { checkError += data.toString(); });
     
     const checkResult = await new Promise((resolve) => {
-      pythonCheck.on('close', (code) => resolve(code === 0 && checkOutput.includes('OK')));
+      pythonCheck.on('close', (code) => {
+        console.log(`Python dependency check: code=${code}, output="${checkOutput}", error="${checkError}"`);
+        resolve(code === 0 && checkOutput.includes('OK'));
+      });
     });
     
     if (!checkResult) {
       console.error('Python dependencies not available - falling back to UnifiedFinancialExtractor');
+      console.error('Python check error:', checkError);
       return await enhanceWithUnifiedExtractor(base64Content);
     }
 
