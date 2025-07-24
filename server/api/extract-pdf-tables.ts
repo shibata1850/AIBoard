@@ -14,7 +14,7 @@ interface TableExtractionResult {
   };
 }
 
-async function extractPdfTables(req: Request, res: Response) {
+export async function extractPdfTables(req: Request, res: Response) {
   let tempFilePath: string | null = null;
   
   try {
