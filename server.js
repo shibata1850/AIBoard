@@ -52,6 +52,18 @@ app.post('/api/verify', async (req, res) => {
   }
 });
 
+app.post('/api/analyze', async (req, res) => {
+  try {
+    require('ts-node/register');
+    const { analyzeDocument } = require('./server/api/analyze.ts');
+    const result = await analyzeDocument(req.body.content, req.body.fileName);
+    res.json(result);
+  } catch (error) {
+    console.error('Analysis API error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
