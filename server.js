@@ -22,10 +22,10 @@ app.post('/api/chat', async (req, res) => {
 app.post('/api/extract-pdf-tables', async (req, res) => {
   try {
     require('ts-node/register');
-    const { extractPdfTables } = require('./server/api/extract-pdf-tables.ts');
-    await extractPdfTables(req, res);
+    const handler = require('./server/api/extract-pdf-tables.ts').default;
+    await handler(req, res);
   } catch (error) {
-    console.error('PDF table extraction API error:', error);
+    console.error('Extract PDF tables API error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -60,17 +60,6 @@ app.post('/api/analyze', async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error('Analysis API error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-app.post('/api/extract-pdf-tables', async (req, res) => {
-  try {
-    require('ts-node/register');
-    const handler = require('./server/api/extract-pdf-tables.ts').default;
-    await handler(req, res);
-  } catch (error) {
-    console.error('Extract PDF tables API error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
