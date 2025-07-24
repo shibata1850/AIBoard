@@ -96,7 +96,19 @@ export async function extractPdfTables(req: Request, res: Response) {
 
     } catch (tabulaError) {
       console.error('Tabula extraction error:', tabulaError);
-      throw new Error('Failed to extract tables using tabula-node');
+      console.log('Tabula-node failed, returning graceful fallback response');
+      
+      return res.status(200).json({
+        success: false,
+        message: 'Table extraction not available - tabula-node dependency issue',
+        tables: [],
+        metadata: {
+          tablesFound: 0,
+          extractionMethod: 'fallback',
+          confidence: 'low',
+          reason: 'tabula-node dependency failure'
+        }
+      });
     }
 
     if (extractionResults.length === 0) {
