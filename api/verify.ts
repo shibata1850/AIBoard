@@ -1,5 +1,5 @@
-import { extractStructuredDataFromPdf } from './analyze';
-import { performAutomaticIntegrityCheck, addVerificationMetadata, VerifiedFinancialData } from './verification';
+import { extractStructuredDataFromPdf } from '../server/api/analyze';
+import { performAutomaticIntegrityCheck, addVerificationMetadata, VerifiedFinancialData } from '../server/api/verification';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export async function extractAndVerify(base64Content: string): Promise<VerifiedFinancialData> {
