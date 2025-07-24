@@ -12,7 +12,6 @@
   "routes": [
     { "handle": "filesystem" },
     { "src": "/_expo/(.*)", "dest": "/_expo/$1" },
-    { "src": "/api/(.*)", "dest": "/server/api/$1" },
     { 
       "src": "/(.*)", 
       "dest": "/index.html",
@@ -28,7 +27,7 @@
     "PYTHON_VERSION": "3.9"
   },
   "functions": {
-    "server/api/*.ts": {
+    "api/*.ts": {
       "runtime": "nodejs18.x"
     }
   }
