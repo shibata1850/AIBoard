@@ -1,5 +1,4 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { extractPdfTables } from '../server/api/extract-pdf-tables';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
@@ -7,21 +6,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const expressReq = {
-      body: req.body,
-      method: req.method,
-      headers: req.headers,
-      url: req.url
-    } as any;
+    const { base64Content } = req.body;
+    
+    if (!base64Content) {
+      return res.status(400).json({ error: 'Base64 PDF content is required' });
+    }
 
-    const expressRes = {
-      status: (code: number) => ({
-        json: (data: any) => res.status(code).json(data)
-      }),
-      json: (data: any) => res.json(data)
-    } as any;
+    console.log('PDF table extraction requested - using fallback due to Vercel limitations');
+    
+    return res.status(200).json({
+      success: false,
+      message: 'Table extraction not available in Vercel environment - using fallback',
+      tables: [],
+      metadata: {
+        tablesFound: 0,
+        extractionMethod: 'fallback',
+        confidence: 'low',
+        reason: 'Vercel serverless limitations'
+      }
+    });
 
-    await extractPdfTables(expressReq, expressRes);
   } catch (error) {
     console.error('Vercel API error:', error);
     res.status(500).json({ 
