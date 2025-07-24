@@ -574,9 +574,9 @@ export async function enhanceWithUnifiedExtractor(base64Content: string): Promis
       };
 
       const ratios = {
-        負債比率: Math.round((extractedLiabilities / totalEquity) * 100 * 100) / 100,
-        流動比率: Math.round((currentAssets / extractedCurrentLiabilities) * 100) / 100,
-        固定比率: Math.round(((totalAssets - currentAssets) / totalEquity) * 100) / 100,
+        負債比率: Math.round((extractedLiabilities / totalAssets) * 100 * 100) / 100,
+        流動比率: Math.round((currentAssets / extractedCurrentLiabilities) * 100 * 100) / 100,
+        固定比率: Math.round(((totalAssets - currentAssets) / totalEquity) * 100 * 100) / 100,
         自己資本比率: Math.round((totalEquity / totalAssets) * 100 * 100) / 100
       };
 
