@@ -1,7 +1,7 @@
 {
   "version": 2,
   "public": true,
-  "buildCommand": "npm run build && pip3 install -r requirements.txt",
+  "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "installCommand": "npm install --legacy-peer-deps",
   "framework": null,
@@ -12,7 +12,7 @@
   "routes": [
     { "handle": "filesystem" },
     { "src": "/_expo/(.*)", "dest": "/_expo/$1" },
-    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/api/(.*)", "dest": "/server/api/$1" },
     { 
       "src": "/(.*)", 
       "dest": "/index.html",
@@ -28,7 +28,7 @@
     "PYTHON_VERSION": "3.9"
   },
   "functions": {
-    "api/*.ts": {
+    "server/api/*.ts": {
       "runtime": "nodejs18.x"
     }
   }
