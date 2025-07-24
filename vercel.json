@@ -1,7 +1,7 @@
 {
   "version": 2,
   "public": true,
-  "buildCommand": "npm run build",
+  "buildCommand": "npm run build && pip3 install -r requirements.txt",
   "outputDirectory": "dist",
   "installCommand": "npm install --legacy-peer-deps",
   "framework": null,
@@ -24,6 +24,12 @@
     }
   ],
   "env": {
-    "VERCEL_PROJECT_PROTECTION": "false"
+    "VERCEL_PROJECT_PROTECTION": "false",
+    "PYTHON_VERSION": "3.9"
+  },
+  "functions": {
+    "server/api/*.ts": {
+      "runtime": "nodejs18.x"
+    }
   }
 }
