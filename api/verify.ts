@@ -1,12 +1,13 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 
+import { extractAndVerify, approveAndAnalyze } from '../server/api/verify';
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const { extractAndVerify, approveAndAnalyze } = await import('../server/api/verify');
     const { action, base64Content, verifiedData } = req.body;
 
     if (action === 'extract') {
