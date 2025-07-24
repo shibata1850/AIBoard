@@ -355,7 +355,6 @@ export default function AnalysisPage() {
           analysisContent={analysisResult || ''}
           structuredData={structuredData}
           fileName={fileName || undefined}
-          documentType={documentType}
         />
       </SafeAreaView>
     </AuthWrapper>
