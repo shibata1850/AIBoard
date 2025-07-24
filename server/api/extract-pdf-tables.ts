@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
@@ -14,7 +14,7 @@ interface TableExtractionResult {
   };
 }
 
-export async function extractPdfTables(req: Request, res: Response) {
+export async function extractPdfTables(req: VercelRequest, res: VercelResponse) {
   let tempFilePath: string | null = null;
   
   try {
@@ -154,7 +154,7 @@ export async function extractPdfTables(req: Request, res: Response) {
   }
 }
 
-export default async function handler(req: any, res: any) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
