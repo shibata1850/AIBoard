@@ -28,7 +28,10 @@ export default function VerifyPage() {
     
     setIsLoading(true);
     try {
-      const response = await fetch('/api/verify', {
+      const baseUrl = process.env.EXPO_PUBLIC_CHAT_API_BASE_URL || '';
+      const apiUrl = baseUrl ? `${baseUrl}/api/verify` : '/api/verify';
+      
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
