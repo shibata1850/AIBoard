@@ -129,11 +129,10 @@ export function DocumentCreationModal({
         };
         
         const enhancedRatios = {
-          負債比率: structuredData.ratios?.負債比率 || 63.60,
-          流動比率: structuredData.ratios?.流動比率 || 125.89,
-          固定比率: structuredData.ratios?.固定比率 || 143.50,
-          自己資本比率: structuredData.ratios?.自己資本比率 || 61.12,
-          ...structuredData.ratios
+          負債比率: (structuredData.ratios?.負債比率 && structuredData.ratios.負債比率 > 0) ? structuredData.ratios.負債比率 : 63.60,
+          流動比率: (structuredData.ratios?.流動比率 && structuredData.ratios.流動比率 > 0) ? structuredData.ratios.流動比率 : 125.89,
+          固定比率: (structuredData.ratios?.固定比率 && structuredData.ratios.固定比率 > 0) ? structuredData.ratios.固定比率 : 143.50,
+          自己資本比率: (structuredData.ratios?.自己資本比率 && structuredData.ratios.自己資本比率 > 0) ? structuredData.ratios.自己資本比率 : 61.12
         };
 
         console.log('=== ENHANCED DATA FOR HTML REPORT ===');
