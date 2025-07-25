@@ -6,10 +6,7 @@
   "framework": null,
   "functions": {
     "api/**/*.ts": {
-      "runtime": "nodejs18.x",
-      "memory": 1024,
-      "excludeFiles": ".venv/**,.vercel/cache/**,.vscode/**,node_modules/**,server/**,components/**,app/**,utils/**,*.md,*.txt,*.py,*.pdf,screenshots/**,full_outputs/**",
-      "maxDuration": 60
+      "runtime": "nodejs18.x"
     }
   },
   "routes": [
@@ -26,7 +23,6 @@
     }
   ],
   "env": {
-    "VERCEL_PROJECT_PROTECTION": "false",
-    "PYTHON_VERSION": "3.9"
+    "VERCEL_PROJECT_PROTECTION": "false"
   }
 }
