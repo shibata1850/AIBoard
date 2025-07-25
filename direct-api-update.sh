@@ -3,9 +3,9 @@ set -e
 
 echo "AIボードのVercel保護設定を直接APIで更新します..."
 
-export VERCEL_TOKEN="OXWWVjnlWneESNMZ5psBefPi"
-export VERCEL_ORG_ID="UqbeR2NG79HTeS0zUSHxtzH7"
-export VERCEL_PROJECT_ID="prj_fTt5BA27RRp44Vi1ATSO73CRUPg2"
+export VERCEL_TOKEN="HEqj5cGWQl0RVYD0OOpGpDFH"
+export VERCEL_ORG_ID="team_JnqFhUXHbY6mX9PObgzq1xiZ"
+export VERCEL_PROJECT_ID="prj_DNRx0F8Ny9p3QUNSqMXxT4jPJ8BA"
 
 echo "プロジェクト保護設定を無効化しています..."
 curl -X PATCH "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID?teamId=$VERCEL_ORG_ID" \
