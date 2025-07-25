@@ -1,13 +1,18 @@
 {
   "version": 2,
   "public": true,
-  "buildCommand": "npm run build && npm install --production",
+  "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "installCommand": "npm install --legacy-peer-deps",
   "framework": null,
   "github": {
     "silent": true,
     "autoAlias": true
+  },
+  "functions": {
+    "api/**/*.ts": {
+      "runtime": "nodejs18.x"
+    }
   },
   "routes": [
     { "handle": "filesystem" },
