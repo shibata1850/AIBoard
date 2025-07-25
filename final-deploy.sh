@@ -3,7 +3,7 @@ set -e
 
 echo "AIボードの最終Vercelデプロイを開始します..."
 
-export VERCEL_TOKEN="OXWWVjnlWneESNMZ5psBefPi"
+export VERCEL_TOKEN="HEqj5cGWQl0RVYD0OOpGpDFH"
 export VERCEL_ORG_ID="UqbeR2NG79HTeS0zUSHxtzH7"
 export VERCEL_PROJECT_ID="prj_DNRx0F8Ny9p3QUNSqMXxT4jPJ8BA"
 
