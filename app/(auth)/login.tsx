@@ -35,36 +35,38 @@ export default function LoginScreen() {
       <View style={styles.formContainer}>
         {error && <Text style={styles.errorText}>{error}</Text>}
 
-        <Text style={styles.label}>メールアドレス</Text>
-        <TextInput
-          style={styles.input}
-          value={email}
-          onChangeText={setEmail}
-          placeholder="メールアドレスを入力"
-          autoCapitalize="none"
-          keyboardType="email-address"
-        />
+        <View style={styles.formWrapper}>
+          <Text style={styles.label}>メールアドレス</Text>
+          <TextInput
+            style={styles.input}
+            value={email}
+            onChangeText={setEmail}
+            placeholder="メールアドレスを入力"
+            autoCapitalize="none"
+            keyboardType="email-address"
+          />
 
-        <Text style={styles.label}>パスワード</Text>
-        <TextInput
-          style={styles.input}
-          value={password}
-          onChangeText={setPassword}
-          placeholder="パスワードを入力"
-          secureTextEntry
-        />
+          <Text style={styles.label}>パスワード</Text>
+          <TextInput
+            style={styles.input}
+            value={password}
+            onChangeText={setPassword}
+            placeholder="パスワードを入力"
+            secureTextEntry
+          />
 
-        <TouchableOpacity
-          style={[styles.button, isLoading && styles.buttonDisabled]}
-          onPress={handleLogin}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <ActivityIndicator color="#fff" size="small" />
-          ) : (
-            <Text style={styles.buttonText}>ログイン</Text>
-          )}
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.button, isLoading && styles.buttonDisabled]}
+            onPress={handleLogin}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <Text style={styles.buttonText}>ログイン</Text>
+            )}
+          </TouchableOpacity>
+        </View>
 
         <View style={styles.signupContainer}>
           <Text style={styles.signupText}>アカウントをお持ちでない方は</Text>
@@ -106,6 +108,9 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 400,
     alignSelf: 'center',
+  },
+  formWrapper: {
+    width: '100%',
   },
   label: {
     fontSize: 16,
