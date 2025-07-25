@@ -36,29 +36,38 @@ export default function LoginScreen() {
         {error && <Text style={styles.errorText}>{error}</Text>}
 
         <View style={styles.formWrapper}>
-          <Text style={styles.label}>メールアドレス</Text>
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-            placeholder="メールアドレスを入力"
-            autoCapitalize="none"
-            keyboardType="email-address"
-          />
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>メールアドレス</Text>
+            <TextInput
+              style={styles.input}
+              value={email}
+              onChangeText={setEmail}
+              placeholder="メールアドレスを入力"
+              autoCapitalize="none"
+              keyboardType="email-address"
+              accessibilityLabel="メールアドレス"
+            />
+          </View>
 
-          <Text style={styles.label}>パスワード</Text>
-          <TextInput
-            style={styles.input}
-            value={password}
-            onChangeText={setPassword}
-            placeholder="パスワードを入力"
-            secureTextEntry
-          />
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>パスワード</Text>
+            <TextInput
+              style={styles.input}
+              value={password}
+              onChangeText={setPassword}
+              placeholder="パスワードを入力"
+              secureTextEntry
+              accessibilityLabel="パスワード"
+              onSubmitEditing={handleLogin}
+            />
+          </View>
 
           <TouchableOpacity
             style={[styles.button, isLoading && styles.buttonDisabled]}
             onPress={handleLogin}
             disabled={isLoading}
+            accessibilityRole="button"
+            accessibilityLabel="ログイン"
           >
             {isLoading ? (
               <ActivityIndicator color="#fff" size="small" />
@@ -111,6 +120,9 @@ const styles = StyleSheet.create({
   },
   formWrapper: {
     width: '100%',
+  },
+  inputGroup: {
+    marginBottom: 15,
   },
   label: {
     fontSize: 16,
