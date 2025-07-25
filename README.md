@@ -91,3 +91,5 @@ eas submit --platform all
 ## ライセンス
 
 このプロジェクトはMITライセンスの下で公開されています。
+
+<!-- Verification test: Repository access and PR workflow confirmed -->
