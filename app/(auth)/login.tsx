@@ -35,47 +35,54 @@ export default function LoginScreen() {
       <View style={styles.formContainer}>
         {error && <Text style={styles.errorText}>{error}</Text>}
 
-        <View style={styles.formWrapper}>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>メールアドレス</Text>
-            <TextInput
-              style={styles.input}
-              value={email}
-              onChangeText={setEmail}
-              placeholder="メールアドレスを入力"
-              autoCapitalize="none"
-              keyboardType="email-address"
-              accessibilityLabel="メールアドレス"
-            />
-          </View>
+        <form onSubmit={(e) => { e.preventDefault(); handleLogin(); }} style={{ width: '100%' }}>
+          <View style={styles.formWrapper}>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>メールアドレス</Text>
+              <TextInput
+                style={styles.input}
+                value={email}
+                onChangeText={setEmail}
+                placeholder="メールアドレスを入力"
+                autoCapitalize="none"
+                keyboardType="email-address"
+                accessibilityLabel="メールアドレス"
+                name="email"
+                type="email"
+              />
+            </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>パスワード</Text>
-            <TextInput
-              style={styles.input}
-              value={password}
-              onChangeText={setPassword}
-              placeholder="パスワードを入力"
-              secureTextEntry
-              accessibilityLabel="パスワード"
-              onSubmitEditing={handleLogin}
-            />
-          </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>パスワード</Text>
+              <TextInput
+                style={styles.input}
+                value={password}
+                onChangeText={setPassword}
+                placeholder="パスワードを入力"
+                secureTextEntry
+                accessibilityLabel="パスワード"
+                onSubmitEditing={handleLogin}
+                name="password"
+                type="password"
+              />
+            </View>
 
-          <TouchableOpacity
-            style={[styles.button, isLoading && styles.buttonDisabled]}
-            onPress={handleLogin}
-            disabled={isLoading}
-            accessibilityRole="button"
-            accessibilityLabel="ログイン"
-          >
-            {isLoading ? (
-              <ActivityIndicator color="#fff" size="small" />
-            ) : (
-              <Text style={styles.buttonText}>ログイン</Text>
-            )}
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity
+              style={[styles.button, isLoading && styles.buttonDisabled]}
+              onPress={handleLogin}
+              disabled={isLoading}
+              accessibilityRole="button"
+              accessibilityLabel="ログイン"
+              type="submit"
+            >
+              {isLoading ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <Text style={styles.buttonText}>ログイン</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </form>
 
         <View style={styles.signupContainer}>
           <Text style={styles.signupText}>アカウントをお持ちでない方は</Text>
