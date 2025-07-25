@@ -1,18 +1,18 @@
 {
   "version": 2,
-  "public": true,
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "installCommand": "npm install --legacy-peer-deps",
   "framework": null,
-  "github": {
-    "silent": true,
-    "autoAlias": true
+  "functions": {
+    "api/**/*.ts": {
+      "runtime": "@vercel/node@3.0.0"
+    }
   },
   "routes": [
     { "handle": "filesystem" },
     { "src": "/_expo/(.*)", "dest": "/_expo/$1" },
-    { "src": "/api/(.*)", "dest": "/server/api/$1" },
+    { "src": "/api/(.*)", "dest": "/api/$1" },
     { 
       "src": "/(.*)", 
       "dest": "/index.html",
@@ -24,6 +24,7 @@
     }
   ],
   "env": {
-    "VERCEL_PROJECT_PROTECTION": "false"
+    "VERCEL_PROJECT_PROTECTION": "false",
+    "PYTHON_VERSION": "3.9"
   }
 }
