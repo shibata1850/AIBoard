@@ -116,6 +116,11 @@ export function DocumentCreationModal({
             財務活動によるキャッシュフロー: {
               財務活動によるキャッシュフロー合計: structuredData.statements?.キャッシュフロー計算書?.財務活動によるキャッシュフロー?.財務活動によるキャッシュフロー合計 || 0
             }
+          },
+          セグメント情報: {
+            学部・研究科等業務損益: structuredData.statements?.セグメント情報?.学部・研究科等業務損益 || 0,
+            附属病院業務損益: structuredData.statements?.セグメント情報?.附属病院業務損益 || 0,
+            附属学校業務損益: structuredData.statements?.セグメント情報?.附属学校業務損益 || 0
           }
         };
         
