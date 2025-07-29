@@ -33,7 +33,10 @@ export async function extractStructuredFinancialData(base64Content: string): Pro
   console.log('Extracting structured financial data from PDF');
   
   try {
-    const response = await fetch('/api/extract-pdf-tables', {
+    const baseUrl = process.env.EXPO_PUBLIC_CHAT_API_BASE_URL || '';
+    const apiUrl = baseUrl ? `${baseUrl}/api/extract-pdf-tables` : '/api/extract-pdf-tables';
+    
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

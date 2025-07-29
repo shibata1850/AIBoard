@@ -3,18 +3,12 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { v4 as uuidv4 } from 'uuid';
-const { extractTables } = require('@krakz999/tabula-node');
 
-interface TableExtractionResult {
-  tables: any[][];
-  metadata: {
-    pageNumber: number;
-    tableIndex: number;
-    confidence: number;
-  };
-}
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
 
-export async function extractPdfTables(req: VercelRequest, res: VercelResponse) {
   let tempFilePath: string | null = null;
   
   try {
@@ -37,9 +31,9 @@ export async function extractPdfTables(req: VercelRequest, res: VercelResponse) 
 
     console.log(`Extracting tables from PDF: ${tempFilePath}`);
 
-    const extractionResults: TableExtractionResult[] = [];
-
     try {
+      const { extractTables } = require('@krakz999/tabula-node');
+      
       const tables = await extractTables(tempFilePath, {
         pages: 'all',
         area: [],
@@ -49,6 +43,8 @@ export async function extractPdfTables(req: VercelRequest, res: VercelResponse) 
         stream: false,
         silent: true
       });
+
+      const extractionResults: any[] = [];
 
       if (tables && Array.isArray(tables)) {
         tables.forEach((table: any[][], index: number) => {
@@ -94,6 +90,31 @@ export async function extractPdfTables(req: VercelRequest, res: VercelResponse) 
         }
       }
 
+      if (extractionResults.length === 0) {
+        return res.status(200).json({
+          success: false,
+          message: 'No tables found in PDF',
+          tables: [],
+          metadata: {
+            tablesFound: 0,
+            extractionMethod: 'tabula-node',
+            confidence: 'low'
+          }
+        });
+      }
+
+      console.log(`Successfully extracted ${extractionResults.length} tables from PDF`);
+
+      res.json({
+        success: true,
+        tables: extractionResults,
+        metadata: {
+          tablesFound: extractionResults.length,
+          extractionMethod: 'tabula-node',
+          confidence: extractionResults.length > 0 ? 'high' : 'low'
+        }
+      });
+
     } catch (tabulaError) {
       console.error('Tabula extraction error:', tabulaError);
       console.log('Tabula-node failed, returning graceful fallback response');
@@ -111,31 +132,6 @@ export async function extractPdfTables(req: VercelRequest, res: VercelResponse) 
       });
     }
 
-    if (extractionResults.length === 0) {
-      return res.status(200).json({
-        success: false,
-        message: 'No tables found in PDF',
-        tables: [],
-        metadata: {
-          tablesFound: 0,
-          extractionMethod: 'tabula-node',
-          confidence: 'low'
-        }
-      });
-    }
-
-    console.log(`Successfully extracted ${extractionResults.length} tables from PDF`);
-
-    res.json({
-      success: true,
-      tables: extractionResults,
-      metadata: {
-        tablesFound: extractionResults.length,
-        extractionMethod: 'tabula-node',
-        confidence: extractionResults.length > 0 ? 'high' : 'low'
-      }
-    });
-
   } catch (error) {
     console.error('PDF table extraction error:', error);
     res.status(500).json({
@@ -152,12 +148,4 @@ export async function extractPdfTables(req: VercelRequest, res: VercelResponse) 
       }
     }
   }
-}
-
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-  
-  return await extractPdfTables(req, res);
 }

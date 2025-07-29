@@ -82,7 +82,10 @@ export default function AnalysisPage() {
       if (isPdfFile(fileData.type)) {
         console.log('PDF detected, redirecting to verification page');
         try {
-          const response = await fetch('/api/verify', {
+          const baseUrl = process.env.EXPO_PUBLIC_CHAT_API_BASE_URL || '';
+          const apiUrl = baseUrl ? `${baseUrl}/api/verify` : '/api/verify';
+          
+          const response = await fetch(apiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
@@ -355,7 +358,6 @@ export default function AnalysisPage() {
           analysisContent={analysisResult || ''}
           structuredData={structuredData}
           fileName={fileName || undefined}
-          documentType={documentType}
         />
       </SafeAreaView>
     </AuthWrapper>
