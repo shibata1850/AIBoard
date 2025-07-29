@@ -108,3 +108,4 @@ eas submit --platform all
 
 - リポジトリアクセス: ✅
 - Lintコマンド実行: ✅ (2025年7月4日に再検証済み - 69 warnings detected)
+- Vercelデプロイ設定: ✅ (2025年7月28日 - デプロイ制限リセット後再試行)

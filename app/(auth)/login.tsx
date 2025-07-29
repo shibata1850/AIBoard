@@ -35,36 +35,54 @@ export default function LoginScreen() {
       <View style={styles.formContainer}>
         {error && <Text style={styles.errorText}>{error}</Text>}
 
-        <Text style={styles.label}>メールアドレス</Text>
-        <TextInput
-          style={styles.input}
-          value={email}
-          onChangeText={setEmail}
-          placeholder="メールアドレスを入力"
-          autoCapitalize="none"
-          keyboardType="email-address"
-        />
+        <form onSubmit={(e) => { e.preventDefault(); handleLogin(); }} style={{ width: '100%' }}>
+          <View style={styles.formWrapper}>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>メールアドレス</Text>
+              <TextInput
+                style={styles.input}
+                value={email}
+                onChangeText={setEmail}
+                placeholder="メールアドレスを入力"
+                autoCapitalize="none"
+                keyboardType="email-address"
+                accessibilityLabel="メールアドレス"
+                name="email"
+                type="email"
+              />
+            </View>
 
-        <Text style={styles.label}>パスワード</Text>
-        <TextInput
-          style={styles.input}
-          value={password}
-          onChangeText={setPassword}
-          placeholder="パスワードを入力"
-          secureTextEntry
-        />
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>パスワード</Text>
+              <TextInput
+                style={styles.input}
+                value={password}
+                onChangeText={setPassword}
+                placeholder="パスワードを入力"
+                secureTextEntry
+                accessibilityLabel="パスワード"
+                onSubmitEditing={handleLogin}
+                name="password"
+                type="password"
+              />
+            </View>
 
-        <TouchableOpacity
-          style={[styles.button, isLoading && styles.buttonDisabled]}
-          onPress={handleLogin}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <ActivityIndicator color="#fff" size="small" />
-          ) : (
-            <Text style={styles.buttonText}>ログイン</Text>
-          )}
-        </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.button, isLoading && styles.buttonDisabled]}
+              onPress={handleLogin}
+              disabled={isLoading}
+              accessibilityRole="button"
+              accessibilityLabel="ログイン"
+              type="submit"
+            >
+              {isLoading ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <Text style={styles.buttonText}>ログイン</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </form>
 
         <View style={styles.signupContainer}>
           <Text style={styles.signupText}>アカウントをお持ちでない方は</Text>
@@ -106,6 +124,12 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 400,
     alignSelf: 'center',
+  },
+  formWrapper: {
+    width: '100%',
+  },
+  inputGroup: {
+    marginBottom: 15,
   },
   label: {
     fontSize: 16,
