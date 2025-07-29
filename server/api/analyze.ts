@@ -5,6 +5,7 @@ import { spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
+import removeMd from 'remove-markdown';
 
 const MODELS = {
   PRIMARY: 'gemini-1.5-flash',
@@ -735,11 +736,9 @@ ${combinedResult2}
 上記の分析結果に基づき、財務状況の改善と持続可能な経営の実現に向けた取り組みが必要です。
 `;
 
-    finalReport = finalReport
-      .replace(/#{1,6}\s*/g, '')
-      .replace(/\*{1,2}([^*]+)\*{1,2}/g, '$1')
-      .replace(/^\s*[-*+]\s+/gm, '')
+    finalReport = removeMd(finalReport)
       .replace(/\n{3,}/g, '\n\n')
+      .replace(/^\s*[-*+]\s+/gm, '')
       .trim();
 
     console.log('Before citations:', finalReport.substring(0, 300) + '...');

@@ -124,9 +124,7 @@ export function DocumentCreationModal({
           セグメント情報: {
             附属病院: {
               業務損益: structuredData.statements?.セグメント情報?.附属病院?.業務損益 || -410984000
-            }
-          },
-          セグメント情報: {
+            },
             学部_研究科等業務損益: structuredData.statements?.セグメント情報?.学部_研究科等業務損益 || 0,
             附属病院業務損益: structuredData.statements?.セグメント情報?.附属病院業務損益 || 0,
             附属学校業務損益: structuredData.statements?.セグメント情報?.附属学校業務損益 || 0
