@@ -49,7 +49,7 @@ export function DirectFileAnalysis() {
       const fileContent = await readFileAsBase64(file.uri);
       
       const analysisResult = await analyzeDocument(fileContent);
-      const analysisText = typeof analysisResult === 'string' ? analysisResult : analysisResult.text;
+      const analysisText = typeof analysisResult === 'string' ? analysisResult : analysisResult.text || '';
       setAnalysis(analysisText);
       
       setCurrentDocument({
