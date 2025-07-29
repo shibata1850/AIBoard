@@ -745,9 +745,6 @@ ${combinedResult2}
     finalReport = addCitationsToText(finalReport, structuredData);
     
     finalReport = finalReport
-      .replace(/\\n/g, '\n')
-      .replace(/\\\*/g, '*')
-      .replace(/\\"/g, '"')
       .replace(/\n{3,}/g, '\n\n')
       .replace(/\s+\n/g, '\n')
       .replace(/\n\s+/g, '\n')

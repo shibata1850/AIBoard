@@ -171,16 +171,20 @@ export function DocumentCreationModal({
             const numbers: { [key: string]: number } = {};
             
             const patterns = [
-              { key: 'debtRatio', regex: /負債比率.*?([0-9.]+)%/ },
-              { key: 'currentRatio', regex: /流動比率.*?([0-9.]+)/ },
-              { key: 'equityRatio', regex: /自己資本比率.*?([0-9.]+)%/ },
-              { key: 'totalAssets', regex: /総資産.*?([0-9億万千,]+円)/ },
-              { key: 'totalLiabilities', regex: /負債.*?合計.*?([0-9億万千,]+円)/ },
-              { key: 'totalEquity', regex: /純資産.*?合計.*?([0-9億万千,]+円)/ },
-              { key: 'operatingLoss', regex: /経常損失.*?(-?[0-9億万千,]+円)/ },
-              { key: 'hospitalLoss', regex: /附属病院.*?(-?[0-9億万千,]+円)/ },
-              { key: 'totalRevenue', regex: /経常収益.*?合計.*?([0-9億万千,]+円)/ },
-              { key: 'totalExpenses', regex: /経常費用.*?合計.*?([0-9億万千,]+円)/ }
+              { key: 'debtRatio', regex: /負債比率.*?([０-９0-9.]+)%/ },
+              { key: 'currentRatio', regex: /流動比率.*?([０-９0-9.]+)/ },
+              { key: 'equityRatio', regex: /自己資本比率.*?([０-９0-9.]+)%/ },
+              { key: 'totalAssets', regex: /総資産.*?([▲△-]?[０-９0-9億万千,\s]+円?)/ },
+              { key: 'totalLiabilities', regex: /負債.*?合計.*?([▲△-]?[０-９0-9億万千,\s]+円?)/ },
+              { key: 'totalEquity', regex: /純資産.*?合計.*?([▲△-]?[０-９0-9億万千,\s]+円?)/ },
+              { key: 'operatingLoss', regex: /経常損失.*?([▲△-]?[０-９0-9億万千,\s]+円?)/ },
+              { key: 'hospitalLoss', regex: /附属病院.*?([▲△-]?[０-９0-9億万千,\s]+円?)/ },
+              { key: 'totalRevenue', regex: /経常収益.*?合計.*?([▲△-]?[０-９0-9億万千,\s]+円?)/ },
+              { key: 'totalExpenses', regex: /経常費用.*?合計.*?([▲△-]?[０-９0-9億万千,\s]+円?)/ },
+              { key: 'totalAssetsParens', regex: /総資産.*?\(([０-９0-9億万千,\s]+円?)\)/ },
+              { key: 'totalLiabilitiesParens', regex: /負債.*?合計.*?\(([０-９0-9億万千,\s]+円?)\)/ },
+              { key: 'operatingLossParens', regex: /経常損失.*?\(([０-９0-9億万千,\s]+円?)\)/ },
+              { key: 'hospitalLossParens', regex: /附属病院.*?\(([０-９0-9億万千,\s]+円?)\)/ }
             ];
             
             patterns.forEach(pattern => {
@@ -189,10 +193,13 @@ export function DocumentCreationModal({
                 if (pattern.key.includes('Ratio')) {
                   numbers[pattern.key] = parseFloat(match[1]);
                 } else {
-                  const parsed = parseJapaneseCurrency(match[1]);
-                  numbers[pattern.key] = parsed !== null ? parsed : 0;
+                  let value = match[1];
+                  const isNegativeParens = pattern.key.includes('Parens');
+                  const parsed = parseJapaneseCurrency(value);
+                  const baseKey = pattern.key.replace('Parens', '');
+                  numbers[baseKey] = parsed !== null ? (isNegativeParens ? -Math.abs(parsed) : parsed) : 0;
                 }
-                console.log(`Extracted ${pattern.key}:`, numbers[pattern.key]);
+                console.log(`Extracted ${pattern.key}:`, numbers[pattern.key.replace('Parens', '')]);
               }
             });
             
@@ -274,6 +281,7 @@ export function DocumentCreationModal({
           };
         };
         
+        console.log('Structured data not available, using regex extraction fallback');
         reportData = createFallbackReportData(analysisContent);
       }
 
