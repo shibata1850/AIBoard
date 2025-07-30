@@ -5,12 +5,12 @@ function generateHTMLReport(data) {
   const safeRatios = ratios || { 負債比率: 0, 流動比率: 0 };
 
   const formatValue = (value, unit = '億円', fallback = 'データなし') => {
-    if (!value || value === 0) return fallback;
+    if (!value || value === 0 || value === null) return fallback;
     return `${value.toFixed(1)}${unit}`;
   };
 
   const formatPercentage = (value, fallback = 'データなし') => {
-    if (!value || value === 0) return fallback;
+    if (!value || value === 0 || value === null) return fallback;
     return `${value.toFixed(1)}%`;
   };
 
@@ -344,19 +344,19 @@ function generateHTMLReport(data) {
                     data: [
                         ((safeStatements.損益計算書?.経常収益?.附属病院収益 || 
                           safeStatements.損益計算書?.附属病院収益 || 
-                          (totalRevenue > 0 ? totalRevenue * 0.5 : 17100000000)) / 100000000).toFixed(1),
+                          (totalRevenue > 0 ? totalRevenue * 0.5 : null)) / 100000000 || 0).toFixed(1),
                         ((safeStatements.損益計算書?.経常収益?.運営費交付金収益 || 
                           safeStatements.損益計算書?.運営費交付金収益 || 
-                          (totalRevenue > 0 ? totalRevenue * 0.28 : 9670000000)) / 100000000).toFixed(1),
+                          (totalRevenue > 0 ? totalRevenue * 0.28 : null)) / 100000000 || 0).toFixed(1),
                         ((safeStatements.損益計算書?.経常収益?.学生納付金等収益 || 
                           safeStatements.損益計算書?.学生納付金等収益 || 
-                          (totalRevenue > 0 ? totalRevenue * 0.08 : 2870000000)) / 100000000).toFixed(1),
+                          (totalRevenue > 0 ? totalRevenue * 0.08 : null)) / 100000000 || 0).toFixed(1),
                         ((safeStatements.損益計算書?.経常収益?.受託研究等収益 || 
                           safeStatements.損益計算書?.受託研究等収益 || 
-                          (totalRevenue > 0 ? totalRevenue * 0.05 : 1540000000)) / 100000000).toFixed(1),
+                          (totalRevenue > 0 ? totalRevenue * 0.05 : null)) / 100000000 || 0).toFixed(1),
                         ((safeStatements.損益計算書?.経常収益?.その他収益 || 
                           safeStatements.損益計算書?.その他収益 || 
-                          (totalRevenue > 0 ? totalRevenue * 0.09 : 2890000000)) / 100000000).toFixed(1)
+                          (totalRevenue > 0 ? totalRevenue * 0.09 : null)) / 100000000 || 0).toFixed(1)
                     ],
                     backgroundColor: [brilliantBlues[0], brilliantBlues[1], '#5DA9E9', '#84C0EF', brilliantBlues[4]],
                     borderColor: '#FFFFFF',
@@ -375,19 +375,19 @@ function generateHTMLReport(data) {
                     data: [
                         ((safeStatements.損益計算書?.経常費用?.人件費 || 
                           safeStatements.損益計算書?.人件費 || 
-                          (totalExpenses > 0 ? totalExpenses * 0.47 : 16360000000)) / 100000000).toFixed(1),
+                          (totalExpenses > 0 ? totalExpenses * 0.47 : null)) / 100000000 || 0).toFixed(1),
                         ((safeStatements.損益計算書?.経常費用?.診療経費 || 
                           safeStatements.損益計算書?.診療経費 || 
-                          (totalExpenses > 0 ? totalExpenses * 0.36 : 12510000000)) / 100000000).toFixed(1),
+                          (totalExpenses > 0 ? totalExpenses * 0.36 : null)) / 100000000 || 0).toFixed(1),
                         ((safeStatements.損益計算書?.経常費用?.教育経費 || 
                           safeStatements.損益計算書?.教育経費 || 
-                          (totalExpenses > 0 ? totalExpenses * 0.045 : 1560000000)) / 100000000).toFixed(1),
+                          (totalExpenses > 0 ? totalExpenses * 0.045 : null)) / 100000000 || 0).toFixed(1),
                         ((safeStatements.損益計算書?.経常費用?.研究経費 || 
                           safeStatements.損益計算書?.研究経費 || 
-                          (totalExpenses > 0 ? totalExpenses * 0.045 : 1570000000)) / 100000000).toFixed(1),
+                          (totalExpenses > 0 ? totalExpenses * 0.045 : null)) / 100000000 || 0).toFixed(1),
                         ((safeStatements.損益計算書?.経常費用?.その他費用 || 
                           safeStatements.損益計算書?.その他費用 || 
-                          (totalExpenses > 0 ? totalExpenses * 0.08 : 2720000000)) / 100000000).toFixed(1)
+                          (totalExpenses > 0 ? totalExpenses * 0.08 : null)) / 100000000 || 0).toFixed(1)
                     ],
                     backgroundColor: [brilliantBlues[0], brilliantBlues[1], brilliantBlues[2], brilliantBlues[3], brilliantBlues[4]],
                     borderColor: [brilliantBlues[0], brilliantBlues[1], brilliantBlues[2], brilliantBlues[3], brilliantBlues[4]],
@@ -421,7 +421,7 @@ function generateHTMLReport(data) {
                 labels: processLabels(segmentLabels),
                 datasets: [{
                     label: '業務損益 (億円)',
-                    data: segmentValues.length > 0 && segmentValues.some(val => val !== 0) ? segmentValues : [3.5, -4.1, -0.9],
+                    data: segmentValues.length > 0 && segmentValues.some(val => val !== 0 && val !== null) ? segmentValues : [null, null, null],
                     backgroundColor: (context) => {
                         const value = context.dataset.data[context.dataIndex];
                         return value >= 0 ? brilliantBlues[1] : '#EF4444';
