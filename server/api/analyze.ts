@@ -738,7 +738,6 @@ ${combinedResult2}
 
     finalReport = removeMd(finalReport)
       .replace(/\n{3,}/g, '\n\n')
-      .replace(/^\s*[-*+]\s+/gm, '')
       .trim();
 
     console.log('Before citations:', finalReport.substring(0, 300) + '...');
