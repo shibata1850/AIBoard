@@ -305,149 +305,188 @@ function generateHTMLReport(data) {
             }
         };
 
-        new Chart(document.getElementById('assetChart'), {
-            type: 'doughnut',
-            data: {
-                labels: ['固定資産', '流動資産'],
-                datasets: [{
-                    label: '資産構成',
-                    data: [${fixedAssets.toFixed(1)}, ${currentAssets.toFixed(1)}],
-                    backgroundColor: [brilliantBlues[0], brilliantBlues[1]],
-                    borderColor: '#FFFFFF',
-                    borderWidth: 2
-                }]
-            },
-            options: defaultChartOptions
-        });
-
-        new Chart(document.getElementById('liabilityNetAssetChart'), {
-            type: 'doughnut',
-            data: {
-                labels: ['純資産', '負債'],
-                datasets: [{
-                    label: '負債・純資産構成',
-                    data: [${totalEquity.toFixed(1)}, ${totalLiabilities.toFixed(1)}],
-                    backgroundColor: [brilliantBlues[0], brilliantBlues[3]],
-                    borderColor: '#FFFFFF',
-                    borderWidth: 2
-                }]
-            },
-            options: defaultChartOptions
-        });
+        const assetData = [${fixedAssets.toFixed(1)}, ${currentAssets.toFixed(1)}];
+        const hasAssetData = assetData.some(val => val > 0);
         
-        new Chart(document.getElementById('revenueChart'), {
-            type: 'doughnut',
-            data: {
-                labels: processLabels(['附属病院収益', '運営費交付金収益', '学生納付金等収益', '受託研究等収益', 'その他']),
-                datasets: [{
-                    label: '経常収益 (億円)',
-                    data: [
-                        ((safeStatements.損益計算書?.経常収益?.附属病院収益 || 
-                          safeStatements.損益計算書?.附属病院収益 || 
-                          (totalRevenue > 0 ? totalRevenue * 0.5 : null)) / 100000000 || 0).toFixed(1),
-                        ((safeStatements.損益計算書?.経常収益?.運営費交付金収益 || 
-                          safeStatements.損益計算書?.運営費交付金収益 || 
-                          (totalRevenue > 0 ? totalRevenue * 0.28 : null)) / 100000000 || 0).toFixed(1),
-                        ((safeStatements.損益計算書?.経常収益?.学生納付金等収益 || 
-                          safeStatements.損益計算書?.学生納付金等収益 || 
-                          (totalRevenue > 0 ? totalRevenue * 0.08 : null)) / 100000000 || 0).toFixed(1),
-                        ((safeStatements.損益計算書?.経常収益?.受託研究等収益 || 
-                          safeStatements.損益計算書?.受託研究等収益 || 
-                          (totalRevenue > 0 ? totalRevenue * 0.05 : null)) / 100000000 || 0).toFixed(1),
-                        ((safeStatements.損益計算書?.経常収益?.その他収益 || 
-                          safeStatements.損益計算書?.その他収益 || 
-                          (totalRevenue > 0 ? totalRevenue * 0.09 : null)) / 100000000 || 0).toFixed(1)
-                    ],
-                    backgroundColor: [brilliantBlues[0], brilliantBlues[1], '#5DA9E9', '#84C0EF', brilliantBlues[4]],
-                    borderColor: '#FFFFFF',
-                    borderWidth: 2
-                }]
-            },
-            options: defaultChartOptions
-        });
-        
-        new Chart(document.getElementById('expenseChart'), {
-            type: 'bar',
-            data: {
-                labels: processLabels(['人件費', '診療経費', '教育経費', '研究経費', 'その他']),
-                datasets: [{
-                    label: '経常費用 (億円)',
-                    data: [
-                        ((safeStatements.損益計算書?.経常費用?.人件費 || 
-                          safeStatements.損益計算書?.人件費 || 
-                          (totalExpenses > 0 ? totalExpenses * 0.47 : null)) / 100000000 || 0).toFixed(1),
-                        ((safeStatements.損益計算書?.経常費用?.診療経費 || 
-                          safeStatements.損益計算書?.診療経費 || 
-                          (totalExpenses > 0 ? totalExpenses * 0.36 : null)) / 100000000 || 0).toFixed(1),
-                        ((safeStatements.損益計算書?.経常費用?.教育経費 || 
-                          safeStatements.損益計算書?.教育経費 || 
-                          (totalExpenses > 0 ? totalExpenses * 0.045 : null)) / 100000000 || 0).toFixed(1),
-                        ((safeStatements.損益計算書?.経常費用?.研究経費 || 
-                          safeStatements.損益計算書?.研究経費 || 
-                          (totalExpenses > 0 ? totalExpenses * 0.045 : null)) / 100000000 || 0).toFixed(1),
-                        ((safeStatements.損益計算書?.経常費用?.その他費用 || 
-                          safeStatements.損益計算書?.その他費用 || 
-                          (totalExpenses > 0 ? totalExpenses * 0.08 : null)) / 100000000 || 0).toFixed(1)
-                    ],
-                    backgroundColor: [brilliantBlues[0], brilliantBlues[1], brilliantBlues[2], brilliantBlues[3], brilliantBlues[4]],
-                    borderColor: [brilliantBlues[0], brilliantBlues[1], brilliantBlues[2], brilliantBlues[3], brilliantBlues[4]],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                ...defaultChartOptions,
-                indexAxis: 'y',
-                plugins: {
-                    ...defaultChartOptions.plugins,
-                    legend: {
-                        display: false
-                    }
+        if (hasAssetData) {
+            new Chart(document.getElementById('assetChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['固定資産', '流動資産'],
+                    datasets: [{
+                        label: '資産構成',
+                        data: assetData,
+                        backgroundColor: [brilliantBlues[0], brilliantBlues[1]],
+                        borderColor: '#FFFFFF',
+                        borderWidth: 2
+                    }]
                 },
-                scales: {
-                    x: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: '金額 (億円)'
-                        }
-                    }
-                }
-            }
-        });
+                options: defaultChartOptions
+            });
+        } else {
+            document.getElementById('assetChart').parentElement.innerHTML = 
+                '<div class="flex items-center justify-center h-full text-gray-500"><p>データが不足しています</p></div>';
+        }
 
-        new Chart(document.getElementById('segmentChart'), {
-            type: 'bar',
-            data: {
-                labels: processLabels(segmentLabels),
-                datasets: [{
-                    label: '業務損益 (億円)',
-                    data: segmentValues.length > 0 && segmentValues.some(val => val !== 0 && val !== null) ? segmentValues : [null, null, null],
-                    backgroundColor: (context) => {
-                        const value = context.dataset.data[context.dataIndex];
-                        return value >= 0 ? brilliantBlues[1] : '#EF4444';
-                    }
-                }]
-            },
-            options: {
-                ...defaultChartOptions,
-                indexAxis: 'y',
-                plugins: {
-                    ...defaultChartOptions.plugins,
-                    legend: {
-                        display: false
+        const liabilityData = [${totalEquity.toFixed(1)}, ${totalLiabilities.toFixed(1)}];
+        const hasLiabilityData = liabilityData.some(val => val > 0);
+        
+        if (hasLiabilityData) {
+            new Chart(document.getElementById('liabilityNetAssetChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['純資産', '負債'],
+                    datasets: [{
+                        label: '負債・純資産構成',
+                        data: liabilityData,
+                        backgroundColor: [brilliantBlues[0], brilliantBlues[3]],
+                        borderColor: '#FFFFFF',
+                        borderWidth: 2
+                    }]
+                },
+                options: defaultChartOptions
+            });
+        } else {
+            document.getElementById('liabilityNetAssetChart').parentElement.innerHTML = 
+                '<div class="flex items-center justify-center h-full text-gray-500"><p>データが不足しています</p></div>';
+        }
+        
+        const revenueData = [
+            ((safeStatements.損益計算書?.経常収益?.附属病院収益 || 
+              safeStatements.損益計算書?.附属病院収益 || 
+              (totalRevenue > 0 ? totalRevenue * 0.5 : null)) / 100000000 || 0),
+            ((safeStatements.損益計算書?.経常収益?.運営費交付金収益 || 
+              safeStatements.損益計算書?.運営費交付金収益 || 
+              (totalRevenue > 0 ? totalRevenue * 0.28 : null)) / 100000000 || 0),
+            ((safeStatements.損益計算書?.経常収益?.学生納付金等収益 || 
+              safeStatements.損益計算書?.学生納付金等収益 || 
+              (totalRevenue > 0 ? totalRevenue * 0.08 : null)) / 100000000 || 0),
+            ((safeStatements.損益計算書?.経常収益?.受託研究等収益 || 
+              safeStatements.損益計算書?.受託研究等収益 || 
+              (totalRevenue > 0 ? totalRevenue * 0.05 : null)) / 100000000 || 0),
+            ((safeStatements.損益計算書?.経常収益?.その他収益 || 
+              safeStatements.損益計算書?.その他収益 || 
+              (totalRevenue > 0 ? totalRevenue * 0.09 : null)) / 100000000 || 0)
+        ];
+        const hasRevenueData = revenueData.some(val => val > 0);
+        
+        if (hasRevenueData) {
+            new Chart(document.getElementById('revenueChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: processLabels(['附属病院収益', '運営費交付金収益', '学生納付金等収益', '受託研究等収益', 'その他']),
+                    datasets: [{
+                        label: '経常収益 (億円)',
+                        data: revenueData.map(val => val.toFixed(1)),
+                        backgroundColor: [brilliantBlues[0], brilliantBlues[1], '#5DA9E9', '#84C0EF', brilliantBlues[4]],
+                        borderColor: '#FFFFFF',
+                        borderWidth: 2
+                    }]
+                },
+                options: defaultChartOptions
+            });
+        } else {
+            document.getElementById('revenueChart').parentElement.innerHTML = 
+                '<div class="flex items-center justify-center h-full text-gray-500"><p>データが不足しています</p></div>';
+        }
+        
+        const expenseData = [
+            ((safeStatements.損益計算書?.経常費用?.人件費 || 
+              safeStatements.損益計算書?.人件費 || 
+              (totalExpenses > 0 ? totalExpenses * 0.47 : null)) / 100000000 || 0),
+            ((safeStatements.損益計算書?.経常費用?.診療経費 || 
+              safeStatements.損益計算書?.診療経費 || 
+              (totalExpenses > 0 ? totalExpenses * 0.36 : null)) / 100000000 || 0),
+            ((safeStatements.損益計算書?.経常費用?.教育経費 || 
+              safeStatements.損益計算書?.教育経費 || 
+              (totalExpenses > 0 ? totalExpenses * 0.045 : null)) / 100000000 || 0),
+            ((safeStatements.損益計算書?.経常費用?.研究経費 || 
+              safeStatements.損益計算書?.研究経費 || 
+              (totalExpenses > 0 ? totalExpenses * 0.045 : null)) / 100000000 || 0),
+            ((safeStatements.損益計算書?.経常費用?.その他費用 || 
+              safeStatements.損益計算書?.その他費用 || 
+              (totalExpenses > 0 ? totalExpenses * 0.08 : null)) / 100000000 || 0)
+        ];
+        const hasExpenseData = expenseData.some(val => val > 0);
+        
+        if (hasExpenseData) {
+            new Chart(document.getElementById('expenseChart'), {
+                type: 'bar',
+                data: {
+                    labels: processLabels(['人件費', '診療経費', '教育経費', '研究経費', 'その他']),
+                    datasets: [{
+                        label: '経常費用 (億円)',
+                        data: expenseData.map(val => val.toFixed(1)),
+                        backgroundColor: [brilliantBlues[0], brilliantBlues[1], brilliantBlues[2], brilliantBlues[3], brilliantBlues[4]],
+                        borderColor: [brilliantBlues[0], brilliantBlues[1], brilliantBlues[2], brilliantBlues[3], brilliantBlues[4]],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    ...defaultChartOptions,
+                    indexAxis: 'y',
+                    plugins: {
+                        ...defaultChartOptions.plugins,
+                        legend: {
+                            display: false
+                        }
                     },
-                },
-                scales: {
-                    x: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: '損益 (億円)'
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '金額 (億円)'
+                            }
                         }
                     }
                 }
-            }
-        });
+            });
+        } else {
+            document.getElementById('expenseChart').parentElement.innerHTML = 
+                '<div class="flex items-center justify-center h-full text-gray-500"><p>データが不足しています</p></div>';
+        }
+
+        const hasSegmentData = segmentValues.length > 0 && segmentValues.some(val => val !== 0 && val !== null && val !== '0');
+        
+        if (hasSegmentData) {
+            new Chart(document.getElementById('segmentChart'), {
+                type: 'bar',
+                data: {
+                    labels: processLabels(segmentLabels),
+                    datasets: [{
+                        label: '業務損益 (億円)',
+                        data: segmentValues,
+                        backgroundColor: (context) => {
+                            const value = parseFloat(context.dataset.data[context.dataIndex]);
+                            return value >= 0 ? brilliantBlues[1] : '#EF4444';
+                        }
+                    }]
+                },
+                options: {
+                    ...defaultChartOptions,
+                    indexAxis: 'y',
+                    plugins: {
+                        ...defaultChartOptions.plugins,
+                        legend: {
+                            display: false
+                        },
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '損益 (億円)'
+                            }
+                        }
+                    }
+                }
+            });
+        } else {
+            document.getElementById('segmentChart').parentElement.innerHTML = 
+                '<div class="flex items-center justify-center h-full text-gray-500"><p>データが不足しています</p></div>';
+        }
     </script>
 </body>
 </html>`;
