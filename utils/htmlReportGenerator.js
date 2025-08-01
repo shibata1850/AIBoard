@@ -342,6 +342,12 @@ function generateHTMLReport(data) {
             options: defaultChartOptions
         });
         
+        const safeStatements = ${JSON.stringify(safeStatements)};
+        const totalRevenue = ${totalRevenue};
+        const totalExpenses = ${totalExpenses};
+        const segmentLabels = ${JSON.stringify(segmentLabels)};
+        const segmentValues = ${JSON.stringify(segmentValues)};
+
         new Chart(document.getElementById('revenueChart'), {
             type: 'doughnut',
             data: {
